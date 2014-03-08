@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: protoparser-2.3.5">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup/protoparser/2.3.5/e780f30f900ff31e95c06975735d7351c805cb8/protoparser-2.3.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup/protoparser/2.3.5/6b59af9a367aafddb376db4e75a7c52662b17827/protoparser-2.3.5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
