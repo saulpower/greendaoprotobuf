@@ -170,12 +170,13 @@ public class GreenCompiler {
 
     private void addEnum(Entity entity, EnumType type) {
 
-        List<EnumType.Value> values = type.getValues();
-        for (int i = 0, count = values.size(); i < count; i++) {
-            EnumType.Value value = values.get(i);
-            entity.
-            value.getName() + "(" + value.getTag() + ")", (i == count - 1));
-        }
+        entity.addIntProperty(type.getName());
+//        List<EnumType.Value> values = type.getValues();
+//        for (int i = 0, count = values.size(); i < count; i++) {
+//            EnumType.Value value = values.get(i);
+//            entity.addIntProperty(value.getName());
+//            value.getName() + "(" + value.getTag() + ")", (i == count - 1));
+//        }
     }
 
     private void addRelationship(Entity entity, MessageType.Field field) {
