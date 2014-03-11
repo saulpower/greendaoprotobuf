@@ -10,12 +10,10 @@ import de.greenrobot.dao.identityscope.IdentityScopeType;
 import de.greenrobot.dao.internal.DaoConfig;
 
 import com.example.tutorial.Person;
-import com.example.tutorial.PhoneType;
 import com.example.tutorial.PhoneNumber;
 import com.example.tutorial.AddressBook;
 
 import com.example.tutorial.PersonDao;
-import com.example.tutorial.PhoneTypeDao;
 import com.example.tutorial.PhoneNumberDao;
 import com.example.tutorial.AddressBookDao;
 
@@ -29,12 +27,10 @@ import com.example.tutorial.AddressBookDao;
 public class DaoSession extends AbstractDaoSession {
 
     private final DaoConfig personDaoConfig;
-    private final DaoConfig phoneTypeDaoConfig;
     private final DaoConfig phoneNumberDaoConfig;
     private final DaoConfig addressBookDaoConfig;
 
     private final PersonDao personDao;
-    private final PhoneTypeDao phoneTypeDao;
     private final PhoneNumberDao phoneNumberDao;
     private final AddressBookDao addressBookDao;
 
@@ -45,9 +41,6 @@ public class DaoSession extends AbstractDaoSession {
         personDaoConfig = daoConfigMap.get(PersonDao.class).clone();
         personDaoConfig.initIdentityScope(type);
 
-        phoneTypeDaoConfig = daoConfigMap.get(PhoneTypeDao.class).clone();
-        phoneTypeDaoConfig.initIdentityScope(type);
-
         phoneNumberDaoConfig = daoConfigMap.get(PhoneNumberDao.class).clone();
         phoneNumberDaoConfig.initIdentityScope(type);
 
@@ -55,29 +48,22 @@ public class DaoSession extends AbstractDaoSession {
         addressBookDaoConfig.initIdentityScope(type);
 
         personDao = new PersonDao(personDaoConfig, this);
-        phoneTypeDao = new PhoneTypeDao(phoneTypeDaoConfig, this);
         phoneNumberDao = new PhoneNumberDao(phoneNumberDaoConfig, this);
         addressBookDao = new AddressBookDao(addressBookDaoConfig, this);
 
         registerDao(Person.class, personDao);
-        registerDao(PhoneType.class, phoneTypeDao);
         registerDao(PhoneNumber.class, phoneNumberDao);
         registerDao(AddressBook.class, addressBookDao);
     }
     
     public void clear() {
         personDaoConfig.getIdentityScope().clear();
-        phoneTypeDaoConfig.getIdentityScope().clear();
         phoneNumberDaoConfig.getIdentityScope().clear();
         addressBookDaoConfig.getIdentityScope().clear();
     }
 
     public PersonDao getPersonDao() {
         return personDao;
-    }
-
-    public PhoneTypeDao getPhoneTypeDao() {
-        return phoneTypeDao;
     }
 
     public PhoneNumberDao getPhoneNumberDao() {

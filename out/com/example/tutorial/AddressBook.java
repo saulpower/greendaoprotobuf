@@ -19,6 +19,9 @@ public class AddressBook {
     /** Used for active entity operations. */
     private transient AddressBookDao myDao;
 
+    private Person addressBook;
+    private Long addressBook__resolvedKey;
+
     private List<Person> people;
 
     public AddressBook() {
@@ -53,6 +56,31 @@ public class AddressBook {
 
     public void setPersonId(Long personId) {
         this.personId = personId;
+    }
+
+    /** To-one relationship, resolved on first access. */
+    public Person getAddressBook() {
+        Long __key = this.personId;
+        if (addressBook__resolvedKey == null || !addressBook__resolvedKey.equals(__key)) {
+            if (daoSession == null) {
+                throw new DaoException("Entity is detached from DAO context");
+            }
+            PersonDao targetDao = daoSession.getPersonDao();
+            Person addressBookNew = targetDao.load(__key);
+            synchronized (this) {
+                addressBook = addressBookNew;
+            	addressBook__resolvedKey = __key;
+            }
+        }
+        return addressBook;
+    }
+
+    public void setAddressBook(Person addressBook) {
+        synchronized (this) {
+            this.addressBook = addressBook;
+            personId = addressBook == null ? null : addressBook.getId();
+            addressBook__resolvedKey = personId;
+        }
     }
 
     /** To-many relationship, resolved on first access (and after reset). Changes to to-many relations are not persisted, make changes to the target entity. */

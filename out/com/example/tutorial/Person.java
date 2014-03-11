@@ -1,6 +1,10 @@
 package com.example.tutorial;
 
 import java.util.List;
+import de.greenrobot.dao.DaoEnum;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.example.tutorial.DaoSession;
 import de.greenrobot.dao.DaoException;
 
@@ -20,9 +24,6 @@ public class Person {
 
     /** Used for active entity operations. */
     private transient PersonDao myDao;
-
-    private AddressBook addressBook;
-    private Long addressBook__resolvedKey;
 
     private List<PhoneNumber> phoneNumbers;
 
@@ -78,28 +79,33 @@ public class Person {
         this.addressBookId = addressBookId;
     }
 
-    /** To-one relationship, resolved on first access. */
-    public AddressBook getAddressBook() {
-        Long __key = this.personId;
-        if (addressBook__resolvedKey == null || !addressBook__resolvedKey.equals(__key)) {
-            if (daoSession == null) {
-                throw new DaoException("Entity is detached from DAO context");
-            }
-            AddressBookDao targetDao = daoSession.getAddressBookDao();
-            AddressBook addressBookNew = targetDao.load(__key);
-            synchronized (this) {
-                addressBook = addressBookNew;
-            	addressBook__resolvedKey = __key;
+    public enum PhoneType implements DaoEnum {
+        MOBILE(0),
+        HOME(1),
+        WORK(2);
+
+        private static final Map<Long, PhoneType> intToTypeMap = new HashMap<Long, PhoneType>();
+
+        static {
+            for (PhoneType type : PhoneType.values()) {
+                intToTypeMap.put(type.value, type);
             }
         }
-        return addressBook;
-    }
 
-    public void setAddressBook(AddressBook addressBook) {
-        synchronized (this) {
-            this.addressBook = addressBook;
-            personId = addressBook == null ? null : addressBook.getId();
-            addressBook__resolvedKey = personId;
+        public static PhoneType fromInt(long i) {
+            PhoneType type = intToTypeMap.get(Long.valueOf(i));
+            return type;
+        }
+
+        private final long value;
+
+        private PhoneType(long value) {
+            this.value = value;
+        }
+
+        @Override
+        public long getValue() {
+            return value;
         }
     }
 

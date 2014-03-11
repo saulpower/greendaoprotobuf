@@ -21,6 +21,7 @@ public class GreenCompiler {
     private final String outputDirectory;
 
     private Map<String, Entity> entities = new HashMap<String, Entity>();
+    private Map<String, EntityEnum> enums = new HashMap<String, EntityEnum>();
     private Schema schema;
     private int version = 1;
 
@@ -113,20 +114,24 @@ public class GreenCompiler {
     }
 
     private void compileOne(ProtoFile protoFile) {
+        addType(protoFile.getTypes(), null);
+    }
 
-        for (Type type : protoFile.getTypes()) {
+    private void addType(List<Type> types, Type parent) {
+
+        for (Type type : types) {
 
             String name = type.getName();
             Entity entity = entities.get(name);
 
             if (type instanceof MessageType) {
-
                 addProperties((MessageType) type, entity);
-
             } else if (type instanceof EnumType) {
-
-                addEnum(entity, (EnumType) type);
+                if (entity == null) entity = entities.get(parent.getName());
+                addEnum((EnumType) type, entity);
             }
+
+            addType(type.getNestedTypes(), type);
         }
     }
 
@@ -137,6 +142,8 @@ public class GreenCompiler {
             String fieldType = field.getType();
             if (TypeInfo.isScalar(fieldType)) {
                 addField(entity, field);
+            } else if (enums.containsKey(fieldType)) {
+                addEnumProperty(entity, field);
             } else {
                 addRelationship(entity, field);
             }
@@ -168,15 +175,26 @@ public class GreenCompiler {
         }
     }
 
-    private void addEnum(Entity entity, EnumType type) {
+    private void addEnum(EnumType type, Entity entity) {
 
-        entity.addIntProperty(type.getName());
-//        List<EnumType.Value> values = type.getValues();
-//        for (int i = 0, count = values.size(); i < count; i++) {
-//            EnumType.Value value = values.get(i);
-//            entity.addIntProperty(value.getName());
-//            value.getName() + "(" + value.getTag() + ")", (i == count - 1));
-//        }
+        ArrayList<EntityEnum.Value> enumValues = new ArrayList<EntityEnum.Value>();
+
+        List<EnumType.Value> values = type.getValues();
+        for (int i = 0, count = values.size(); i < count; i++) {
+            EnumType.Value value = values.get(i);
+            enumValues.add(new EntityEnum.Value(value.getName(), value.getTag()));
+        }
+
+        EntityEnum entityEnum = entity.addEnum(type.getName(), enumValues);
+
+        enums.put(type.getName(), entityEnum);
+    }
+
+    private void addEnumProperty(Entity entity, MessageType.Field field) {
+
+        String name = field.getType();
+
+        entity.addEnumProperty(enums.get(name), field.getName());
     }
 
     private void addRelationship(Entity entity, MessageType.Field field) {
@@ -186,13 +204,13 @@ public class GreenCompiler {
 
         if (FieldInfo.isRepeated(field)) {
 
-            Property foreignEntityId = foreignEntity.addLongProperty(firstToLowercase(entity.getClassName()) + "Id").notNull().getProperty();
-            entity.addToMany(foreignEntity, foreignEntityId, field.getName());
+            Property entityId = foreignEntity.addLongProperty(firstToLowercase(entity.getClassName()) + "Id").notNull().getProperty();
+            entity.addToMany(foreignEntity, entityId, field.getName());
 
         } else {
 
-            Property foreignEntityId = foreignEntity.addLongProperty(firstToLowercase(entity.getClassName()) + "Id").getProperty();
-            entity.addToOne(foreignEntity, foreignEntityId, field.getName());
+            Property entityId = foreignEntity.addLongProperty(firstToLowercase(entity.getClassName()) + "Id").getProperty();
+            foreignEntity.addToOne(entity, entityId, field.getName());
         }
     }
 
@@ -218,6 +236,9 @@ public class GreenCompiler {
 
     private void addEntities(List<Type> types) {
         for (Type type : types) {
+
+            if (type instanceof EnumType) continue;
+
             final String name = type.getName();
 
             if (!schema.getEntities().contains(name)) {
