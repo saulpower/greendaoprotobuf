@@ -2,6 +2,7 @@ import com.squareup.protoparser.*;
 import de.greenrobot.daogenerator.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -20,6 +21,7 @@ public class GreenCompiler {
     private final IO io;
     private final String outputDirectory;
 
+    Map<String, ProtoFile> parsedFiles = new LinkedHashMap<String, ProtoFile>();
     private Map<String, Entity> entities = new HashMap<String, Entity>();
     private Map<String, EntityEnum> enums = new HashMap<String, EntityEnum>();
     private Schema schema;
@@ -81,15 +83,13 @@ public class GreenCompiler {
 
     public void compile() throws Exception {
 
-        Map<String, ProtoFile> parsedFiles = new LinkedHashMap<String, ProtoFile>();
-
         String packageName = null;
 
         // Gather all proto files
         for (String sourceFilename : sourceFileNames) {
-            String sourcePath = protoPath + File.separator + sourceFilename;
+            String sourcePath = sourceFilename;
             ProtoFile protoFile = io.parse(sourcePath);
-            parsedFiles.put(sourcePath, protoFile);
+            parsedFiles.put(protoFile.getFileName(), protoFile);
 
             if (packageName == null) initializeSchema(version, protoFile.getJavaPackage());
 
@@ -121,17 +121,21 @@ public class GreenCompiler {
 
         for (Type type : types) {
 
+            addType(type.getNestedTypes(), type);
+
             String name = type.getName();
             Entity entity = entities.get(name);
 
             if (type instanceof MessageType) {
                 addProperties((MessageType) type, entity);
             } else if (type instanceof EnumType) {
-                if (entity == null) entity = entities.get(parent.getName());
-                addEnum((EnumType) type, entity);
+                if (entity == null && parent != null) {
+                    entity = entities.get(parent.getName());
+                    addEnum((EnumType) type, entity);
+                } else {
+                    System.out.println("Could not get entity: " + name);
+                }
             }
-
-            addType(type.getNestedTypes(), type);
         }
     }
 
@@ -152,24 +156,24 @@ public class GreenCompiler {
 
     private void addField(Entity entity, MessageType.Field field) {
 
-        if (field.getName().equals("id")) return;
+        if (field.getName().equalsIgnoreCase("id")) return;
 
         String scalarType = TypeInfo.scalarType(field.getType());
 
         if (scalarType.equals(TypeInfo.INTEGER)) {
-            entity.addIntProperty(field.getName());
+            entity.addIntProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.LONG)) {
-            entity.addLongProperty(field.getName());
+            entity.addLongProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.BOOLEAN)) {
-            entity.addBooleanProperty(field.getName());
+            entity.addBooleanProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.DOUBLE)) {
-            entity.addDoubleProperty(field.getName());
+            entity.addDoubleProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.FLOAT)) {
-            entity.addFloatProperty(field.getName());
+            entity.addFloatProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.BYTE_STRING)) {
-            entity.addByteArrayProperty(field.getName());
+            entity.addByteArrayProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.STRING)) {
-            entity.addStringProperty(field.getName());
+            entity.addStringProperty(firstToLowercase(field.getName()));
         } else {
             throw new GreenCompilerException("No field type for " + scalarType);
         }
@@ -194,7 +198,7 @@ public class GreenCompiler {
 
         String name = field.getType();
 
-        entity.addEnumProperty(enums.get(name), field.getName());
+        entity.addEnumProperty(enums.get(name), firstToLowercase(field.getName()));
     }
 
     private void addRelationship(Entity entity, MessageType.Field field) {
@@ -202,15 +206,19 @@ public class GreenCompiler {
         String entityType = field.getType();
         Entity foreignEntity = entities.get(entityType);
 
+        if (foreignEntity == null || entity == null) {
+            System.out.println("can't find something");
+        }
+
         if (FieldInfo.isRepeated(field)) {
 
             Property entityId = foreignEntity.addLongProperty(firstToLowercase(entity.getClassName()) + "Id").notNull().getProperty();
-            entity.addToMany(foreignEntity, entityId, field.getName());
+            entity.addToMany(foreignEntity, entityId, firstToLowercase(field.getName()));
 
         } else {
 
-            Property entityId = foreignEntity.addLongProperty(firstToLowercase(entity.getClassName()) + "Id").getProperty();
-            foreignEntity.addToOne(entity, entityId, field.getName());
+            Property foreignEntityId = entity.addLongProperty(firstToLowercase(foreignEntity.getClassName()) + "Id").notNull().getProperty();
+            entity.addToOne(foreignEntity, foreignEntityId, firstToLowercase(field.getName()));
         }
     }
 
@@ -224,10 +232,17 @@ public class GreenCompiler {
         // Load symbols from imports
         for (String dependency : protoFile.getDependencies()) {
             if (!loadedDependencies.contains(dependency)) {
-                String dep = protoPath + File.separator + dependency;
-                ProtoFile dependencyFile = io.parse(dep);
-                loadEntitiesHelper(dependencyFile, loadedDependencies);
                 loadedDependencies.add(dependency);
+                String dep = protoPath + File.separator + dependency;
+                ProtoFile dependencyFile;
+                try {
+                    dependencyFile = io.parse(dep);
+                    if (!parsedFiles.containsKey(dep)) parsedFiles.put(dep, dependencyFile);
+                } catch (FileNotFoundException ex) {
+                    System.out.println("Missing: " + dependency);
+                    continue;
+                }
+                loadEntitiesHelper(dependencyFile, loadedDependencies);
             }
         }
 
@@ -237,11 +252,13 @@ public class GreenCompiler {
     private void addEntities(List<Type> types) {
         for (Type type : types) {
 
-            if (type instanceof EnumType) continue;
+            if (type instanceof EnumType) {
+                continue;
+            }
 
             final String name = type.getName();
 
-            if (!schema.getEntities().contains(name)) {
+            if (!entities.containsKey(name)) {
                 Entity entity = schema.addEntity(name);
                 entity.addIdProperty();
                 entities.put(name, entity);
