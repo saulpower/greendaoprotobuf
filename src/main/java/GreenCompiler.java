@@ -91,9 +91,11 @@ public class GreenCompiler {
             ProtoFile protoFile = io.parse(sourcePath);
             parsedFiles.put(protoFile.getFileName(), protoFile);
 
+            // Initialize GreenDao schema based on first protofile's package
             if (packageName == null) initializeSchema(version, protoFile.getJavaPackage());
 
-            // Add all entities to our schema
+            // Preload all entities to our schema to facilitate
+            // relationship creation
             loadEntities(protoFile);
         }
 
@@ -114,27 +116,20 @@ public class GreenCompiler {
     }
 
     private void compileOne(ProtoFile protoFile) {
-        addType(protoFile.getTypes(), null);
+        addType(protoFile.getTypes());
     }
 
-    private void addType(List<Type> types, Type parent) {
+    private void addType(List<Type> types) {
 
         for (Type type : types) {
 
-            addType(type.getNestedTypes(), type);
+            addType(type.getNestedTypes());
 
             String name = type.getName();
             Entity entity = entities.get(name);
 
             if (type instanceof MessageType) {
                 addProperties((MessageType) type, entity);
-            } else if (type instanceof EnumType) {
-                if (entity == null && parent != null) {
-                    entity = entities.get(parent.getName());
-                    addEnum((EnumType) type, entity);
-                } else {
-                    System.out.println("Could not get entity: " + name);
-                }
             }
         }
     }
@@ -144,6 +139,12 @@ public class GreenCompiler {
         for (MessageType.Field field : type.getFields()) {
 
             String fieldType = field.getType();
+
+            if (fieldType.contains(".")) {
+                String[] fq = fieldType.split("\\.");
+                fieldType = fq[fq.length - 1];
+            }
+
             if (TypeInfo.isScalar(fieldType)) {
                 addField(entity, field);
             } else if (enums.containsKey(fieldType)) {
@@ -179,24 +180,14 @@ public class GreenCompiler {
         }
     }
 
-    private void addEnum(EnumType type, Entity entity) {
-
-        ArrayList<EntityEnum.Value> enumValues = new ArrayList<EntityEnum.Value>();
-
-        List<EnumType.Value> values = type.getValues();
-        for (int i = 0, count = values.size(); i < count; i++) {
-            EnumType.Value value = values.get(i);
-            enumValues.add(new EntityEnum.Value(value.getName(), value.getTag()));
-        }
-
-        EntityEnum entityEnum = entity.addEnum(type.getName(), enumValues);
-
-        enums.put(type.getName(), entityEnum);
-    }
-
     private void addEnumProperty(Entity entity, MessageType.Field field) {
 
         String name = field.getType();
+
+        if (name.contains(".")) {
+            String[] fq = name.split("\\.");
+            name = fq[fq.length - 1];
+        }
 
         entity.addEnumProperty(enums.get(name), firstToLowercase(field.getName()));
     }
@@ -207,7 +198,7 @@ public class GreenCompiler {
         Entity foreignEntity = entities.get(entityType);
 
         if (foreignEntity == null || entity == null) {
-            System.out.println("can't find something");
+            throw new NullPointerException("Cannot create a relationship with a null entity/foreign entity");
         }
 
         if (FieldInfo.isRepeated(field)) {
@@ -246,26 +237,55 @@ public class GreenCompiler {
             }
         }
 
-        addEntities(protoFile.getTypes());
+        addEntities(protoFile.getTypes(), null);
     }
 
-    private void addEntities(List<Type> types) {
-        for (Type type : types) {
+    private void addEntities(List<Type> types, Entity parent) {
 
-            if (type instanceof EnumType) {
-                continue;
-            }
+        for (Type type : types) {
 
             final String name = type.getName();
 
-            if (!entities.containsKey(name)) {
-                Entity entity = schema.addEntity(name);
-                entity.addIdProperty();
-                entities.put(name, entity);
-            }
+            if (!entities.containsKey(name) && !enums.containsKey(name)) {
+                Entity entity = null;
+                if (type instanceof EnumType) {
+                    if (parent == null)
+                        parent = schema.addEnumEntity(name);
+                    EntityEnum entityEnum = addEnum((EnumType) type, parent);
+                    enums.put(name, entityEnum);
+                } else {
+                    entity = schema.addEntity(name);
+                    entity.addIdProperty();
+                    entities.put(name, entity);
+                }
 
-            addEntities(type.getNestedTypes());
+                addEntities(type.getNestedTypes(), entity);
+            }
         }
+    }
+
+    private EntityEnum addEnum(EnumType type, Entity entity) {
+
+        ArrayList<EntityEnum.Value> enumValues = new ArrayList<EntityEnum.Value>();
+
+        List<EnumType.Value> values = type.getValues();
+        for (int i = 0, count = values.size(); i < count; i++) {
+            EnumType.Value value = values.get(i);
+            enumValues.add(new EntityEnum.Value(value.getName(), value.getTag()));
+        }
+
+        EntityEnum entityEnum;
+
+        if (entity != null && entity instanceof EnumEntity) {
+            EnumEntity enumEntity = (EnumEntity) entity;
+            enumEntity.setValues(enumValues);
+            entityEnum = enumEntity.getEntityEnum();
+        } else {
+            entityEnum = entity.addEnum(type.getName(), enumValues);
+            enums.put(type.getName(), entityEnum);
+        }
+
+        return entityEnum;
     }
 
     private String firstToLowercase(String s) {
