@@ -203,12 +203,12 @@ public class GreenCompiler {
 
         if (FieldInfo.isRepeated(field)) {
 
-            Property entityId = foreignEntity.addLongProperty(firstToLowercase(entity.getClassName()) + "Id").notNull().getProperty();
+            Property entityId = foreignEntity.addLongProperty(firstToLowercase(field.getName()) + entity.getClassName() + "Id").markTransient().notNull().getProperty();
             entity.addToMany(foreignEntity, entityId, firstToLowercase(field.getName()));
 
         } else {
 
-            Property foreignEntityId = entity.addLongProperty(firstToLowercase(foreignEntity.getClassName()) + "Id").notNull().getProperty();
+            Property foreignEntityId = entity.addLongProperty(firstToLowercase(field.getName()) + foreignEntity.getClassName() + "Id").markTransient().notNull().getProperty();
             entity.addToOne(foreignEntity, foreignEntityId, firstToLowercase(field.getName()));
         }
     }
