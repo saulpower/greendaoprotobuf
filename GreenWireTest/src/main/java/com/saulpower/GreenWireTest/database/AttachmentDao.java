@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -37,25 +39,33 @@ public class AttachmentDao extends AbstractDao<Attachment, Long> {
         public final static Property AttachmentsLedgerItemId = new Property(6, long.class, "attachmentsLedgerItemId", false, "ATTACHMENTS_LEDGER_ITEM_ID");
         public final static Property TenantID = new Property(7, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(8, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(9, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDeleted = new Property(10, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(11, Integer.class, "version", false, "VERSION");
-        public final static Property AttachmentsIdentificationId = new Property(12, long.class, "attachmentsIdentificationId", false, "ATTACHMENTS_IDENTIFICATION_ID");
-        public final static Property AttachmentsStudentId = new Property(13, long.class, "attachmentsStudentId", false, "ATTACHMENTS_STUDENT_ID");
-        public final static Property Id = new Property(14, Long.class, "id", true, "_id");
-        public final static Property MimeType = new Property(15, String.class, "mimeType", false, "MIME_TYPE");
-        public final static Property DateCreated = new Property(16, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property AttachmentsPersonId = new Property(17, long.class, "attachmentsPersonId", false, "ATTACHMENTS_PERSON_ID");
-        public final static Property Notes = new Property(18, String.class, "notes", false, "NOTES");
+        public final static Property AttachmentsGuardianId = new Property(9, long.class, "attachmentsGuardianId", false, "ATTACHMENTS_GUARDIAN_ID");
+        public final static Property DateLastModified = new Property(10, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(11, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(13, Integer.class, "version", false, "VERSION");
+        public final static Property AttachmentsStudentId = new Property(14, long.class, "attachmentsStudentId", false, "ATTACHMENTS_STUDENT_ID");
+        public final static Property AttachmentsIdentificationId = new Property(15, long.class, "attachmentsIdentificationId", false, "ATTACHMENTS_IDENTIFICATION_ID");
+        public final static Property Id = new Property(16, Long.class, "id", true, "_id");
+        public final static Property MimeType = new Property(17, String.class, "mimeType", false, "MIME_TYPE");
+        public final static Property DateCreated = new Property(18, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property AttachmentsPersonId = new Property(19, long.class, "attachmentsPersonId", false, "ATTACHMENTS_PERSON_ID");
+        public final static Property Notes = new Property(20, String.class, "notes", false, "NOTES");
     };
 
     private DaoSession daoSession;
 
-    private Query<Attachment> student_AttachmentsQuery;
-    private Query<Attachment> ledgerItem_AttachmentsQuery;
     private Query<Attachment> person_AttachmentsQuery;
+
     private Query<Attachment> identification_AttachmentsQuery;
+
+    private Query<Attachment> student_AttachmentsQuery;
+
+    private Query<Attachment> ledgerItem_AttachmentsQuery;
+
     private Query<Attachment> journalEntry_AttachmentsQuery;
+
+    private Query<Attachment> guardian_AttachmentsQuery;
 
     public AttachmentDao(DaoConfig config) {
         super(config);
@@ -79,16 +89,18 @@ public class AttachmentDao extends AbstractDao<Attachment, Long> {
                 "'ATTACHMENTS_LEDGER_ITEM_ID' INTEGER NOT NULL ," + // 6: attachmentsLedgerItemId
                 "'TENANT_ID' INTEGER," + // 7: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 8: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 9: dateLastModified
-                "'IS_DELETED' INTEGER," + // 10: isDeleted
-                "'VERSION' INTEGER," + // 11: version
-                "'ATTACHMENTS_IDENTIFICATION_ID' INTEGER NOT NULL ," + // 12: attachmentsIdentificationId
-                "'ATTACHMENTS_STUDENT_ID' INTEGER NOT NULL ," + // 13: attachmentsStudentId
-                "'_id' INTEGER PRIMARY KEY ," + // 14: id
-                "'MIME_TYPE' TEXT," + // 15: mimeType
-                "'DATE_CREATED' INTEGER," + // 16: dateCreated
-                "'ATTACHMENTS_PERSON_ID' INTEGER NOT NULL ," + // 17: attachmentsPersonId
-                "'NOTES' TEXT);"); // 18: notes
+                "'ATTACHMENTS_GUARDIAN_ID' INTEGER NOT NULL ," + // 9: attachmentsGuardianId
+                "'DATE_LAST_MODIFIED' TEXT," + // 10: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 11: syncBaseId
+                "'IS_DELETED' INTEGER," + // 12: isDeleted
+                "'VERSION' INTEGER," + // 13: version
+                "'ATTACHMENTS_STUDENT_ID' INTEGER NOT NULL ," + // 14: attachmentsStudentId
+                "'ATTACHMENTS_IDENTIFICATION_ID' INTEGER NOT NULL ," + // 15: attachmentsIdentificationId
+                "'_id' INTEGER PRIMARY KEY ," + // 16: id
+                "'MIME_TYPE' TEXT," + // 17: mimeType
+                "'DATE_CREATED' TEXT," + // 18: dateCreated
+                "'ATTACHMENTS_PERSON_ID' INTEGER NOT NULL ," + // 19: attachmentsPersonId
+                "'NOTES' TEXT);"); // 20: notes
     }
 
     /** Drops the underlying database table. */
@@ -134,43 +146,49 @@ public class AttachmentDao extends AbstractDao<Attachment, Long> {
             stmt.bindLong(8, tenantID);
         }
         stmt.bindLong(9, entity.getSaveResultSaveResultId());
+        stmt.bindLong(10, entity.getAttachmentsGuardianId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(10, dateLastModified);
+            stmt.bindString(11, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(12, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(11, isDeleted ? 1l: 0l);
+            stmt.bindLong(13, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(12, version);
+            stmt.bindLong(14, version);
         }
-        stmt.bindLong(13, entity.getAttachmentsIdentificationId());
-        stmt.bindLong(14, entity.getAttachmentsStudentId());
+        stmt.bindLong(15, entity.getAttachmentsStudentId());
+        stmt.bindLong(16, entity.getAttachmentsIdentificationId());
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(15, id);
+            stmt.bindLong(17, id);
         }
  
         String mimeType = entity.getMimeType();
         if (mimeType != null) {
-            stmt.bindString(16, mimeType);
+            stmt.bindString(18, mimeType);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(17, dateCreated);
+            stmt.bindString(19, dateCreated);
         }
-        stmt.bindLong(18, entity.getAttachmentsPersonId());
+        stmt.bindLong(20, entity.getAttachmentsPersonId());
  
         String notes = entity.getNotes();
         if (notes != null) {
-            stmt.bindString(19, notes);
+            stmt.bindString(21, notes);
         }
     }
 
@@ -183,7 +201,7 @@ public class AttachmentDao extends AbstractDao<Attachment, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14);
+        return cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16);
     }    
 
     /** @inheritdoc */
@@ -199,16 +217,18 @@ public class AttachmentDao extends AbstractDao<Attachment, Long> {
             cursor.getLong(offset + 6), // attachmentsLedgerItemId
             cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // tenantID
             cursor.getLong(offset + 8), // saveResultSaveResultId
-            cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // dateLastModified
-            cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0, // isDeleted
-            cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11), // version
-            cursor.getLong(offset + 12), // attachmentsIdentificationId
-            cursor.getLong(offset + 13), // attachmentsStudentId
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // id
-            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // mimeType
-            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // dateCreated
-            cursor.getLong(offset + 17), // attachmentsPersonId
-            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18) // notes
+            cursor.getLong(offset + 9), // attachmentsGuardianId
+            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // dateLastModified
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // syncBaseId
+            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
+            cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13), // version
+            cursor.getLong(offset + 14), // attachmentsStudentId
+            cursor.getLong(offset + 15), // attachmentsIdentificationId
+            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // id
+            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // mimeType
+            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18), // dateCreated
+            cursor.getLong(offset + 19), // attachmentsPersonId
+            cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20) // notes
         );
         return entity;
     }
@@ -225,16 +245,18 @@ public class AttachmentDao extends AbstractDao<Attachment, Long> {
         entity.setAttachmentsLedgerItemId(cursor.getLong(offset + 6));
         entity.setTenantID(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 8));
-        entity.setDateLastModified(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
-        entity.setIsDeleted(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
-        entity.setVersion(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
-        entity.setAttachmentsIdentificationId(cursor.getLong(offset + 12));
-        entity.setAttachmentsStudentId(cursor.getLong(offset + 13));
-        entity.setId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
-        entity.setMimeType(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
-        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
-        entity.setAttachmentsPersonId(cursor.getLong(offset + 17));
-        entity.setNotes(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
+        entity.setAttachmentsGuardianId(cursor.getLong(offset + 9));
+        entity.setDateLastModified(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
+        entity.setSyncBaseId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
+        entity.setVersion(cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13));
+        entity.setAttachmentsStudentId(cursor.getLong(offset + 14));
+        entity.setAttachmentsIdentificationId(cursor.getLong(offset + 15));
+        entity.setId(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
+        entity.setMimeType(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
+        entity.setDateCreated(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
+        entity.setAttachmentsPersonId(cursor.getLong(offset + 19));
+        entity.setNotes(cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20));
      }
     
     /** @inheritdoc */
@@ -260,34 +282,6 @@ public class AttachmentDao extends AbstractDao<Attachment, Long> {
         return true;
     }
     
-    /** Internal query to resolve the "attachments" to-many relationship of Student. */
-    public List<Attachment> _queryStudent_Attachments(long attachmentsStudentId) {
-        synchronized (this) {
-            if (student_AttachmentsQuery == null) {
-                QueryBuilder<Attachment> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.AttachmentsStudentId.eq(null));
-                student_AttachmentsQuery = queryBuilder.build();
-            }
-        }
-        Query<Attachment> query = student_AttachmentsQuery.forCurrentThread();
-        query.setParameter(0, attachmentsStudentId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "attachments" to-many relationship of LedgerItem. */
-    public List<Attachment> _queryLedgerItem_Attachments(long attachmentsLedgerItemId) {
-        synchronized (this) {
-            if (ledgerItem_AttachmentsQuery == null) {
-                QueryBuilder<Attachment> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.AttachmentsLedgerItemId.eq(null));
-                ledgerItem_AttachmentsQuery = queryBuilder.build();
-            }
-        }
-        Query<Attachment> query = ledgerItem_AttachmentsQuery.forCurrentThread();
-        query.setParameter(0, attachmentsLedgerItemId);
-        return query.list();
-    }
-
     /** Internal query to resolve the "attachments" to-many relationship of Person. */
     public List<Attachment> _queryPerson_Attachments(long attachmentsPersonId) {
         synchronized (this) {
@@ -316,6 +310,34 @@ public class AttachmentDao extends AbstractDao<Attachment, Long> {
         return query.list();
     }
 
+    /** Internal query to resolve the "attachments" to-many relationship of Student. */
+    public List<Attachment> _queryStudent_Attachments(long attachmentsStudentId) {
+        synchronized (this) {
+            if (student_AttachmentsQuery == null) {
+                QueryBuilder<Attachment> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.AttachmentsStudentId.eq(null));
+                student_AttachmentsQuery = queryBuilder.build();
+            }
+        }
+        Query<Attachment> query = student_AttachmentsQuery.forCurrentThread();
+        query.setParameter(0, attachmentsStudentId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "attachments" to-many relationship of LedgerItem. */
+    public List<Attachment> _queryLedgerItem_Attachments(long attachmentsLedgerItemId) {
+        synchronized (this) {
+            if (ledgerItem_AttachmentsQuery == null) {
+                QueryBuilder<Attachment> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.AttachmentsLedgerItemId.eq(null));
+                ledgerItem_AttachmentsQuery = queryBuilder.build();
+            }
+        }
+        Query<Attachment> query = ledgerItem_AttachmentsQuery.forCurrentThread();
+        query.setParameter(0, attachmentsLedgerItemId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "attachments" to-many relationship of JournalEntry. */
     public List<Attachment> _queryJournalEntry_Attachments(long attachmentsJournalEntryId) {
         synchronized (this) {
@@ -327,6 +349,20 @@ public class AttachmentDao extends AbstractDao<Attachment, Long> {
         }
         Query<Attachment> query = journalEntry_AttachmentsQuery.forCurrentThread();
         query.setParameter(0, attachmentsJournalEntryId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "attachments" to-many relationship of Guardian. */
+    public List<Attachment> _queryGuardian_Attachments(long attachmentsGuardianId) {
+        synchronized (this) {
+            if (guardian_AttachmentsQuery == null) {
+                QueryBuilder<Attachment> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.AttachmentsGuardianId.eq(null));
+                guardian_AttachmentsQuery = queryBuilder.build();
+            }
+        }
+        Query<Attachment> query = guardian_AttachmentsQuery.forCurrentThread();
+        query.setParameter(0, attachmentsGuardianId);
         return query.list();
     }
 
@@ -423,4 +459,35 @@ public class AttachmentDao extends AbstractDao<Attachment, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Attachment entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Attachment entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Attachment entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Attachment entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Attachment entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Attachment", new TypeToken<List<Attachment>>(){}.getType());
+        GreenSync.registerTypeToken("Attachment", Attachment.class);
+    }
+
 }

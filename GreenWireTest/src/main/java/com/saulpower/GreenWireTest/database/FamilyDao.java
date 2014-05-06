@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -10,6 +12,8 @@ import de.greenrobot.dao.AbstractDao;
 import de.greenrobot.dao.Property;
 import de.greenrobot.dao.internal.SqlUtils;
 import de.greenrobot.dao.internal.DaoConfig;
+import de.greenrobot.dao.query.Query;
+import de.greenrobot.dao.query.QueryBuilder;
 
 import com.saulpower.GreenWireTest.database.Family;
 import com.saulpower.GreenWireTest.database.Family.FamilyStatus;
@@ -27,22 +31,25 @@ public class FamilyDao extends AbstractDao<Family, Long> {
      * Can be used for QueryBuilder and for referencing column names.
     */
     public static class Properties {
-        public final static Property ExternalID = new Property(0, String.class, "externalID", false, "EXTERNAL_ID");
-        public final static Property IsDeleted = new Property(1, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
-        public final static Property Guid = new Property(3, String.class, "guid", false, "GUID");
-        public final static Property Version = new Property(4, Integer.class, "version", false, "VERSION");
-        public final static Property TagString = new Property(5, String.class, "tagString", false, "TAG_STRING");
-        public final static Property Id = new Property(6, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(7, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property TenantID = new Property(8, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property SaveResultSaveResultId = new Property(9, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(10, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property Status = new Property(11, FamilyStatus.class, "status", false, "STATUS");
+        public final static Property Guid = new Property(0, String.class, "guid", false, "GUID");
+        public final static Property Name = new Property(1, String.class, "name", false, "NAME");
+        public final static Property ExternalID = new Property(2, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property TagString = new Property(3, String.class, "tagString", false, "TAG_STRING");
+        public final static Property TenantID = new Property(4, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property SaveResultSaveResultId = new Property(5, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property Status = new Property(6, FamilyStatus.class, "status", false, "STATUS");
+        public final static Property DateLastModified = new Property(7, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(8, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(9, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(10, Integer.class, "version", false, "VERSION");
+        public final static Property FamiliesCenterId = new Property(11, long.class, "familiesCenterId", false, "FAMILIES_CENTER_ID");
+        public final static Property Id = new Property(12, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(13, String.class, "dateCreated", false, "DATE_CREATED");
     };
 
     private DaoSession daoSession;
 
+    private Query<Family> center_FamiliesQuery;
 
     public FamilyDao(DaoConfig config) {
         super(config);
@@ -57,18 +64,20 @@ public class FamilyDao extends AbstractDao<Family, Long> {
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'FAMILY' (" + //
-                "'EXTERNAL_ID' TEXT," + // 0: externalID
-                "'IS_DELETED' INTEGER," + // 1: isDeleted
-                "'NAME' TEXT," + // 2: name
-                "'GUID' TEXT," + // 3: guid
-                "'VERSION' INTEGER," + // 4: version
-                "'TAG_STRING' TEXT," + // 5: tagString
-                "'_id' INTEGER PRIMARY KEY ," + // 6: id
-                "'DATE_CREATED' INTEGER," + // 7: dateCreated
-                "'TENANT_ID' INTEGER," + // 8: tenantID
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 9: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 10: dateLastModified
-                "'STATUS' INTEGER);"); // 11: status
+                "'GUID' TEXT," + // 0: guid
+                "'NAME' TEXT," + // 1: name
+                "'EXTERNAL_ID' TEXT," + // 2: externalID
+                "'TAG_STRING' TEXT," + // 3: tagString
+                "'TENANT_ID' INTEGER," + // 4: tenantID
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 5: saveResultSaveResultId
+                "'STATUS' INTEGER," + // 6: status
+                "'DATE_LAST_MODIFIED' TEXT," + // 7: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 8: syncBaseId
+                "'IS_DELETED' INTEGER," + // 9: isDeleted
+                "'VERSION' INTEGER," + // 10: version
+                "'FAMILIES_CENTER_ID' INTEGER NOT NULL ," + // 11: familiesCenterId
+                "'_id' INTEGER PRIMARY KEY ," + // 12: id
+                "'DATE_CREATED' TEXT);"); // 13: dateCreated
     }
 
     /** Drops the underlying database table. */
@@ -82,60 +91,66 @@ public class FamilyDao extends AbstractDao<Family, Long> {
     protected void bindValues(SQLiteStatement stmt, Family entity) {
         stmt.clearBindings();
  
-        String externalID = entity.getExternalID();
-        if (externalID != null) {
-            stmt.bindString(1, externalID);
-        }
- 
-        Boolean isDeleted = entity.getIsDeleted();
-        if (isDeleted != null) {
-            stmt.bindLong(2, isDeleted ? 1l: 0l);
+        String guid = entity.getGuid();
+        if (guid != null) {
+            stmt.bindString(1, guid);
         }
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(3, name);
+            stmt.bindString(2, name);
         }
  
-        String guid = entity.getGuid();
-        if (guid != null) {
-            stmt.bindString(4, guid);
-        }
- 
-        Integer version = entity.getVersion();
-        if (version != null) {
-            stmt.bindLong(5, version);
+        String externalID = entity.getExternalID();
+        if (externalID != null) {
+            stmt.bindString(3, externalID);
         }
  
         String tagString = entity.getTagString();
         if (tagString != null) {
-            stmt.bindString(6, tagString);
-        }
- 
-        Long id = entity.getId();
-        if (id != null) {
-            stmt.bindLong(7, id);
-        }
- 
-        Long dateCreated = entity.getDateCreated();
-        if (dateCreated != null) {
-            stmt.bindLong(8, dateCreated);
+            stmt.bindString(4, tagString);
         }
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
-            stmt.bindLong(9, tenantID);
+            stmt.bindLong(5, tenantID);
         }
-        stmt.bindLong(10, entity.getSaveResultSaveResultId());
- 
-        Long dateLastModified = entity.getDateLastModified();
-        if (dateLastModified != null) {
-            stmt.bindLong(11, dateLastModified);
-        }
+        stmt.bindLong(6, entity.getSaveResultSaveResultId());
  
         FamilyStatus status = entity.getStatus();
         if (status != null) {
-            stmt.bindLong(12, status.getValue());
+            stmt.bindLong(7, status.getValue());
+        }
+ 
+        String dateLastModified = entity.getDateLastModified();
+        if (dateLastModified != null) {
+            stmt.bindString(8, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(9, syncBaseId);
+        }
+ 
+        Boolean isDeleted = entity.getIsDeleted();
+        if (isDeleted != null) {
+            stmt.bindLong(10, isDeleted ? 1l: 0l);
+        }
+ 
+        Integer version = entity.getVersion();
+        if (version != null) {
+            stmt.bindLong(11, version);
+        }
+        stmt.bindLong(12, entity.getFamiliesCenterId());
+ 
+        Long id = entity.getId();
+        if (id != null) {
+            stmt.bindLong(13, id);
+        }
+ 
+        String dateCreated = entity.getDateCreated();
+        if (dateCreated != null) {
+            stmt.bindString(14, dateCreated);
         }
     }
 
@@ -148,25 +163,27 @@ public class FamilyDao extends AbstractDao<Family, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6);
+        return cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12);
     }    
 
     /** @inheritdoc */
     @Override
     public Family readEntity(Cursor cursor, int offset) {
         Family entity = new Family( //
-            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // externalID
-            cursor.isNull(offset + 1) ? null : cursor.getShort(offset + 1) != 0, // isDeleted
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
-            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // guid
-            cursor.isNull(offset + 4) ? null : cursor.getInt(offset + 4), // version
-            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // tagString
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // id
-            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // dateCreated
-            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // tenantID
-            cursor.getLong(offset + 9), // saveResultSaveResultId
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // dateLastModified
-            cursor.isNull(offset + 11) ? null : FamilyStatus.fromInt(cursor.getLong(offset + 11)) // status
+            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // guid
+            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // name
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // externalID
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // tagString
+            cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4), // tenantID
+            cursor.getLong(offset + 5), // saveResultSaveResultId
+            cursor.isNull(offset + 6) ? null : FamilyStatus.fromInt(cursor.getLong(offset + 6)), // status
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // dateLastModified
+            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // syncBaseId
+            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0, // isDeleted
+            cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // version
+            cursor.getLong(offset + 11), // familiesCenterId
+            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // id
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13) // dateCreated
         );
         return entity;
     }
@@ -174,18 +191,20 @@ public class FamilyDao extends AbstractDao<Family, Long> {
     /** @inheritdoc */
     @Override
     public void readEntity(Cursor cursor, Family entity, int offset) {
-        entity.setExternalID(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
-        entity.setIsDeleted(cursor.isNull(offset + 1) ? null : cursor.getShort(offset + 1) != 0);
-        entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setGuid(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setVersion(cursor.isNull(offset + 4) ? null : cursor.getInt(offset + 4));
-        entity.setTagString(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
-        entity.setId(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setDateCreated(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
-        entity.setTenantID(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 9));
-        entity.setDateLastModified(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
-        entity.setStatus(cursor.isNull(offset + 11) ? null : FamilyStatus.fromInt(cursor.getLong(offset + 11)));
+        entity.setGuid(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
+        entity.setName(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setExternalID(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setTagString(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setTenantID(cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 5));
+        entity.setStatus(cursor.isNull(offset + 6) ? null : FamilyStatus.fromInt(cursor.getLong(offset + 6)));
+        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
+        entity.setSyncBaseId(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
+        entity.setIsDeleted(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
+        entity.setVersion(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
+        entity.setFamiliesCenterId(cursor.getLong(offset + 11));
+        entity.setId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
+        entity.setDateCreated(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
      }
     
     /** @inheritdoc */
@@ -211,6 +230,20 @@ public class FamilyDao extends AbstractDao<Family, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "families" to-many relationship of Center. */
+    public List<Family> _queryCenter_Families(long familiesCenterId) {
+        synchronized (this) {
+            if (center_FamiliesQuery == null) {
+                QueryBuilder<Family> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.FamiliesCenterId.eq(null));
+                center_FamiliesQuery = queryBuilder.build();
+            }
+        }
+        Query<Family> query = center_FamiliesQuery.forCurrentThread();
+        query.setParameter(0, familiesCenterId);
+        return query.list();
+    }
+
     private String selectDeep;
 
     protected String getSelectDeep() {
@@ -304,4 +337,35 @@ public class FamilyDao extends AbstractDao<Family, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Family entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Family entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Family entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Family entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Family entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Family", new TypeToken<List<Family>>(){}.getType());
+        GreenSync.registerTypeToken("Family", Family.class);
+    }
+
 }

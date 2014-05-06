@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -26,22 +28,22 @@ public class LedgerGroupDao extends AbstractDao<LedgerGroup, Long> {
      * Can be used for QueryBuilder and for referencing column names.
     */
     public static class Properties {
-        public final static Property ExternalID = new Property(0, String.class, "externalID", false, "EXTERNAL_ID");
-        public final static Property IsDeleted = new Property(1, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
-        public final static Property Guid = new Property(3, String.class, "guid", false, "GUID");
-        public final static Property Version = new Property(4, Integer.class, "version", false, "VERSION");
-        public final static Property SortOrder = new Property(5, Integer.class, "sortOrder", false, "SORT_ORDER");
-        public final static Property TagString = new Property(6, String.class, "tagString", false, "TAG_STRING");
-        public final static Property Id = new Property(7, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(8, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property TenantID = new Property(9, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property SaveResultSaveResultId = new Property(10, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(11, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property Guid = new Property(0, String.class, "guid", false, "GUID");
+        public final static Property Name = new Property(1, String.class, "name", false, "NAME");
+        public final static Property ExternalID = new Property(2, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property SortOrder = new Property(3, Integer.class, "sortOrder", false, "SORT_ORDER");
+        public final static Property TagString = new Property(4, String.class, "tagString", false, "TAG_STRING");
+        public final static Property TenantID = new Property(5, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property SaveResultSaveResultId = new Property(6, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property DateLastModified = new Property(7, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(8, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(9, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(10, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(11, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(12, String.class, "dateCreated", false, "DATE_CREATED");
     };
 
     private DaoSession daoSession;
-
 
     public LedgerGroupDao(DaoConfig config) {
         super(config);
@@ -56,18 +58,19 @@ public class LedgerGroupDao extends AbstractDao<LedgerGroup, Long> {
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'LEDGER_GROUP' (" + //
-                "'EXTERNAL_ID' TEXT," + // 0: externalID
-                "'IS_DELETED' INTEGER," + // 1: isDeleted
-                "'NAME' TEXT," + // 2: name
-                "'GUID' TEXT," + // 3: guid
-                "'VERSION' INTEGER," + // 4: version
-                "'SORT_ORDER' INTEGER," + // 5: sortOrder
-                "'TAG_STRING' TEXT," + // 6: tagString
-                "'_id' INTEGER PRIMARY KEY ," + // 7: id
-                "'DATE_CREATED' INTEGER," + // 8: dateCreated
-                "'TENANT_ID' INTEGER," + // 9: tenantID
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 10: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER);"); // 11: dateLastModified
+                "'GUID' TEXT," + // 0: guid
+                "'NAME' TEXT," + // 1: name
+                "'EXTERNAL_ID' TEXT," + // 2: externalID
+                "'SORT_ORDER' INTEGER," + // 3: sortOrder
+                "'TAG_STRING' TEXT," + // 4: tagString
+                "'TENANT_ID' INTEGER," + // 5: tenantID
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 6: saveResultSaveResultId
+                "'DATE_LAST_MODIFIED' TEXT," + // 7: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 8: syncBaseId
+                "'IS_DELETED' INTEGER," + // 9: isDeleted
+                "'VERSION' INTEGER," + // 10: version
+                "'_id' INTEGER PRIMARY KEY ," + // 11: id
+                "'DATE_CREATED' TEXT);"); // 12: dateCreated
     }
 
     /** Drops the underlying database table. */
@@ -81,60 +84,65 @@ public class LedgerGroupDao extends AbstractDao<LedgerGroup, Long> {
     protected void bindValues(SQLiteStatement stmt, LedgerGroup entity) {
         stmt.clearBindings();
  
-        String externalID = entity.getExternalID();
-        if (externalID != null) {
-            stmt.bindString(1, externalID);
-        }
- 
-        Boolean isDeleted = entity.getIsDeleted();
-        if (isDeleted != null) {
-            stmt.bindLong(2, isDeleted ? 1l: 0l);
+        String guid = entity.getGuid();
+        if (guid != null) {
+            stmt.bindString(1, guid);
         }
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(3, name);
+            stmt.bindString(2, name);
         }
  
-        String guid = entity.getGuid();
-        if (guid != null) {
-            stmt.bindString(4, guid);
-        }
- 
-        Integer version = entity.getVersion();
-        if (version != null) {
-            stmt.bindLong(5, version);
+        String externalID = entity.getExternalID();
+        if (externalID != null) {
+            stmt.bindString(3, externalID);
         }
  
         Integer sortOrder = entity.getSortOrder();
         if (sortOrder != null) {
-            stmt.bindLong(6, sortOrder);
+            stmt.bindLong(4, sortOrder);
         }
  
         String tagString = entity.getTagString();
         if (tagString != null) {
-            stmt.bindString(7, tagString);
-        }
- 
-        Long id = entity.getId();
-        if (id != null) {
-            stmt.bindLong(8, id);
-        }
- 
-        Long dateCreated = entity.getDateCreated();
-        if (dateCreated != null) {
-            stmt.bindLong(9, dateCreated);
+            stmt.bindString(5, tagString);
         }
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
-            stmt.bindLong(10, tenantID);
+            stmt.bindLong(6, tenantID);
         }
-        stmt.bindLong(11, entity.getSaveResultSaveResultId());
+        stmt.bindLong(7, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(12, dateLastModified);
+            stmt.bindString(8, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(9, syncBaseId);
+        }
+ 
+        Boolean isDeleted = entity.getIsDeleted();
+        if (isDeleted != null) {
+            stmt.bindLong(10, isDeleted ? 1l: 0l);
+        }
+ 
+        Integer version = entity.getVersion();
+        if (version != null) {
+            stmt.bindLong(11, version);
+        }
+ 
+        Long id = entity.getId();
+        if (id != null) {
+            stmt.bindLong(12, id);
+        }
+ 
+        String dateCreated = entity.getDateCreated();
+        if (dateCreated != null) {
+            stmt.bindString(13, dateCreated);
         }
     }
 
@@ -147,25 +155,26 @@ public class LedgerGroupDao extends AbstractDao<LedgerGroup, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7);
+        return cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11);
     }    
 
     /** @inheritdoc */
     @Override
     public LedgerGroup readEntity(Cursor cursor, int offset) {
         LedgerGroup entity = new LedgerGroup( //
-            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // externalID
-            cursor.isNull(offset + 1) ? null : cursor.getShort(offset + 1) != 0, // isDeleted
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
-            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // guid
-            cursor.isNull(offset + 4) ? null : cursor.getInt(offset + 4), // version
-            cursor.isNull(offset + 5) ? null : cursor.getInt(offset + 5), // sortOrder
-            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // tagString
-            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // id
-            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // dateCreated
-            cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // tenantID
-            cursor.getLong(offset + 10), // saveResultSaveResultId
-            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11) // dateLastModified
+            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // guid
+            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // name
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // externalID
+            cursor.isNull(offset + 3) ? null : cursor.getInt(offset + 3), // sortOrder
+            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // tagString
+            cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5), // tenantID
+            cursor.getLong(offset + 6), // saveResultSaveResultId
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // dateLastModified
+            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // syncBaseId
+            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0, // isDeleted
+            cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // version
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // id
+            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12) // dateCreated
         );
         return entity;
     }
@@ -173,18 +182,19 @@ public class LedgerGroupDao extends AbstractDao<LedgerGroup, Long> {
     /** @inheritdoc */
     @Override
     public void readEntity(Cursor cursor, LedgerGroup entity, int offset) {
-        entity.setExternalID(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
-        entity.setIsDeleted(cursor.isNull(offset + 1) ? null : cursor.getShort(offset + 1) != 0);
-        entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setGuid(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setVersion(cursor.isNull(offset + 4) ? null : cursor.getInt(offset + 4));
-        entity.setSortOrder(cursor.isNull(offset + 5) ? null : cursor.getInt(offset + 5));
-        entity.setTagString(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
-        entity.setId(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
-        entity.setDateCreated(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
-        entity.setTenantID(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 10));
-        entity.setDateLastModified(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setGuid(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
+        entity.setName(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setExternalID(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setSortOrder(cursor.isNull(offset + 3) ? null : cursor.getInt(offset + 3));
+        entity.setTagString(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setTenantID(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 6));
+        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
+        entity.setSyncBaseId(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
+        entity.setIsDeleted(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
+        entity.setVersion(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
+        entity.setId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setDateCreated(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
      }
     
     /** @inheritdoc */
@@ -303,4 +313,35 @@ public class LedgerGroupDao extends AbstractDao<LedgerGroup, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(LedgerGroup entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(LedgerGroup entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(LedgerGroup entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(LedgerGroup entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(LedgerGroup entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("LedgerGroup", new TypeToken<List<LedgerGroup>>(){}.getType());
+        GreenSync.registerTypeToken("LedgerGroup", LedgerGroup.class);
+    }
+
 }

@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -36,26 +38,31 @@ public class IdentificationDao extends AbstractDao<Identification, Long> {
         public final static Property Guid = new Property(4, String.class, "guid", false, "GUID");
         public final static Property Name = new Property(5, String.class, "name", false, "NAME");
         public final static Property IssuedBy = new Property(6, String.class, "issuedBy", false, "ISSUED_BY");
-        public final static Property DateVerified = new Property(7, Long.class, "dateVerified", false, "DATE_VERIFIED");
+        public final static Property DateVerified = new Property(7, String.class, "dateVerified", false, "DATE_VERIFIED");
         public final static Property IdentificationStudentId = new Property(8, long.class, "identificationStudentId", false, "IDENTIFICATION_STUDENT_ID");
         public final static Property TagString = new Property(9, String.class, "tagString", false, "TAG_STRING");
         public final static Property DateIssued = new Property(10, String.class, "dateIssued", false, "DATE_ISSUED");
         public final static Property TenantID = new Property(11, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(12, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(13, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property DateLastModified = new Property(13, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
         public final static Property Number = new Property(14, String.class, "number", false, "NUMBER");
-        public final static Property IsDeleted = new Property(15, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(16, Integer.class, "version", false, "VERSION");
-        public final static Property IdentificationPersonId = new Property(17, long.class, "identificationPersonId", false, "IDENTIFICATION_PERSON_ID");
-        public final static Property Id = new Property(18, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(19, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property Type = new Property(20, IdentificationType.class, "type", false, "TYPE");
+        public final static Property IdentificationGuardianId = new Property(15, long.class, "identificationGuardianId", false, "IDENTIFICATION_GUARDIAN_ID");
+        public final static Property SyncBaseId = new Property(16, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(17, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(18, Integer.class, "version", false, "VERSION");
+        public final static Property IdentificationPersonId = new Property(19, long.class, "identificationPersonId", false, "IDENTIFICATION_PERSON_ID");
+        public final static Property Id = new Property(20, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(21, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property Type = new Property(22, IdentificationType.class, "type", false, "TYPE");
     };
 
     private DaoSession daoSession;
 
-    private Query<Identification> student_IdentificationQuery;
     private Query<Identification> person_IdentificationQuery;
+
+    private Query<Identification> student_IdentificationQuery;
+
+    private Query<Identification> guardian_IdentificationQuery;
 
     public IdentificationDao(DaoConfig config) {
         super(config);
@@ -77,20 +84,22 @@ public class IdentificationDao extends AbstractDao<Identification, Long> {
                 "'GUID' TEXT," + // 4: guid
                 "'NAME' TEXT," + // 5: name
                 "'ISSUED_BY' TEXT," + // 6: issuedBy
-                "'DATE_VERIFIED' INTEGER," + // 7: dateVerified
+                "'DATE_VERIFIED' TEXT," + // 7: dateVerified
                 "'IDENTIFICATION_STUDENT_ID' INTEGER NOT NULL ," + // 8: identificationStudentId
                 "'TAG_STRING' TEXT," + // 9: tagString
                 "'DATE_ISSUED' TEXT," + // 10: dateIssued
                 "'TENANT_ID' INTEGER," + // 11: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 12: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 13: dateLastModified
+                "'DATE_LAST_MODIFIED' TEXT," + // 13: dateLastModified
                 "'NUMBER' TEXT," + // 14: number
-                "'IS_DELETED' INTEGER," + // 15: isDeleted
-                "'VERSION' INTEGER," + // 16: version
-                "'IDENTIFICATION_PERSON_ID' INTEGER NOT NULL ," + // 17: identificationPersonId
-                "'_id' INTEGER PRIMARY KEY ," + // 18: id
-                "'DATE_CREATED' INTEGER," + // 19: dateCreated
-                "'TYPE' INTEGER);"); // 20: type
+                "'IDENTIFICATION_GUARDIAN_ID' INTEGER NOT NULL ," + // 15: identificationGuardianId
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 16: syncBaseId
+                "'IS_DELETED' INTEGER," + // 17: isDeleted
+                "'VERSION' INTEGER," + // 18: version
+                "'IDENTIFICATION_PERSON_ID' INTEGER NOT NULL ," + // 19: identificationPersonId
+                "'_id' INTEGER PRIMARY KEY ," + // 20: id
+                "'DATE_CREATED' TEXT," + // 21: dateCreated
+                "'TYPE' INTEGER);"); // 22: type
     }
 
     /** Drops the underlying database table. */
@@ -135,9 +144,9 @@ public class IdentificationDao extends AbstractDao<Identification, Long> {
             stmt.bindString(7, issuedBy);
         }
  
-        Long dateVerified = entity.getDateVerified();
+        String dateVerified = entity.getDateVerified();
         if (dateVerified != null) {
-            stmt.bindLong(8, dateVerified);
+            stmt.bindString(8, dateVerified);
         }
         stmt.bindLong(9, entity.getIdentificationStudentId());
  
@@ -157,40 +166,46 @@ public class IdentificationDao extends AbstractDao<Identification, Long> {
         }
         stmt.bindLong(13, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(14, dateLastModified);
+            stmt.bindString(14, dateLastModified);
         }
  
         String number = entity.getNumber();
         if (number != null) {
             stmt.bindString(15, number);
         }
+        stmt.bindLong(16, entity.getIdentificationGuardianId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(17, syncBaseId);
+        }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(16, isDeleted ? 1l: 0l);
+            stmt.bindLong(18, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(17, version);
+            stmt.bindLong(19, version);
         }
-        stmt.bindLong(18, entity.getIdentificationPersonId());
+        stmt.bindLong(20, entity.getIdentificationPersonId());
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(19, id);
+            stmt.bindLong(21, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(20, dateCreated);
+            stmt.bindString(22, dateCreated);
         }
  
         IdentificationType type = entity.getType();
         if (type != null) {
-            stmt.bindLong(21, type.getValue());
+            stmt.bindLong(23, type.getValue());
         }
     }
 
@@ -203,7 +218,7 @@ public class IdentificationDao extends AbstractDao<Identification, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 18) ? null : cursor.getLong(offset + 18);
+        return cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20);
     }    
 
     /** @inheritdoc */
@@ -217,20 +232,22 @@ public class IdentificationDao extends AbstractDao<Identification, Long> {
             cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // guid
             cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // name
             cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // issuedBy
-            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // dateVerified
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // dateVerified
             cursor.getLong(offset + 8), // identificationStudentId
             cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // tagString
             cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // dateIssued
             cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // tenantID
             cursor.getLong(offset + 12), // saveResultSaveResultId
-            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // dateLastModified
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13), // dateLastModified
             cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14), // number
-            cursor.isNull(offset + 15) ? null : cursor.getShort(offset + 15) != 0, // isDeleted
-            cursor.isNull(offset + 16) ? null : cursor.getInt(offset + 16), // version
-            cursor.getLong(offset + 17), // identificationPersonId
-            cursor.isNull(offset + 18) ? null : cursor.getLong(offset + 18), // id
-            cursor.isNull(offset + 19) ? null : cursor.getLong(offset + 19), // dateCreated
-            cursor.isNull(offset + 20) ? null : IdentificationType.fromInt(cursor.getLong(offset + 20)) // type
+            cursor.getLong(offset + 15), // identificationGuardianId
+            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // syncBaseId
+            cursor.isNull(offset + 17) ? null : cursor.getShort(offset + 17) != 0, // isDeleted
+            cursor.isNull(offset + 18) ? null : cursor.getInt(offset + 18), // version
+            cursor.getLong(offset + 19), // identificationPersonId
+            cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20), // id
+            cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21), // dateCreated
+            cursor.isNull(offset + 22) ? null : IdentificationType.fromInt(cursor.getLong(offset + 22)) // type
         );
         return entity;
     }
@@ -245,20 +262,22 @@ public class IdentificationDao extends AbstractDao<Identification, Long> {
         entity.setGuid(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
         entity.setName(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
         entity.setIssuedBy(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
-        entity.setDateVerified(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setDateVerified(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
         entity.setIdentificationStudentId(cursor.getLong(offset + 8));
         entity.setTagString(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
         entity.setDateIssued(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
         entity.setTenantID(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 12));
-        entity.setDateLastModified(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
+        entity.setDateLastModified(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
         entity.setNumber(cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14));
-        entity.setIsDeleted(cursor.isNull(offset + 15) ? null : cursor.getShort(offset + 15) != 0);
-        entity.setVersion(cursor.isNull(offset + 16) ? null : cursor.getInt(offset + 16));
-        entity.setIdentificationPersonId(cursor.getLong(offset + 17));
-        entity.setId(cursor.isNull(offset + 18) ? null : cursor.getLong(offset + 18));
-        entity.setDateCreated(cursor.isNull(offset + 19) ? null : cursor.getLong(offset + 19));
-        entity.setType(cursor.isNull(offset + 20) ? null : IdentificationType.fromInt(cursor.getLong(offset + 20)));
+        entity.setIdentificationGuardianId(cursor.getLong(offset + 15));
+        entity.setSyncBaseId(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
+        entity.setIsDeleted(cursor.isNull(offset + 17) ? null : cursor.getShort(offset + 17) != 0);
+        entity.setVersion(cursor.isNull(offset + 18) ? null : cursor.getInt(offset + 18));
+        entity.setIdentificationPersonId(cursor.getLong(offset + 19));
+        entity.setId(cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20));
+        entity.setDateCreated(cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21));
+        entity.setType(cursor.isNull(offset + 22) ? null : IdentificationType.fromInt(cursor.getLong(offset + 22)));
      }
     
     /** @inheritdoc */
@@ -284,6 +303,20 @@ public class IdentificationDao extends AbstractDao<Identification, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "identification" to-many relationship of Person. */
+    public List<Identification> _queryPerson_Identification(long identificationPersonId) {
+        synchronized (this) {
+            if (person_IdentificationQuery == null) {
+                QueryBuilder<Identification> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.IdentificationPersonId.eq(null));
+                person_IdentificationQuery = queryBuilder.build();
+            }
+        }
+        Query<Identification> query = person_IdentificationQuery.forCurrentThread();
+        query.setParameter(0, identificationPersonId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "identification" to-many relationship of Student. */
     public List<Identification> _queryStudent_Identification(long identificationStudentId) {
         synchronized (this) {
@@ -298,17 +331,17 @@ public class IdentificationDao extends AbstractDao<Identification, Long> {
         return query.list();
     }
 
-    /** Internal query to resolve the "identification" to-many relationship of Person. */
-    public List<Identification> _queryPerson_Identification(long identificationPersonId) {
+    /** Internal query to resolve the "identification" to-many relationship of Guardian. */
+    public List<Identification> _queryGuardian_Identification(long identificationGuardianId) {
         synchronized (this) {
-            if (person_IdentificationQuery == null) {
+            if (guardian_IdentificationQuery == null) {
                 QueryBuilder<Identification> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.IdentificationPersonId.eq(null));
-                person_IdentificationQuery = queryBuilder.build();
+                queryBuilder.where(Properties.IdentificationGuardianId.eq(null));
+                guardian_IdentificationQuery = queryBuilder.build();
             }
         }
-        Query<Identification> query = person_IdentificationQuery.forCurrentThread();
-        query.setParameter(0, identificationPersonId);
+        Query<Identification> query = guardian_IdentificationQuery.forCurrentThread();
+        query.setParameter(0, identificationGuardianId);
         return query.list();
     }
 
@@ -414,4 +447,35 @@ public class IdentificationDao extends AbstractDao<Identification, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Identification entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Identification entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Identification entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Identification entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Identification entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Identification", new TypeToken<List<Identification>>(){}.getType());
+        GreenSync.registerTypeToken("Identification", Identification.class);
+    }
+
 }

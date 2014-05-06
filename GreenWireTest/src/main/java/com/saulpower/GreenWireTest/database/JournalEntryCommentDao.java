@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -35,12 +37,13 @@ public class JournalEntryCommentDao extends AbstractDao<JournalEntryComment, Lon
         public final static Property CommentsJournalEntryId = new Property(4, long.class, "commentsJournalEntryId", false, "COMMENTS_JOURNAL_ENTRY_ID");
         public final static Property TenantID = new Property(5, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(6, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(7, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDeleted = new Property(8, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(9, Integer.class, "version", false, "VERSION");
-        public final static Property Content = new Property(10, String.class, "content", false, "CONTENT");
-        public final static Property Id = new Property(11, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(12, Long.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property DateLastModified = new Property(7, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(8, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(9, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(10, Integer.class, "version", false, "VERSION");
+        public final static Property Content = new Property(11, String.class, "content", false, "CONTENT");
+        public final static Property Id = new Property(12, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(13, String.class, "dateCreated", false, "DATE_CREATED");
     };
 
     private DaoSession daoSession;
@@ -67,12 +70,13 @@ public class JournalEntryCommentDao extends AbstractDao<JournalEntryComment, Lon
                 "'COMMENTS_JOURNAL_ENTRY_ID' INTEGER NOT NULL ," + // 4: commentsJournalEntryId
                 "'TENANT_ID' INTEGER," + // 5: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 6: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 7: dateLastModified
-                "'IS_DELETED' INTEGER," + // 8: isDeleted
-                "'VERSION' INTEGER," + // 9: version
-                "'CONTENT' TEXT," + // 10: content
-                "'_id' INTEGER PRIMARY KEY ," + // 11: id
-                "'DATE_CREATED' INTEGER);"); // 12: dateCreated
+                "'DATE_LAST_MODIFIED' TEXT," + // 7: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 8: syncBaseId
+                "'IS_DELETED' INTEGER," + // 9: isDeleted
+                "'VERSION' INTEGER," + // 10: version
+                "'CONTENT' TEXT," + // 11: content
+                "'_id' INTEGER PRIMARY KEY ," + // 12: id
+                "'DATE_CREATED' TEXT);"); // 13: dateCreated
     }
 
     /** Drops the underlying database table. */
@@ -113,34 +117,39 @@ public class JournalEntryCommentDao extends AbstractDao<JournalEntryComment, Lon
         }
         stmt.bindLong(7, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(8, dateLastModified);
+            stmt.bindString(8, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(9, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(9, isDeleted ? 1l: 0l);
+            stmt.bindLong(10, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(10, version);
+            stmt.bindLong(11, version);
         }
  
         String content = entity.getContent();
         if (content != null) {
-            stmt.bindString(11, content);
+            stmt.bindString(12, content);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(12, id);
+            stmt.bindLong(13, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(13, dateCreated);
+            stmt.bindString(14, dateCreated);
         }
     }
 
@@ -153,7 +162,7 @@ public class JournalEntryCommentDao extends AbstractDao<JournalEntryComment, Lon
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11);
+        return cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12);
     }    
 
     /** @inheritdoc */
@@ -167,12 +176,13 @@ public class JournalEntryCommentDao extends AbstractDao<JournalEntryComment, Lon
             cursor.getLong(offset + 4), // commentsJournalEntryId
             cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5), // tenantID
             cursor.getLong(offset + 6), // saveResultSaveResultId
-            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // dateLastModified
-            cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0, // isDeleted
-            cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9), // version
-            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // content
-            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // id
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12) // dateCreated
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // dateLastModified
+            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // syncBaseId
+            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0, // isDeleted
+            cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // version
+            cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // content
+            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // id
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13) // dateCreated
         );
         return entity;
     }
@@ -187,12 +197,13 @@ public class JournalEntryCommentDao extends AbstractDao<JournalEntryComment, Lon
         entity.setCommentsJournalEntryId(cursor.getLong(offset + 4));
         entity.setTenantID(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 6));
-        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
-        entity.setIsDeleted(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
-        entity.setVersion(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
-        entity.setContent(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
-        entity.setId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
-        entity.setDateCreated(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
+        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
+        entity.setSyncBaseId(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
+        entity.setIsDeleted(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
+        entity.setVersion(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
+        entity.setContent(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
+        entity.setId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
+        entity.setDateCreated(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
      }
     
     /** @inheritdoc */
@@ -325,4 +336,35 @@ public class JournalEntryCommentDao extends AbstractDao<JournalEntryComment, Lon
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(JournalEntryComment entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(JournalEntryComment entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(JournalEntryComment entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(JournalEntryComment entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(JournalEntryComment entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("JournalEntryComment", new TypeToken<List<JournalEntryComment>>(){}.getType());
+        GreenSync.registerTypeToken("JournalEntryComment", JournalEntryComment.class);
+    }
+
 }

@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -40,19 +42,24 @@ public class LedgerAccountDao extends AbstractDao<LedgerAccount, Long> {
         public final static Property LedgerGroupLedgerGroupId = new Property(8, long.class, "ledgerGroupLedgerGroupId", false, "LEDGER_GROUP_LEDGER_GROUP_ID");
         public final static Property TenantID = new Property(9, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(10, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(11, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(13, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(14, Long.class, "id", true, "_id");
-        public final static Property OUOUId = new Property(15, long.class, "oUOUId", false, "O_UOUID");
-        public final static Property DateCreated = new Property(16, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property AccountsLedgerGroupId = new Property(17, long.class, "accountsLedgerGroupId", false, "ACCOUNTS_LEDGER_GROUP_ID");
-        public final static Property IsActive = new Property(18, Boolean.class, "isActive", false, "IS_ACTIVE");
+        public final static Property DateLastModified = new Property(11, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property LedgerAccountsCenterId = new Property(12, long.class, "ledgerAccountsCenterId", false, "LEDGER_ACCOUNTS_CENTER_ID");
+        public final static Property SyncBaseId = new Property(13, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(14, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(15, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(16, Long.class, "id", true, "_id");
+        public final static Property OUOUId = new Property(17, long.class, "oUOUId", false, "O_UOUID");
+        public final static Property DateCreated = new Property(18, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property AccountsLedgerGroupId = new Property(19, long.class, "accountsLedgerGroupId", false, "ACCOUNTS_LEDGER_GROUP_ID");
+        public final static Property IsActive = new Property(20, Boolean.class, "isActive", false, "IS_ACTIVE");
     };
 
     private DaoSession daoSession;
 
+    private Query<LedgerAccount> center_LedgerAccountsQuery;
+
     private Query<LedgerAccount> oU_LedgerAccountsQuery;
+
     private Query<LedgerAccount> ledgerGroup_AccountsQuery;
 
     public LedgerAccountDao(DaoConfig config) {
@@ -79,14 +86,16 @@ public class LedgerAccountDao extends AbstractDao<LedgerAccount, Long> {
                 "'LEDGER_GROUP_LEDGER_GROUP_ID' INTEGER NOT NULL ," + // 8: ledgerGroupLedgerGroupId
                 "'TENANT_ID' INTEGER," + // 9: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 10: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 11: dateLastModified
-                "'IS_DELETED' INTEGER," + // 12: isDeleted
-                "'VERSION' INTEGER," + // 13: version
-                "'_id' INTEGER PRIMARY KEY ," + // 14: id
-                "'O_UOUID' INTEGER NOT NULL ," + // 15: oUOUId
-                "'DATE_CREATED' INTEGER," + // 16: dateCreated
-                "'ACCOUNTS_LEDGER_GROUP_ID' INTEGER NOT NULL ," + // 17: accountsLedgerGroupId
-                "'IS_ACTIVE' INTEGER);"); // 18: isActive
+                "'DATE_LAST_MODIFIED' TEXT," + // 11: dateLastModified
+                "'LEDGER_ACCOUNTS_CENTER_ID' INTEGER NOT NULL ," + // 12: ledgerAccountsCenterId
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 13: syncBaseId
+                "'IS_DELETED' INTEGER," + // 14: isDeleted
+                "'VERSION' INTEGER," + // 15: version
+                "'_id' INTEGER PRIMARY KEY ," + // 16: id
+                "'O_UOUID' INTEGER NOT NULL ," + // 17: oUOUId
+                "'DATE_CREATED' TEXT," + // 18: dateCreated
+                "'ACCOUNTS_LEDGER_GROUP_ID' INTEGER NOT NULL ," + // 19: accountsLedgerGroupId
+                "'IS_ACTIVE' INTEGER);"); // 20: isActive
     }
 
     /** Drops the underlying database table. */
@@ -143,36 +152,42 @@ public class LedgerAccountDao extends AbstractDao<LedgerAccount, Long> {
         }
         stmt.bindLong(11, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(12, dateLastModified);
+            stmt.bindString(12, dateLastModified);
+        }
+        stmt.bindLong(13, entity.getLedgerAccountsCenterId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(14, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(13, isDeleted ? 1l: 0l);
+            stmt.bindLong(15, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(14, version);
+            stmt.bindLong(16, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(15, id);
+            stmt.bindLong(17, id);
         }
-        stmt.bindLong(16, entity.getOUOUId());
+        stmt.bindLong(18, entity.getOUOUId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(17, dateCreated);
+            stmt.bindString(19, dateCreated);
         }
-        stmt.bindLong(18, entity.getAccountsLedgerGroupId());
+        stmt.bindLong(20, entity.getAccountsLedgerGroupId());
  
         Boolean isActive = entity.getIsActive();
         if (isActive != null) {
-            stmt.bindLong(19, isActive ? 1l: 0l);
+            stmt.bindLong(21, isActive ? 1l: 0l);
         }
     }
 
@@ -185,7 +200,7 @@ public class LedgerAccountDao extends AbstractDao<LedgerAccount, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14);
+        return cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16);
     }    
 
     /** @inheritdoc */
@@ -203,14 +218,16 @@ public class LedgerAccountDao extends AbstractDao<LedgerAccount, Long> {
             cursor.getLong(offset + 8), // ledgerGroupLedgerGroupId
             cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // tenantID
             cursor.getLong(offset + 10), // saveResultSaveResultId
-            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // dateLastModified
-            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
-            cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13), // version
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // id
-            cursor.getLong(offset + 15), // oUOUId
-            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // dateCreated
-            cursor.getLong(offset + 17), // accountsLedgerGroupId
-            cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0 // isActive
+            cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // dateLastModified
+            cursor.getLong(offset + 12), // ledgerAccountsCenterId
+            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // syncBaseId
+            cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0, // isDeleted
+            cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15), // version
+            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // id
+            cursor.getLong(offset + 17), // oUOUId
+            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18), // dateCreated
+            cursor.getLong(offset + 19), // accountsLedgerGroupId
+            cursor.isNull(offset + 20) ? null : cursor.getShort(offset + 20) != 0 // isActive
         );
         return entity;
     }
@@ -229,14 +246,16 @@ public class LedgerAccountDao extends AbstractDao<LedgerAccount, Long> {
         entity.setLedgerGroupLedgerGroupId(cursor.getLong(offset + 8));
         entity.setTenantID(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 10));
-        entity.setDateLastModified(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
-        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
-        entity.setVersion(cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13));
-        entity.setId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
-        entity.setOUOUId(cursor.getLong(offset + 15));
-        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
-        entity.setAccountsLedgerGroupId(cursor.getLong(offset + 17));
-        entity.setIsActive(cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0);
+        entity.setDateLastModified(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
+        entity.setLedgerAccountsCenterId(cursor.getLong(offset + 12));
+        entity.setSyncBaseId(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
+        entity.setIsDeleted(cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0);
+        entity.setVersion(cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15));
+        entity.setId(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
+        entity.setOUOUId(cursor.getLong(offset + 17));
+        entity.setDateCreated(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
+        entity.setAccountsLedgerGroupId(cursor.getLong(offset + 19));
+        entity.setIsActive(cursor.isNull(offset + 20) ? null : cursor.getShort(offset + 20) != 0);
      }
     
     /** @inheritdoc */
@@ -262,6 +281,20 @@ public class LedgerAccountDao extends AbstractDao<LedgerAccount, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "ledgerAccounts" to-many relationship of Center. */
+    public List<LedgerAccount> _queryCenter_LedgerAccounts(long ledgerAccountsCenterId) {
+        synchronized (this) {
+            if (center_LedgerAccountsQuery == null) {
+                QueryBuilder<LedgerAccount> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.LedgerAccountsCenterId.eq(null));
+                center_LedgerAccountsQuery = queryBuilder.build();
+            }
+        }
+        Query<LedgerAccount> query = center_LedgerAccountsQuery.forCurrentThread();
+        query.setParameter(0, ledgerAccountsCenterId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "ledgerAccounts" to-many relationship of OU. */
     public List<LedgerAccount> _queryOU_LedgerAccounts(long ledgerAccountsOUId) {
         synchronized (this) {
@@ -401,4 +434,35 @@ public class LedgerAccountDao extends AbstractDao<LedgerAccount, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(LedgerAccount entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(LedgerAccount entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(LedgerAccount entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(LedgerAccount entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(LedgerAccount entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("LedgerAccount", new TypeToken<List<LedgerAccount>>(){}.getType());
+        GreenSync.registerTypeToken("LedgerAccount", LedgerAccount.class);
+    }
+
 }

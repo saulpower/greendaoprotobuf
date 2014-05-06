@@ -1,5 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
+import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
@@ -23,9 +26,11 @@ public class SaveResultDao extends AbstractDao<SaveResult, Long> {
      * Can be used for QueryBuilder and for referencing column names.
     */
     public static class Properties {
-        public final static Property Id = new Property(0, Long.class, "id", true, "_id");
+        public final static Property SyncBaseId = new Property(0, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property Id = new Property(1, Long.class, "id", true, "_id");
     };
 
+    private DaoSession daoSession;
 
     public SaveResultDao(DaoConfig config) {
         super(config);
@@ -33,13 +38,15 @@ public class SaveResultDao extends AbstractDao<SaveResult, Long> {
     
     public SaveResultDao(DaoConfig config, DaoSession daoSession) {
         super(config, daoSession);
+        this.daoSession = daoSession;
     }
 
     /** Creates the underlying database table. */
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'SAVE_RESULT' (" + //
-                "'_id' INTEGER PRIMARY KEY );"); // 0: id
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 0: syncBaseId
+                "'_id' INTEGER PRIMARY KEY );"); // 1: id
     }
 
     /** Drops the underlying database table. */
@@ -53,23 +60,35 @@ public class SaveResultDao extends AbstractDao<SaveResult, Long> {
     protected void bindValues(SQLiteStatement stmt, SaveResult entity) {
         stmt.clearBindings();
  
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(1, syncBaseId);
+        }
+ 
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(1, id);
+            stmt.bindLong(2, id);
         }
+    }
+
+    @Override
+    protected void attachEntity(SaveResult entity) {
+        super.attachEntity(entity);
+        entity.__setDaoSession(daoSession);
     }
 
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0);
+        return cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1);
     }    
 
     /** @inheritdoc */
     @Override
     public SaveResult readEntity(Cursor cursor, int offset) {
         SaveResult entity = new SaveResult( //
-            cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0) // id
+            cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // syncBaseId
+            cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1) // id
         );
         return entity;
     }
@@ -77,7 +96,8 @@ public class SaveResultDao extends AbstractDao<SaveResult, Long> {
     /** @inheritdoc */
     @Override
     public void readEntity(Cursor cursor, SaveResult entity, int offset) {
-        entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
+        entity.setSyncBaseId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
+        entity.setId(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
      }
     
     /** @inheritdoc */
@@ -103,4 +123,35 @@ public class SaveResultDao extends AbstractDao<SaveResult, Long> {
         return true;
     }
     
+    @Override
+    protected void onPreInsertEntity(SaveResult entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(SaveResult entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(SaveResult entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(SaveResult entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(SaveResult entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("SaveResult", new TypeToken<List<SaveResult>>(){}.getType());
+        GreenSync.registerTypeToken("SaveResult", SaveResult.class);
+    }
+
 }

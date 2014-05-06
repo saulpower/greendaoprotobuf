@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -39,12 +41,13 @@ public class ImmunizationScheduleDao extends AbstractDao<ImmunizationSchedule, L
         public final static Property ImmunizationID = new Property(7, String.class, "immunizationID", false, "IMMUNIZATION_ID");
         public final static Property Months = new Property(8, Integer.class, "months", false, "MONTHS");
         public final static Property ReferencePoint = new Property(9, ImmunicationReferencePoint.class, "referencePoint", false, "REFERENCE_POINT");
-        public final static Property DateLastModified = new Property(10, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property DateLastModified = new Property(10, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
         public final static Property DefinitionImmunizationDefinitionId = new Property(11, long.class, "definitionImmunizationDefinitionId", false, "DEFINITION_IMMUNIZATION_DEFINITION_ID");
-        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(13, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(14, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(15, Long.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property SyncBaseId = new Property(12, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(13, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(14, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(15, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(16, String.class, "dateCreated", false, "DATE_CREATED");
     };
 
     private DaoSession daoSession;
@@ -74,12 +77,13 @@ public class ImmunizationScheduleDao extends AbstractDao<ImmunizationSchedule, L
                 "'IMMUNIZATION_ID' TEXT," + // 7: immunizationID
                 "'MONTHS' INTEGER," + // 8: months
                 "'REFERENCE_POINT' INTEGER," + // 9: referencePoint
-                "'DATE_LAST_MODIFIED' INTEGER," + // 10: dateLastModified
+                "'DATE_LAST_MODIFIED' TEXT," + // 10: dateLastModified
                 "'DEFINITION_IMMUNIZATION_DEFINITION_ID' INTEGER NOT NULL ," + // 11: definitionImmunizationDefinitionId
-                "'IS_DELETED' INTEGER," + // 12: isDeleted
-                "'VERSION' INTEGER," + // 13: version
-                "'_id' INTEGER PRIMARY KEY ," + // 14: id
-                "'DATE_CREATED' INTEGER);"); // 15: dateCreated
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 12: syncBaseId
+                "'IS_DELETED' INTEGER," + // 13: isDeleted
+                "'VERSION' INTEGER," + // 14: version
+                "'_id' INTEGER PRIMARY KEY ," + // 15: id
+                "'DATE_CREATED' TEXT);"); // 16: dateCreated
     }
 
     /** Drops the underlying database table. */
@@ -135,30 +139,35 @@ public class ImmunizationScheduleDao extends AbstractDao<ImmunizationSchedule, L
             stmt.bindLong(10, referencePoint.getValue());
         }
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(11, dateLastModified);
+            stmt.bindString(11, dateLastModified);
         }
         stmt.bindLong(12, entity.getDefinitionImmunizationDefinitionId());
  
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(13, syncBaseId);
+        }
+ 
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(13, isDeleted ? 1l: 0l);
+            stmt.bindLong(14, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(14, version);
+            stmt.bindLong(15, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(15, id);
+            stmt.bindLong(16, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(16, dateCreated);
+            stmt.bindString(17, dateCreated);
         }
     }
 
@@ -171,7 +180,7 @@ public class ImmunizationScheduleDao extends AbstractDao<ImmunizationSchedule, L
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14);
+        return cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15);
     }    
 
     /** @inheritdoc */
@@ -188,12 +197,13 @@ public class ImmunizationScheduleDao extends AbstractDao<ImmunizationSchedule, L
             cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // immunizationID
             cursor.isNull(offset + 8) ? null : cursor.getInt(offset + 8), // months
             cursor.isNull(offset + 9) ? null : ImmunicationReferencePoint.fromInt(cursor.getLong(offset + 9)), // referencePoint
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // dateLastModified
+            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // dateLastModified
             cursor.getLong(offset + 11), // definitionImmunizationDefinitionId
-            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
-            cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13), // version
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // id
-            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15) // dateCreated
+            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // syncBaseId
+            cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0, // isDeleted
+            cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14), // version
+            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // id
+            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16) // dateCreated
         );
         return entity;
     }
@@ -211,12 +221,13 @@ public class ImmunizationScheduleDao extends AbstractDao<ImmunizationSchedule, L
         entity.setImmunizationID(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
         entity.setMonths(cursor.isNull(offset + 8) ? null : cursor.getInt(offset + 8));
         entity.setReferencePoint(cursor.isNull(offset + 9) ? null : ImmunicationReferencePoint.fromInt(cursor.getLong(offset + 9)));
-        entity.setDateLastModified(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
+        entity.setDateLastModified(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
         entity.setDefinitionImmunizationDefinitionId(cursor.getLong(offset + 11));
-        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
-        entity.setVersion(cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13));
-        entity.setId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
-        entity.setDateCreated(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
+        entity.setSyncBaseId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
+        entity.setIsDeleted(cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0);
+        entity.setVersion(cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14));
+        entity.setId(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
+        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
      }
     
     /** @inheritdoc */
@@ -358,4 +369,35 @@ public class ImmunizationScheduleDao extends AbstractDao<ImmunizationSchedule, L
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(ImmunizationSchedule entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(ImmunizationSchedule entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(ImmunizationSchedule entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(ImmunizationSchedule entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(ImmunizationSchedule entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("ImmunizationSchedule", new TypeToken<List<ImmunizationSchedule>>(){}.getType());
+        GreenSync.registerTypeToken("ImmunizationSchedule", ImmunizationSchedule.class);
+    }
+
 }

@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -32,28 +34,34 @@ public class VehicleDao extends AbstractDao<Vehicle, Long> {
         public final static Property ExternalID = new Property(1, String.class, "externalID", false, "EXTERNAL_ID");
         public final static Property Guid = new Property(2, String.class, "guid", false, "GUID");
         public final static Property Name = new Property(3, String.class, "name", false, "NAME");
-        public final static Property TagString = new Property(4, String.class, "tagString", false, "TAG_STRING");
-        public final static Property Year = new Property(5, Integer.class, "year", false, "YEAR");
-        public final static Property TenantID = new Property(6, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property SaveResultSaveResultId = new Property(7, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(8, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property License = new Property(9, String.class, "license", false, "LICENSE");
-        public final static Property Make = new Property(10, String.class, "make", false, "MAKE");
-        public final static Property VehiclesStudentId = new Property(11, long.class, "vehiclesStudentId", false, "VEHICLES_STUDENT_ID");
-        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Model = new Property(13, String.class, "model", false, "MODEL");
-        public final static Property Version = new Property(14, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(15, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(16, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property Color = new Property(17, String.class, "color", false, "COLOR");
-        public final static Property VehiclesPersonId = new Property(18, long.class, "vehiclesPersonId", false, "VEHICLES_PERSON_ID");
+        public final static Property VehiclesGuardianId = new Property(4, long.class, "vehiclesGuardianId", false, "VEHICLES_GUARDIAN_ID");
+        public final static Property TagString = new Property(5, String.class, "tagString", false, "TAG_STRING");
+        public final static Property Year = new Property(6, Integer.class, "year", false, "YEAR");
+        public final static Property TenantID = new Property(7, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property SaveResultSaveResultId = new Property(8, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property DateLastModified = new Property(9, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property License = new Property(10, String.class, "license", false, "LICENSE");
+        public final static Property Make = new Property(11, String.class, "make", false, "MAKE");
+        public final static Property SyncBaseId = new Property(12, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property VehiclesStudentId = new Property(13, long.class, "vehiclesStudentId", false, "VEHICLES_STUDENT_ID");
+        public final static Property IsDeleted = new Property(14, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Model = new Property(15, String.class, "model", false, "MODEL");
+        public final static Property Version = new Property(16, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(17, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(18, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property Color = new Property(19, String.class, "color", false, "COLOR");
+        public final static Property VehiclesPersonId = new Property(20, long.class, "vehiclesPersonId", false, "VEHICLES_PERSON_ID");
     };
 
     private DaoSession daoSession;
 
-    private Query<Vehicle> student_VehiclesQuery;
     private Query<Vehicle> person_VehiclesQuery;
+
+    private Query<Vehicle> student_VehiclesQuery;
+
     private Query<Vehicle> family_VehiclesQuery;
+
+    private Query<Vehicle> guardian_VehiclesQuery;
 
     public VehicleDao(DaoConfig config) {
         super(config);
@@ -72,21 +80,23 @@ public class VehicleDao extends AbstractDao<Vehicle, Long> {
                 "'EXTERNAL_ID' TEXT," + // 1: externalID
                 "'GUID' TEXT," + // 2: guid
                 "'NAME' TEXT," + // 3: name
-                "'TAG_STRING' TEXT," + // 4: tagString
-                "'YEAR' INTEGER," + // 5: year
-                "'TENANT_ID' INTEGER," + // 6: tenantID
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 7: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 8: dateLastModified
-                "'LICENSE' TEXT," + // 9: license
-                "'MAKE' TEXT," + // 10: make
-                "'VEHICLES_STUDENT_ID' INTEGER NOT NULL ," + // 11: vehiclesStudentId
-                "'IS_DELETED' INTEGER," + // 12: isDeleted
-                "'MODEL' TEXT," + // 13: model
-                "'VERSION' INTEGER," + // 14: version
-                "'_id' INTEGER PRIMARY KEY ," + // 15: id
-                "'DATE_CREATED' INTEGER," + // 16: dateCreated
-                "'COLOR' TEXT," + // 17: color
-                "'VEHICLES_PERSON_ID' INTEGER NOT NULL );"); // 18: vehiclesPersonId
+                "'VEHICLES_GUARDIAN_ID' INTEGER NOT NULL ," + // 4: vehiclesGuardianId
+                "'TAG_STRING' TEXT," + // 5: tagString
+                "'YEAR' INTEGER," + // 6: year
+                "'TENANT_ID' INTEGER," + // 7: tenantID
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 8: saveResultSaveResultId
+                "'DATE_LAST_MODIFIED' TEXT," + // 9: dateLastModified
+                "'LICENSE' TEXT," + // 10: license
+                "'MAKE' TEXT," + // 11: make
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 12: syncBaseId
+                "'VEHICLES_STUDENT_ID' INTEGER NOT NULL ," + // 13: vehiclesStudentId
+                "'IS_DELETED' INTEGER," + // 14: isDeleted
+                "'MODEL' TEXT," + // 15: model
+                "'VERSION' INTEGER," + // 16: version
+                "'_id' INTEGER PRIMARY KEY ," + // 17: id
+                "'DATE_CREATED' TEXT," + // 18: dateCreated
+                "'COLOR' TEXT," + // 19: color
+                "'VEHICLES_PERSON_ID' INTEGER NOT NULL );"); // 20: vehiclesPersonId
     }
 
     /** Drops the underlying database table. */
@@ -115,69 +125,75 @@ public class VehicleDao extends AbstractDao<Vehicle, Long> {
         if (name != null) {
             stmt.bindString(4, name);
         }
+        stmt.bindLong(5, entity.getVehiclesGuardianId());
  
         String tagString = entity.getTagString();
         if (tagString != null) {
-            stmt.bindString(5, tagString);
+            stmt.bindString(6, tagString);
         }
  
         Integer year = entity.getYear();
         if (year != null) {
-            stmt.bindLong(6, year);
+            stmt.bindLong(7, year);
         }
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
-            stmt.bindLong(7, tenantID);
+            stmt.bindLong(8, tenantID);
         }
-        stmt.bindLong(8, entity.getSaveResultSaveResultId());
+        stmt.bindLong(9, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(9, dateLastModified);
+            stmt.bindString(10, dateLastModified);
         }
  
         String license = entity.getLicense();
         if (license != null) {
-            stmt.bindString(10, license);
+            stmt.bindString(11, license);
         }
  
         String make = entity.getMake();
         if (make != null) {
-            stmt.bindString(11, make);
+            stmt.bindString(12, make);
         }
-        stmt.bindLong(12, entity.getVehiclesStudentId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(13, syncBaseId);
+        }
+        stmt.bindLong(14, entity.getVehiclesStudentId());
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(13, isDeleted ? 1l: 0l);
+            stmt.bindLong(15, isDeleted ? 1l: 0l);
         }
  
         String model = entity.getModel();
         if (model != null) {
-            stmt.bindString(14, model);
+            stmt.bindString(16, model);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(15, version);
+            stmt.bindLong(17, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(16, id);
+            stmt.bindLong(18, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(17, dateCreated);
+            stmt.bindString(19, dateCreated);
         }
  
         String color = entity.getColor();
         if (color != null) {
-            stmt.bindString(18, color);
+            stmt.bindString(20, color);
         }
-        stmt.bindLong(19, entity.getVehiclesPersonId());
+        stmt.bindLong(21, entity.getVehiclesPersonId());
     }
 
     @Override
@@ -189,7 +205,7 @@ public class VehicleDao extends AbstractDao<Vehicle, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15);
+        return cursor.isNull(offset + 17) ? null : cursor.getLong(offset + 17);
     }    
 
     /** @inheritdoc */
@@ -200,21 +216,23 @@ public class VehicleDao extends AbstractDao<Vehicle, Long> {
             cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // externalID
             cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // guid
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // name
-            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // tagString
-            cursor.isNull(offset + 5) ? null : cursor.getInt(offset + 5), // year
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // tenantID
-            cursor.getLong(offset + 7), // saveResultSaveResultId
-            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // dateLastModified
-            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // license
-            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // make
-            cursor.getLong(offset + 11), // vehiclesStudentId
-            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
-            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13), // model
-            cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14), // version
-            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // id
-            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // dateCreated
-            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // color
-            cursor.getLong(offset + 18) // vehiclesPersonId
+            cursor.getLong(offset + 4), // vehiclesGuardianId
+            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // tagString
+            cursor.isNull(offset + 6) ? null : cursor.getInt(offset + 6), // year
+            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // tenantID
+            cursor.getLong(offset + 8), // saveResultSaveResultId
+            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // dateLastModified
+            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // license
+            cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // make
+            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // syncBaseId
+            cursor.getLong(offset + 13), // vehiclesStudentId
+            cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0, // isDeleted
+            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // model
+            cursor.isNull(offset + 16) ? null : cursor.getInt(offset + 16), // version
+            cursor.isNull(offset + 17) ? null : cursor.getLong(offset + 17), // id
+            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18), // dateCreated
+            cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19), // color
+            cursor.getLong(offset + 20) // vehiclesPersonId
         );
         return entity;
     }
@@ -226,21 +244,23 @@ public class VehicleDao extends AbstractDao<Vehicle, Long> {
         entity.setExternalID(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setGuid(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setName(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setTagString(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
-        entity.setYear(cursor.isNull(offset + 5) ? null : cursor.getInt(offset + 5));
-        entity.setTenantID(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 7));
-        entity.setDateLastModified(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
-        entity.setLicense(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
-        entity.setMake(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
-        entity.setVehiclesStudentId(cursor.getLong(offset + 11));
-        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
-        entity.setModel(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
-        entity.setVersion(cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14));
-        entity.setId(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
-        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
-        entity.setColor(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
-        entity.setVehiclesPersonId(cursor.getLong(offset + 18));
+        entity.setVehiclesGuardianId(cursor.getLong(offset + 4));
+        entity.setTagString(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
+        entity.setYear(cursor.isNull(offset + 6) ? null : cursor.getInt(offset + 6));
+        entity.setTenantID(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 8));
+        entity.setDateLastModified(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+        entity.setLicense(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
+        entity.setMake(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
+        entity.setSyncBaseId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
+        entity.setVehiclesStudentId(cursor.getLong(offset + 13));
+        entity.setIsDeleted(cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0);
+        entity.setModel(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
+        entity.setVersion(cursor.isNull(offset + 16) ? null : cursor.getInt(offset + 16));
+        entity.setId(cursor.isNull(offset + 17) ? null : cursor.getLong(offset + 17));
+        entity.setDateCreated(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
+        entity.setColor(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
+        entity.setVehiclesPersonId(cursor.getLong(offset + 20));
      }
     
     /** @inheritdoc */
@@ -266,20 +286,6 @@ public class VehicleDao extends AbstractDao<Vehicle, Long> {
         return true;
     }
     
-    /** Internal query to resolve the "vehicles" to-many relationship of Student. */
-    public List<Vehicle> _queryStudent_Vehicles(long vehiclesStudentId) {
-        synchronized (this) {
-            if (student_VehiclesQuery == null) {
-                QueryBuilder<Vehicle> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.VehiclesStudentId.eq(null));
-                student_VehiclesQuery = queryBuilder.build();
-            }
-        }
-        Query<Vehicle> query = student_VehiclesQuery.forCurrentThread();
-        query.setParameter(0, vehiclesStudentId);
-        return query.list();
-    }
-
     /** Internal query to resolve the "vehicles" to-many relationship of Person. */
     public List<Vehicle> _queryPerson_Vehicles(long vehiclesPersonId) {
         synchronized (this) {
@@ -294,6 +300,20 @@ public class VehicleDao extends AbstractDao<Vehicle, Long> {
         return query.list();
     }
 
+    /** Internal query to resolve the "vehicles" to-many relationship of Student. */
+    public List<Vehicle> _queryStudent_Vehicles(long vehiclesStudentId) {
+        synchronized (this) {
+            if (student_VehiclesQuery == null) {
+                QueryBuilder<Vehicle> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.VehiclesStudentId.eq(null));
+                student_VehiclesQuery = queryBuilder.build();
+            }
+        }
+        Query<Vehicle> query = student_VehiclesQuery.forCurrentThread();
+        query.setParameter(0, vehiclesStudentId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "vehicles" to-many relationship of Family. */
     public List<Vehicle> _queryFamily_Vehicles(long vehiclesFamilyId) {
         synchronized (this) {
@@ -305,6 +325,20 @@ public class VehicleDao extends AbstractDao<Vehicle, Long> {
         }
         Query<Vehicle> query = family_VehiclesQuery.forCurrentThread();
         query.setParameter(0, vehiclesFamilyId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "vehicles" to-many relationship of Guardian. */
+    public List<Vehicle> _queryGuardian_Vehicles(long vehiclesGuardianId) {
+        synchronized (this) {
+            if (guardian_VehiclesQuery == null) {
+                QueryBuilder<Vehicle> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.VehiclesGuardianId.eq(null));
+                guardian_VehiclesQuery = queryBuilder.build();
+            }
+        }
+        Query<Vehicle> query = guardian_VehiclesQuery.forCurrentThread();
+        query.setParameter(0, vehiclesGuardianId);
         return query.list();
     }
 
@@ -401,4 +435,35 @@ public class VehicleDao extends AbstractDao<Vehicle, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Vehicle entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Vehicle entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Vehicle entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Vehicle entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Vehicle entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Vehicle", new TypeToken<List<Vehicle>>(){}.getType());
+        GreenSync.registerTypeToken("Vehicle", Vehicle.class);
+    }
+
 }

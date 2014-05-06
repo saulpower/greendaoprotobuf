@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -29,118 +31,181 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
     */
     public static class Properties {
         public final static Property CustomValuesPayPeriodId = new Property(0, long.class, "customValuesPayPeriodId", false, "CUSTOM_VALUES_PAY_PERIOD_ID");
-        public final static Property DateLastModified = new Property(1, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property CustomValuesAddressId = new Property(2, long.class, "customValuesAddressId", false, "CUSTOM_VALUES_ADDRESS_ID");
-        public final static Property CustomValuesWithdrawalCodeId = new Property(3, long.class, "customValuesWithdrawalCodeId", false, "CUSTOM_VALUES_WITHDRAWAL_CODE_ID");
-        public final static Property IsDeleted = new Property(4, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property CustomValuesImmunizationScheduleId = new Property(5, long.class, "customValuesImmunizationScheduleId", false, "CUSTOM_VALUES_IMMUNIZATION_SCHEDULE_ID");
-        public final static Property Version = new Property(6, Integer.class, "version", false, "VERSION");
-        public final static Property CustomValuesVehicleId = new Property(7, long.class, "customValuesVehicleId", false, "CUSTOM_VALUES_VEHICLE_ID");
-        public final static Property OwnerID = new Property(8, String.class, "ownerID", false, "OWNER_ID");
-        public final static Property CustomValuesCustomFieldId = new Property(9, long.class, "customValuesCustomFieldId", false, "CUSTOM_VALUES_CUSTOM_FIELD_ID");
-        public final static Property Id = new Property(10, Long.class, "id", true, "_id");
-        public final static Property CustomValuesLedgerItemId = new Property(11, long.class, "customValuesLedgerItemId", false, "CUSTOM_VALUES_LEDGER_ITEM_ID");
-        public final static Property DateCreated = new Property(12, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property CustomValuesAttachmentId = new Property(13, long.class, "customValuesAttachmentId", false, "CUSTOM_VALUES_ATTACHMENT_ID");
-        public final static Property CustomValuesCheckOutId = new Property(14, long.class, "customValuesCheckOutId", false, "CUSTOM_VALUES_CHECK_OUT_ID");
-        public final static Property Name = new Property(15, String.class, "name", false, "NAME");
-        public final static Property CustomValuesLedgerAccountId = new Property(16, long.class, "customValuesLedgerAccountId", false, "CUSTOM_VALUES_LEDGER_ACCOUNT_ID");
-        public final static Property CustomValuesActivityId = new Property(17, long.class, "customValuesActivityId", false, "CUSTOM_VALUES_ACTIVITY_ID");
-        public final static Property CustomValuesPersonId = new Property(18, long.class, "customValuesPersonId", false, "CUSTOM_VALUES_PERSON_ID");
-        public final static Property TagString = new Property(19, String.class, "tagString", false, "TAG_STRING");
-        public final static Property TenantID = new Property(20, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property CustomValuesFamilyId = new Property(21, long.class, "customValuesFamilyId", false, "CUSTOM_VALUES_FAMILY_ID");
-        public final static Property CustomValuesIdentificationId = new Property(22, long.class, "customValuesIdentificationId", false, "CUSTOM_VALUES_IDENTIFICATION_ID");
-        public final static Property CustomValuesJournalEntryId = new Property(23, long.class, "customValuesJournalEntryId", false, "CUSTOM_VALUES_JOURNAL_ENTRY_ID");
-        public final static Property CustomValuesEmployeeFileId = new Property(24, long.class, "customValuesEmployeeFileId", false, "CUSTOM_VALUES_EMPLOYEE_FILE_ID");
-        public final static Property CustomValuesMedicalProviderId = new Property(25, long.class, "customValuesMedicalProviderId", false, "CUSTOM_VALUES_MEDICAL_PROVIDER_ID");
-        public final static Property CustomValuesSecurityQuestionId = new Property(26, long.class, "customValuesSecurityQuestionId", false, "CUSTOM_VALUES_SECURITY_QUESTION_ID");
-        public final static Property CustomValuesPickupAuthorizationId = new Property(27, long.class, "customValuesPickupAuthorizationId", false, "CUSTOM_VALUES_PICKUP_AUTHORIZATION_ID");
-        public final static Property CustomValuesAuthorizedPersonId = new Property(28, long.class, "customValuesAuthorizedPersonId", false, "CUSTOM_VALUES_AUTHORIZED_PERSON_ID");
-        public final static Property CustomValuesEmploymentStatusId = new Property(29, long.class, "customValuesEmploymentStatusId", false, "CUSTOM_VALUES_EMPLOYMENT_STATUS_ID");
-        public final static Property ExternalID = new Property(30, String.class, "externalID", false, "EXTERNAL_ID");
-        public final static Property Guid = new Property(31, String.class, "guid", false, "GUID");
-        public final static Property CustomValuesImmunizationId = new Property(32, long.class, "customValuesImmunizationId", false, "CUSTOM_VALUES_IMMUNIZATION_ID");
-        public final static Property CustomValuesOUBaseId = new Property(33, long.class, "customValuesOUBaseId", false, "CUSTOM_VALUES_OUBASE_ID");
-        public final static Property CustomValuesCustomValueId = new Property(34, long.class, "customValuesCustomValueId", false, "CUSTOM_VALUES_CUSTOM_VALUE_ID");
-        public final static Property CustomValuesHolidayId = new Property(35, long.class, "customValuesHolidayId", false, "CUSTOM_VALUES_HOLIDAY_ID");
-        public final static Property CustomValuesRoleBaseId = new Property(36, long.class, "customValuesRoleBaseId", false, "CUSTOM_VALUES_ROLE_BASE_ID");
-        public final static Property CustomValuesClassAssignmentId = new Property(37, long.class, "customValuesClassAssignmentId", false, "CUSTOM_VALUES_CLASS_ASSIGNMENT_ID");
-        public final static Property CustomValuesCheckInId = new Property(38, long.class, "customValuesCheckInId", false, "CUSTOM_VALUES_CHECK_IN_ID");
-        public final static Property CustomValuesEmploymentRoleId = new Property(39, long.class, "customValuesEmploymentRoleId", false, "CUSTOM_VALUES_EMPLOYMENT_ROLE_ID");
-        public final static Property CustomValuesImmunizationDefinitionId = new Property(40, long.class, "customValuesImmunizationDefinitionId", false, "CUSTOM_VALUES_IMMUNIZATION_DEFINITION_ID");
-        public final static Property Value = new Property(41, String.class, "value", false, "VALUE");
-        public final static Property CustomValuesAssociationId = new Property(42, long.class, "customValuesAssociationId", false, "CUSTOM_VALUES_ASSOCIATION_ID");
-        public final static Property CustomValuesValueListItemId = new Property(43, long.class, "customValuesValueListItemId", false, "CUSTOM_VALUES_VALUE_LIST_ITEM_ID");
-        public final static Property CustomValuesStudentId = new Property(44, long.class, "customValuesStudentId", false, "CUSTOM_VALUES_STUDENT_ID");
-        public final static Property CustomValuesDepartmentId = new Property(45, long.class, "customValuesDepartmentId", false, "CUSTOM_VALUES_DEPARTMENT_ID");
-        public final static Property CustomValuesSchoolId = new Property(46, long.class, "customValuesSchoolId", false, "CUSTOM_VALUES_SCHOOL_ID");
-        public final static Property CustomValuesPhoneNumberId = new Property(47, long.class, "customValuesPhoneNumberId", false, "CUSTOM_VALUES_PHONE_NUMBER_ID");
-        public final static Property CustomValuesClaszId = new Property(48, long.class, "customValuesClaszId", false, "CUSTOM_VALUES_CLASZ_ID");
-        public final static Property ValuesCustomFieldId = new Property(49, long.class, "valuesCustomFieldId", false, "VALUES_CUSTOM_FIELD_ID");
-        public final static Property CustomValuesJournalEntryCommentId = new Property(50, long.class, "customValuesJournalEntryCommentId", false, "CUSTOM_VALUES_JOURNAL_ENTRY_COMMENT_ID");
-        public final static Property SaveResultSaveResultId = new Property(51, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property CustomValuesPersonalRelationshipId = new Property(52, long.class, "customValuesPersonalRelationshipId", false, "CUSTOM_VALUES_PERSONAL_RELATIONSHIP_ID");
-        public final static Property CustomValuesAllergyId = new Property(53, long.class, "customValuesAllergyId", false, "CUSTOM_VALUES_ALLERGY_ID");
-        public final static Property CustomValuesOUTypeId = new Property(54, long.class, "customValuesOUTypeId", false, "CUSTOM_VALUES_OUTYPE_ID");
-        public final static Property CustomValuesApplicationSourceId = new Property(55, long.class, "customValuesApplicationSourceId", false, "CUSTOM_VALUES_APPLICATION_SOURCE_ID");
-        public final static Property CustomValuesDeviceId = new Property(56, long.class, "customValuesDeviceId", false, "CUSTOM_VALUES_DEVICE_ID");
-        public final static Property CustomValuesOUId = new Property(57, long.class, "customValuesOUId", false, "CUSTOM_VALUES_OUID");
-        public final static Property CustomValuesNoteId = new Property(58, long.class, "customValuesNoteId", false, "CUSTOM_VALUES_NOTE_ID");
-        public final static Property CustomValuesLedgerGroupId = new Property(59, long.class, "customValuesLedgerGroupId", false, "CUSTOM_VALUES_LEDGER_GROUP_ID");
-        public final static Property CustomValuesPayrollDefinitionId = new Property(60, long.class, "customValuesPayrollDefinitionId", false, "CUSTOM_VALUES_PAYROLL_DEFINITION_ID");
+        public final static Property DateLastModified = new Property(1, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(2, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property CustomValuesAddressId = new Property(3, long.class, "customValuesAddressId", false, "CUSTOM_VALUES_ADDRESS_ID");
+        public final static Property CustomValuesImmunizationScheduleId = new Property(4, long.class, "customValuesImmunizationScheduleId", false, "CUSTOM_VALUES_IMMUNIZATION_SCHEDULE_ID");
+        public final static Property CustomValuesWithdrawalCodeId = new Property(5, long.class, "customValuesWithdrawalCodeId", false, "CUSTOM_VALUES_WITHDRAWAL_CODE_ID");
+        public final static Property IsDeleted = new Property(6, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(7, Integer.class, "version", false, "VERSION");
+        public final static Property CustomValuesVehicleId = new Property(8, long.class, "customValuesVehicleId", false, "CUSTOM_VALUES_VEHICLE_ID");
+        public final static Property OwnerID = new Property(9, String.class, "ownerID", false, "OWNER_ID");
+        public final static Property CustomValuesCustomFieldId = new Property(10, long.class, "customValuesCustomFieldId", false, "CUSTOM_VALUES_CUSTOM_FIELD_ID");
+        public final static Property Id = new Property(11, Long.class, "id", true, "_id");
+        public final static Property CustomValuesLedgerItemId = new Property(12, long.class, "customValuesLedgerItemId", false, "CUSTOM_VALUES_LEDGER_ITEM_ID");
+        public final static Property DateCreated = new Property(13, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property CustomValuesAttachmentId = new Property(14, long.class, "customValuesAttachmentId", false, "CUSTOM_VALUES_ATTACHMENT_ID");
+        public final static Property CustomValuesCheckOutId = new Property(15, long.class, "customValuesCheckOutId", false, "CUSTOM_VALUES_CHECK_OUT_ID");
+        public final static Property Name = new Property(16, String.class, "name", false, "NAME");
+        public final static Property CustomValuesLedgerAccountId = new Property(17, long.class, "customValuesLedgerAccountId", false, "CUSTOM_VALUES_LEDGER_ACCOUNT_ID");
+        public final static Property CustomValuesActivityId = new Property(18, long.class, "customValuesActivityId", false, "CUSTOM_VALUES_ACTIVITY_ID");
+        public final static Property CustomValuesPersonId = new Property(19, long.class, "customValuesPersonId", false, "CUSTOM_VALUES_PERSON_ID");
+        public final static Property TagString = new Property(20, String.class, "tagString", false, "TAG_STRING");
+        public final static Property TenantID = new Property(21, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property CustomValuesFamilyId = new Property(22, long.class, "customValuesFamilyId", false, "CUSTOM_VALUES_FAMILY_ID");
+        public final static Property CustomValuesIdentificationId = new Property(23, long.class, "customValuesIdentificationId", false, "CUSTOM_VALUES_IDENTIFICATION_ID");
+        public final static Property CustomValuesJournalEntryId = new Property(24, long.class, "customValuesJournalEntryId", false, "CUSTOM_VALUES_JOURNAL_ENTRY_ID");
+        public final static Property CustomValuesApplicantChildId = new Property(25, long.class, "customValuesApplicantChildId", false, "CUSTOM_VALUES_APPLICANT_CHILD_ID");
+        public final static Property CustomValuesEmployeeFileId = new Property(26, long.class, "customValuesEmployeeFileId", false, "CUSTOM_VALUES_EMPLOYEE_FILE_ID");
+        public final static Property CustomValuesMedicalProviderId = new Property(27, long.class, "customValuesMedicalProviderId", false, "CUSTOM_VALUES_MEDICAL_PROVIDER_ID");
+        public final static Property CustomValuesSecurityQuestionId = new Property(28, long.class, "customValuesSecurityQuestionId", false, "CUSTOM_VALUES_SECURITY_QUESTION_ID");
+        public final static Property CustomValuesPickupAuthorizationId = new Property(29, long.class, "customValuesPickupAuthorizationId", false, "CUSTOM_VALUES_PICKUP_AUTHORIZATION_ID");
+        public final static Property CustomValuesAuthorizedPersonId = new Property(30, long.class, "customValuesAuthorizedPersonId", false, "CUSTOM_VALUES_AUTHORIZED_PERSON_ID");
+        public final static Property CustomValuesGuardianId = new Property(31, long.class, "customValuesGuardianId", false, "CUSTOM_VALUES_GUARDIAN_ID");
+        public final static Property CustomValuesEmploymentStatusId = new Property(32, long.class, "customValuesEmploymentStatusId", false, "CUSTOM_VALUES_EMPLOYMENT_STATUS_ID");
+        public final static Property CustomValuesApplicationId = new Property(33, long.class, "customValuesApplicationId", false, "CUSTOM_VALUES_APPLICATION_ID");
+        public final static Property CustomValuesImmunizationId = new Property(34, long.class, "customValuesImmunizationId", false, "CUSTOM_VALUES_IMMUNIZATION_ID");
+        public final static Property ExternalID = new Property(35, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property Guid = new Property(36, String.class, "guid", false, "GUID");
+        public final static Property CustomValuesOUBaseId = new Property(37, long.class, "customValuesOUBaseId", false, "CUSTOM_VALUES_OUBASE_ID");
+        public final static Property CustomValuesCustomValueId = new Property(38, long.class, "customValuesCustomValueId", false, "CUSTOM_VALUES_CUSTOM_VALUE_ID");
+        public final static Property CustomValuesHolidayId = new Property(39, long.class, "customValuesHolidayId", false, "CUSTOM_VALUES_HOLIDAY_ID");
+        public final static Property CustomValuesRoleBaseId = new Property(40, long.class, "customValuesRoleBaseId", false, "CUSTOM_VALUES_ROLE_BASE_ID");
+        public final static Property CustomValuesCenterId = new Property(41, long.class, "customValuesCenterId", false, "CUSTOM_VALUES_CENTER_ID");
+        public final static Property CustomValuesImmunizationDefinitionId = new Property(42, long.class, "customValuesImmunizationDefinitionId", false, "CUSTOM_VALUES_IMMUNIZATION_DEFINITION_ID");
+        public final static Property CustomValuesClassAssignmentId = new Property(43, long.class, "customValuesClassAssignmentId", false, "CUSTOM_VALUES_CLASS_ASSIGNMENT_ID");
+        public final static Property CustomValuesEmploymentRoleId = new Property(44, long.class, "customValuesEmploymentRoleId", false, "CUSTOM_VALUES_EMPLOYMENT_ROLE_ID");
+        public final static Property CustomValuesCheckInId = new Property(45, long.class, "customValuesCheckInId", false, "CUSTOM_VALUES_CHECK_IN_ID");
+        public final static Property CustomValuesCampaignId = new Property(46, long.class, "customValuesCampaignId", false, "CUSTOM_VALUES_CAMPAIGN_ID");
+        public final static Property Value = new Property(47, String.class, "value", false, "VALUE");
+        public final static Property CustomValuesAssociationId = new Property(48, long.class, "customValuesAssociationId", false, "CUSTOM_VALUES_ASSOCIATION_ID");
+        public final static Property CustomValuesValueListItemId = new Property(49, long.class, "customValuesValueListItemId", false, "CUSTOM_VALUES_VALUE_LIST_ITEM_ID");
+        public final static Property CustomValuesStudentId = new Property(50, long.class, "customValuesStudentId", false, "CUSTOM_VALUES_STUDENT_ID");
+        public final static Property CustomValuesSchoolId = new Property(51, long.class, "customValuesSchoolId", false, "CUSTOM_VALUES_SCHOOL_ID");
+        public final static Property CustomValuesPhoneNumberId = new Property(52, long.class, "customValuesPhoneNumberId", false, "CUSTOM_VALUES_PHONE_NUMBER_ID");
+        public final static Property CustomValuesDepartmentId = new Property(53, long.class, "customValuesDepartmentId", false, "CUSTOM_VALUES_DEPARTMENT_ID");
+        public final static Property CustomValuesClaszId = new Property(54, long.class, "customValuesClaszId", false, "CUSTOM_VALUES_CLASZ_ID");
+        public final static Property ValuesCustomFieldId = new Property(55, long.class, "valuesCustomFieldId", false, "VALUES_CUSTOM_FIELD_ID");
+        public final static Property CustomValuesJournalEntryCommentId = new Property(56, long.class, "customValuesJournalEntryCommentId", false, "CUSTOM_VALUES_JOURNAL_ENTRY_COMMENT_ID");
+        public final static Property CustomValuesAllergyId = new Property(57, long.class, "customValuesAllergyId", false, "CUSTOM_VALUES_ALLERGY_ID");
+        public final static Property CustomValuesPersonalRelationshipId = new Property(58, long.class, "customValuesPersonalRelationshipId", false, "CUSTOM_VALUES_PERSONAL_RELATIONSHIP_ID");
+        public final static Property SaveResultSaveResultId = new Property(59, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property CustomValuesOUTypeId = new Property(60, long.class, "customValuesOUTypeId", false, "CUSTOM_VALUES_OUTYPE_ID");
+        public final static Property CustomValuesApplicationSourceId = new Property(61, long.class, "customValuesApplicationSourceId", false, "CUSTOM_VALUES_APPLICATION_SOURCE_ID");
+        public final static Property CustomValuesDeviceId = new Property(62, long.class, "customValuesDeviceId", false, "CUSTOM_VALUES_DEVICE_ID");
+        public final static Property CustomValuesOUId = new Property(63, long.class, "customValuesOUId", false, "CUSTOM_VALUES_OUID");
+        public final static Property CustomValuesNoteId = new Property(64, long.class, "customValuesNoteId", false, "CUSTOM_VALUES_NOTE_ID");
+        public final static Property CustomValuesLedgerGroupId = new Property(65, long.class, "customValuesLedgerGroupId", false, "CUSTOM_VALUES_LEDGER_GROUP_ID");
+        public final static Property CustomValuesPayrollDefinitionId = new Property(66, long.class, "customValuesPayrollDefinitionId", false, "CUSTOM_VALUES_PAYROLL_DEFINITION_ID");
     };
 
     private DaoSession daoSession;
 
-    private Query<CustomValue> activity_CustomValuesQuery;
-    private Query<CustomValue> student_CustomValuesQuery;
-    private Query<CustomValue> school_CustomValuesQuery;
-    private Query<CustomValue> phoneNumber_CustomValuesQuery;
-    private Query<CustomValue> customValue_CustomValuesQuery;
-    private Query<CustomValue> oU_CustomValuesQuery;
-    private Query<CustomValue> oUType_CustomValuesQuery;
+    private Query<CustomValue> center_CustomValuesQuery;
+
+    private Query<CustomValue> application_CustomValuesQuery;
+
     private Query<CustomValue> address_CustomValuesQuery;
-    private Query<CustomValue> employeeFile_CustomValuesQuery;
-    private Query<CustomValue> employmentRole_CustomValuesQuery;
-    private Query<CustomValue> employmentStatus_CustomValuesQuery;
-    private Query<CustomValue> department_CustomValuesQuery;
-    private Query<CustomValue> payrollDefinition_CustomValuesQuery;
-    private Query<CustomValue> payPeriod_CustomValuesQuery;
-    private Query<CustomValue> applicationSource_CustomValuesQuery;
-    private Query<CustomValue> ledgerAccount_CustomValuesQuery;
-    private Query<CustomValue> ledgerGroup_CustomValuesQuery;
-    private Query<CustomValue> ledgerItem_CustomValuesQuery;
+
+    private Query<CustomValue> customValue_CustomValuesQuery;
+
     private Query<CustomValue> person_CustomValuesQuery;
+
     private Query<CustomValue> attachment_CustomValuesQuery;
+
     private Query<CustomValue> personalRelationship_CustomValuesQuery;
+
     private Query<CustomValue> note_CustomValuesQuery;
+
     private Query<CustomValue> pickupAuthorization_CustomValuesQuery;
+
     private Query<CustomValue> identification_CustomValuesQuery;
-    private Query<CustomValue> allergy_CustomValuesQuery;
-    private Query<CustomValue> immunization_CustomValuesQuery;
-    private Query<CustomValue> immunizationDefinition_CustomValuesQuery;
-    private Query<CustomValue> immunizationSchedule_CustomValuesQuery;
-    private Query<CustomValue> journalEntry_CustomValuesQuery;
-    private Query<CustomValue> journalEntryComment_CustomValuesQuery;
-    private Query<CustomValue> vehicle_CustomValuesQuery;
-    private Query<CustomValue> association_CustomValuesQuery;
-    private Query<CustomValue> oUBase_CustomValuesQuery;
-    private Query<CustomValue> customField_ValuesQuery;
-    private Query<CustomValue> customField_CustomValuesQuery;
-    private Query<CustomValue> valueListItem_CustomValuesQuery;
-    private Query<CustomValue> roleBase_CustomValuesQuery;
-    private Query<CustomValue> authorizedPerson_CustomValuesQuery;
-    private Query<CustomValue> device_CustomValuesQuery;
+
+    private Query<CustomValue> student_CustomValuesQuery;
+
+    private Query<CustomValue> school_CustomValuesQuery;
+
+    private Query<CustomValue> phoneNumber_CustomValuesQuery;
+
+    private Query<CustomValue> oU_CustomValuesQuery;
+
+    private Query<CustomValue> oUType_CustomValuesQuery;
+
+    private Query<CustomValue> employeeFile_CustomValuesQuery;
+
+    private Query<CustomValue> employmentRole_CustomValuesQuery;
+
+    private Query<CustomValue> employmentStatus_CustomValuesQuery;
+
+    private Query<CustomValue> department_CustomValuesQuery;
+
+    private Query<CustomValue> payrollDefinition_CustomValuesQuery;
+
+    private Query<CustomValue> payPeriod_CustomValuesQuery;
+
+    private Query<CustomValue> applicationSource_CustomValuesQuery;
+
+    private Query<CustomValue> ledgerAccount_CustomValuesQuery;
+
+    private Query<CustomValue> ledgerGroup_CustomValuesQuery;
+
+    private Query<CustomValue> ledgerItem_CustomValuesQuery;
+
     private Query<CustomValue> holiday_CustomValuesQuery;
+
+    private Query<CustomValue> oUBase_CustomValuesQuery;
+
+    private Query<CustomValue> customField_ValuesQuery;
+
+    private Query<CustomValue> customField_CustomValuesQuery;
+
+    private Query<CustomValue> valueListItem_CustomValuesQuery;
+
+    private Query<CustomValue> roleBase_CustomValuesQuery;
+
+    private Query<CustomValue> association_CustomValuesQuery;
+
+    private Query<CustomValue> authorizedPerson_CustomValuesQuery;
+
+    private Query<CustomValue> device_CustomValuesQuery;
+
     private Query<CustomValue> checkIn_CustomValuesQuery;
+
     private Query<CustomValue> checkOut_CustomValuesQuery;
+
     private Query<CustomValue> withdrawalCode_CustomValuesQuery;
+
     private Query<CustomValue> securityQuestion_CustomValuesQuery;
+
     private Query<CustomValue> medicalProvider_CustomValuesQuery;
+
     private Query<CustomValue> family_CustomValuesQuery;
+
+    private Query<CustomValue> vehicle_CustomValuesQuery;
+
+    private Query<CustomValue> activity_CustomValuesQuery;
+
     private Query<CustomValue> classAssignment_CustomValuesQuery;
+
     private Query<CustomValue> clasz_CustomValuesQuery;
+
+    private Query<CustomValue> allergy_CustomValuesQuery;
+
+    private Query<CustomValue> immunization_CustomValuesQuery;
+
+    private Query<CustomValue> immunizationDefinition_CustomValuesQuery;
+
+    private Query<CustomValue> immunizationSchedule_CustomValuesQuery;
+
+    private Query<CustomValue> journalEntry_CustomValuesQuery;
+
+    private Query<CustomValue> journalEntryComment_CustomValuesQuery;
+
+    private Query<CustomValue> applicantChild_CustomValuesQuery;
+
+    private Query<CustomValue> campaign_CustomValuesQuery;
+
+    private Query<CustomValue> guardian_CustomValuesQuery;
 
     public CustomValueDao(DaoConfig config) {
         super(config);
@@ -156,66 +221,72 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'CUSTOM_VALUE' (" + //
                 "'CUSTOM_VALUES_PAY_PERIOD_ID' INTEGER NOT NULL ," + // 0: customValuesPayPeriodId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 1: dateLastModified
-                "'CUSTOM_VALUES_ADDRESS_ID' INTEGER NOT NULL ," + // 2: customValuesAddressId
-                "'CUSTOM_VALUES_WITHDRAWAL_CODE_ID' INTEGER NOT NULL ," + // 3: customValuesWithdrawalCodeId
-                "'IS_DELETED' INTEGER," + // 4: isDeleted
-                "'CUSTOM_VALUES_IMMUNIZATION_SCHEDULE_ID' INTEGER NOT NULL ," + // 5: customValuesImmunizationScheduleId
-                "'VERSION' INTEGER," + // 6: version
-                "'CUSTOM_VALUES_VEHICLE_ID' INTEGER NOT NULL ," + // 7: customValuesVehicleId
-                "'OWNER_ID' TEXT," + // 8: ownerID
-                "'CUSTOM_VALUES_CUSTOM_FIELD_ID' INTEGER NOT NULL ," + // 9: customValuesCustomFieldId
-                "'_id' INTEGER PRIMARY KEY ," + // 10: id
-                "'CUSTOM_VALUES_LEDGER_ITEM_ID' INTEGER NOT NULL ," + // 11: customValuesLedgerItemId
-                "'DATE_CREATED' INTEGER," + // 12: dateCreated
-                "'CUSTOM_VALUES_ATTACHMENT_ID' INTEGER NOT NULL ," + // 13: customValuesAttachmentId
-                "'CUSTOM_VALUES_CHECK_OUT_ID' INTEGER NOT NULL ," + // 14: customValuesCheckOutId
-                "'NAME' TEXT," + // 15: name
-                "'CUSTOM_VALUES_LEDGER_ACCOUNT_ID' INTEGER NOT NULL ," + // 16: customValuesLedgerAccountId
-                "'CUSTOM_VALUES_ACTIVITY_ID' INTEGER NOT NULL ," + // 17: customValuesActivityId
-                "'CUSTOM_VALUES_PERSON_ID' INTEGER NOT NULL ," + // 18: customValuesPersonId
-                "'TAG_STRING' TEXT," + // 19: tagString
-                "'TENANT_ID' INTEGER," + // 20: tenantID
-                "'CUSTOM_VALUES_FAMILY_ID' INTEGER NOT NULL ," + // 21: customValuesFamilyId
-                "'CUSTOM_VALUES_IDENTIFICATION_ID' INTEGER NOT NULL ," + // 22: customValuesIdentificationId
-                "'CUSTOM_VALUES_JOURNAL_ENTRY_ID' INTEGER NOT NULL ," + // 23: customValuesJournalEntryId
-                "'CUSTOM_VALUES_EMPLOYEE_FILE_ID' INTEGER NOT NULL ," + // 24: customValuesEmployeeFileId
-                "'CUSTOM_VALUES_MEDICAL_PROVIDER_ID' INTEGER NOT NULL ," + // 25: customValuesMedicalProviderId
-                "'CUSTOM_VALUES_SECURITY_QUESTION_ID' INTEGER NOT NULL ," + // 26: customValuesSecurityQuestionId
-                "'CUSTOM_VALUES_PICKUP_AUTHORIZATION_ID' INTEGER NOT NULL ," + // 27: customValuesPickupAuthorizationId
-                "'CUSTOM_VALUES_AUTHORIZED_PERSON_ID' INTEGER NOT NULL ," + // 28: customValuesAuthorizedPersonId
-                "'CUSTOM_VALUES_EMPLOYMENT_STATUS_ID' INTEGER NOT NULL ," + // 29: customValuesEmploymentStatusId
-                "'EXTERNAL_ID' TEXT," + // 30: externalID
-                "'GUID' TEXT," + // 31: guid
-                "'CUSTOM_VALUES_IMMUNIZATION_ID' INTEGER NOT NULL ," + // 32: customValuesImmunizationId
-                "'CUSTOM_VALUES_OUBASE_ID' INTEGER NOT NULL ," + // 33: customValuesOUBaseId
-                "'CUSTOM_VALUES_CUSTOM_VALUE_ID' INTEGER NOT NULL ," + // 34: customValuesCustomValueId
-                "'CUSTOM_VALUES_HOLIDAY_ID' INTEGER NOT NULL ," + // 35: customValuesHolidayId
-                "'CUSTOM_VALUES_ROLE_BASE_ID' INTEGER NOT NULL ," + // 36: customValuesRoleBaseId
-                "'CUSTOM_VALUES_CLASS_ASSIGNMENT_ID' INTEGER NOT NULL ," + // 37: customValuesClassAssignmentId
-                "'CUSTOM_VALUES_CHECK_IN_ID' INTEGER NOT NULL ," + // 38: customValuesCheckInId
-                "'CUSTOM_VALUES_EMPLOYMENT_ROLE_ID' INTEGER NOT NULL ," + // 39: customValuesEmploymentRoleId
-                "'CUSTOM_VALUES_IMMUNIZATION_DEFINITION_ID' INTEGER NOT NULL ," + // 40: customValuesImmunizationDefinitionId
-                "'VALUE' TEXT," + // 41: value
-                "'CUSTOM_VALUES_ASSOCIATION_ID' INTEGER NOT NULL ," + // 42: customValuesAssociationId
-                "'CUSTOM_VALUES_VALUE_LIST_ITEM_ID' INTEGER NOT NULL ," + // 43: customValuesValueListItemId
-                "'CUSTOM_VALUES_STUDENT_ID' INTEGER NOT NULL ," + // 44: customValuesStudentId
-                "'CUSTOM_VALUES_DEPARTMENT_ID' INTEGER NOT NULL ," + // 45: customValuesDepartmentId
-                "'CUSTOM_VALUES_SCHOOL_ID' INTEGER NOT NULL ," + // 46: customValuesSchoolId
-                "'CUSTOM_VALUES_PHONE_NUMBER_ID' INTEGER NOT NULL ," + // 47: customValuesPhoneNumberId
-                "'CUSTOM_VALUES_CLASZ_ID' INTEGER NOT NULL ," + // 48: customValuesClaszId
-                "'VALUES_CUSTOM_FIELD_ID' INTEGER NOT NULL ," + // 49: valuesCustomFieldId
-                "'CUSTOM_VALUES_JOURNAL_ENTRY_COMMENT_ID' INTEGER NOT NULL ," + // 50: customValuesJournalEntryCommentId
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 51: saveResultSaveResultId
-                "'CUSTOM_VALUES_PERSONAL_RELATIONSHIP_ID' INTEGER NOT NULL ," + // 52: customValuesPersonalRelationshipId
-                "'CUSTOM_VALUES_ALLERGY_ID' INTEGER NOT NULL ," + // 53: customValuesAllergyId
-                "'CUSTOM_VALUES_OUTYPE_ID' INTEGER NOT NULL ," + // 54: customValuesOUTypeId
-                "'CUSTOM_VALUES_APPLICATION_SOURCE_ID' INTEGER NOT NULL ," + // 55: customValuesApplicationSourceId
-                "'CUSTOM_VALUES_DEVICE_ID' INTEGER NOT NULL ," + // 56: customValuesDeviceId
-                "'CUSTOM_VALUES_OUID' INTEGER NOT NULL ," + // 57: customValuesOUId
-                "'CUSTOM_VALUES_NOTE_ID' INTEGER NOT NULL ," + // 58: customValuesNoteId
-                "'CUSTOM_VALUES_LEDGER_GROUP_ID' INTEGER NOT NULL ," + // 59: customValuesLedgerGroupId
-                "'CUSTOM_VALUES_PAYROLL_DEFINITION_ID' INTEGER NOT NULL );"); // 60: customValuesPayrollDefinitionId
+                "'DATE_LAST_MODIFIED' TEXT," + // 1: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 2: syncBaseId
+                "'CUSTOM_VALUES_ADDRESS_ID' INTEGER NOT NULL ," + // 3: customValuesAddressId
+                "'CUSTOM_VALUES_IMMUNIZATION_SCHEDULE_ID' INTEGER NOT NULL ," + // 4: customValuesImmunizationScheduleId
+                "'CUSTOM_VALUES_WITHDRAWAL_CODE_ID' INTEGER NOT NULL ," + // 5: customValuesWithdrawalCodeId
+                "'IS_DELETED' INTEGER," + // 6: isDeleted
+                "'VERSION' INTEGER," + // 7: version
+                "'CUSTOM_VALUES_VEHICLE_ID' INTEGER NOT NULL ," + // 8: customValuesVehicleId
+                "'OWNER_ID' TEXT," + // 9: ownerID
+                "'CUSTOM_VALUES_CUSTOM_FIELD_ID' INTEGER NOT NULL ," + // 10: customValuesCustomFieldId
+                "'_id' INTEGER PRIMARY KEY ," + // 11: id
+                "'CUSTOM_VALUES_LEDGER_ITEM_ID' INTEGER NOT NULL ," + // 12: customValuesLedgerItemId
+                "'DATE_CREATED' TEXT," + // 13: dateCreated
+                "'CUSTOM_VALUES_ATTACHMENT_ID' INTEGER NOT NULL ," + // 14: customValuesAttachmentId
+                "'CUSTOM_VALUES_CHECK_OUT_ID' INTEGER NOT NULL ," + // 15: customValuesCheckOutId
+                "'NAME' TEXT," + // 16: name
+                "'CUSTOM_VALUES_LEDGER_ACCOUNT_ID' INTEGER NOT NULL ," + // 17: customValuesLedgerAccountId
+                "'CUSTOM_VALUES_ACTIVITY_ID' INTEGER NOT NULL ," + // 18: customValuesActivityId
+                "'CUSTOM_VALUES_PERSON_ID' INTEGER NOT NULL ," + // 19: customValuesPersonId
+                "'TAG_STRING' TEXT," + // 20: tagString
+                "'TENANT_ID' INTEGER," + // 21: tenantID
+                "'CUSTOM_VALUES_FAMILY_ID' INTEGER NOT NULL ," + // 22: customValuesFamilyId
+                "'CUSTOM_VALUES_IDENTIFICATION_ID' INTEGER NOT NULL ," + // 23: customValuesIdentificationId
+                "'CUSTOM_VALUES_JOURNAL_ENTRY_ID' INTEGER NOT NULL ," + // 24: customValuesJournalEntryId
+                "'CUSTOM_VALUES_APPLICANT_CHILD_ID' INTEGER NOT NULL ," + // 25: customValuesApplicantChildId
+                "'CUSTOM_VALUES_EMPLOYEE_FILE_ID' INTEGER NOT NULL ," + // 26: customValuesEmployeeFileId
+                "'CUSTOM_VALUES_MEDICAL_PROVIDER_ID' INTEGER NOT NULL ," + // 27: customValuesMedicalProviderId
+                "'CUSTOM_VALUES_SECURITY_QUESTION_ID' INTEGER NOT NULL ," + // 28: customValuesSecurityQuestionId
+                "'CUSTOM_VALUES_PICKUP_AUTHORIZATION_ID' INTEGER NOT NULL ," + // 29: customValuesPickupAuthorizationId
+                "'CUSTOM_VALUES_AUTHORIZED_PERSON_ID' INTEGER NOT NULL ," + // 30: customValuesAuthorizedPersonId
+                "'CUSTOM_VALUES_GUARDIAN_ID' INTEGER NOT NULL ," + // 31: customValuesGuardianId
+                "'CUSTOM_VALUES_EMPLOYMENT_STATUS_ID' INTEGER NOT NULL ," + // 32: customValuesEmploymentStatusId
+                "'CUSTOM_VALUES_APPLICATION_ID' INTEGER NOT NULL ," + // 33: customValuesApplicationId
+                "'CUSTOM_VALUES_IMMUNIZATION_ID' INTEGER NOT NULL ," + // 34: customValuesImmunizationId
+                "'EXTERNAL_ID' TEXT," + // 35: externalID
+                "'GUID' TEXT," + // 36: guid
+                "'CUSTOM_VALUES_OUBASE_ID' INTEGER NOT NULL ," + // 37: customValuesOUBaseId
+                "'CUSTOM_VALUES_CUSTOM_VALUE_ID' INTEGER NOT NULL ," + // 38: customValuesCustomValueId
+                "'CUSTOM_VALUES_HOLIDAY_ID' INTEGER NOT NULL ," + // 39: customValuesHolidayId
+                "'CUSTOM_VALUES_ROLE_BASE_ID' INTEGER NOT NULL ," + // 40: customValuesRoleBaseId
+                "'CUSTOM_VALUES_CENTER_ID' INTEGER NOT NULL ," + // 41: customValuesCenterId
+                "'CUSTOM_VALUES_IMMUNIZATION_DEFINITION_ID' INTEGER NOT NULL ," + // 42: customValuesImmunizationDefinitionId
+                "'CUSTOM_VALUES_CLASS_ASSIGNMENT_ID' INTEGER NOT NULL ," + // 43: customValuesClassAssignmentId
+                "'CUSTOM_VALUES_EMPLOYMENT_ROLE_ID' INTEGER NOT NULL ," + // 44: customValuesEmploymentRoleId
+                "'CUSTOM_VALUES_CHECK_IN_ID' INTEGER NOT NULL ," + // 45: customValuesCheckInId
+                "'CUSTOM_VALUES_CAMPAIGN_ID' INTEGER NOT NULL ," + // 46: customValuesCampaignId
+                "'VALUE' TEXT," + // 47: value
+                "'CUSTOM_VALUES_ASSOCIATION_ID' INTEGER NOT NULL ," + // 48: customValuesAssociationId
+                "'CUSTOM_VALUES_VALUE_LIST_ITEM_ID' INTEGER NOT NULL ," + // 49: customValuesValueListItemId
+                "'CUSTOM_VALUES_STUDENT_ID' INTEGER NOT NULL ," + // 50: customValuesStudentId
+                "'CUSTOM_VALUES_SCHOOL_ID' INTEGER NOT NULL ," + // 51: customValuesSchoolId
+                "'CUSTOM_VALUES_PHONE_NUMBER_ID' INTEGER NOT NULL ," + // 52: customValuesPhoneNumberId
+                "'CUSTOM_VALUES_DEPARTMENT_ID' INTEGER NOT NULL ," + // 53: customValuesDepartmentId
+                "'CUSTOM_VALUES_CLASZ_ID' INTEGER NOT NULL ," + // 54: customValuesClaszId
+                "'VALUES_CUSTOM_FIELD_ID' INTEGER NOT NULL ," + // 55: valuesCustomFieldId
+                "'CUSTOM_VALUES_JOURNAL_ENTRY_COMMENT_ID' INTEGER NOT NULL ," + // 56: customValuesJournalEntryCommentId
+                "'CUSTOM_VALUES_ALLERGY_ID' INTEGER NOT NULL ," + // 57: customValuesAllergyId
+                "'CUSTOM_VALUES_PERSONAL_RELATIONSHIP_ID' INTEGER NOT NULL ," + // 58: customValuesPersonalRelationshipId
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 59: saveResultSaveResultId
+                "'CUSTOM_VALUES_OUTYPE_ID' INTEGER NOT NULL ," + // 60: customValuesOUTypeId
+                "'CUSTOM_VALUES_APPLICATION_SOURCE_ID' INTEGER NOT NULL ," + // 61: customValuesApplicationSourceId
+                "'CUSTOM_VALUES_DEVICE_ID' INTEGER NOT NULL ," + // 62: customValuesDeviceId
+                "'CUSTOM_VALUES_OUID' INTEGER NOT NULL ," + // 63: customValuesOUId
+                "'CUSTOM_VALUES_NOTE_ID' INTEGER NOT NULL ," + // 64: customValuesNoteId
+                "'CUSTOM_VALUES_LEDGER_GROUP_ID' INTEGER NOT NULL ," + // 65: customValuesLedgerGroupId
+                "'CUSTOM_VALUES_PAYROLL_DEFINITION_ID' INTEGER NOT NULL );"); // 66: customValuesPayrollDefinitionId
     }
 
     /** Drops the underlying database table. */
@@ -230,113 +301,123 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         stmt.clearBindings();
         stmt.bindLong(1, entity.getCustomValuesPayPeriodId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(2, dateLastModified);
+            stmt.bindString(2, dateLastModified);
         }
-        stmt.bindLong(3, entity.getCustomValuesAddressId());
-        stmt.bindLong(4, entity.getCustomValuesWithdrawalCodeId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(3, syncBaseId);
+        }
+        stmt.bindLong(4, entity.getCustomValuesAddressId());
+        stmt.bindLong(5, entity.getCustomValuesImmunizationScheduleId());
+        stmt.bindLong(6, entity.getCustomValuesWithdrawalCodeId());
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(5, isDeleted ? 1l: 0l);
+            stmt.bindLong(7, isDeleted ? 1l: 0l);
         }
-        stmt.bindLong(6, entity.getCustomValuesImmunizationScheduleId());
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(7, version);
+            stmt.bindLong(8, version);
         }
-        stmt.bindLong(8, entity.getCustomValuesVehicleId());
+        stmt.bindLong(9, entity.getCustomValuesVehicleId());
  
         String ownerID = entity.getOwnerID();
         if (ownerID != null) {
-            stmt.bindString(9, ownerID);
+            stmt.bindString(10, ownerID);
         }
-        stmt.bindLong(10, entity.getCustomValuesCustomFieldId());
+        stmt.bindLong(11, entity.getCustomValuesCustomFieldId());
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(11, id);
+            stmt.bindLong(12, id);
         }
-        stmt.bindLong(12, entity.getCustomValuesLedgerItemId());
+        stmt.bindLong(13, entity.getCustomValuesLedgerItemId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(13, dateCreated);
+            stmt.bindString(14, dateCreated);
         }
-        stmt.bindLong(14, entity.getCustomValuesAttachmentId());
-        stmt.bindLong(15, entity.getCustomValuesCheckOutId());
+        stmt.bindLong(15, entity.getCustomValuesAttachmentId());
+        stmt.bindLong(16, entity.getCustomValuesCheckOutId());
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(16, name);
+            stmt.bindString(17, name);
         }
-        stmt.bindLong(17, entity.getCustomValuesLedgerAccountId());
-        stmt.bindLong(18, entity.getCustomValuesActivityId());
-        stmt.bindLong(19, entity.getCustomValuesPersonId());
+        stmt.bindLong(18, entity.getCustomValuesLedgerAccountId());
+        stmt.bindLong(19, entity.getCustomValuesActivityId());
+        stmt.bindLong(20, entity.getCustomValuesPersonId());
  
         String tagString = entity.getTagString();
         if (tagString != null) {
-            stmt.bindString(20, tagString);
+            stmt.bindString(21, tagString);
         }
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
-            stmt.bindLong(21, tenantID);
+            stmt.bindLong(22, tenantID);
         }
-        stmt.bindLong(22, entity.getCustomValuesFamilyId());
-        stmt.bindLong(23, entity.getCustomValuesIdentificationId());
-        stmt.bindLong(24, entity.getCustomValuesJournalEntryId());
-        stmt.bindLong(25, entity.getCustomValuesEmployeeFileId());
-        stmt.bindLong(26, entity.getCustomValuesMedicalProviderId());
-        stmt.bindLong(27, entity.getCustomValuesSecurityQuestionId());
-        stmt.bindLong(28, entity.getCustomValuesPickupAuthorizationId());
-        stmt.bindLong(29, entity.getCustomValuesAuthorizedPersonId());
-        stmt.bindLong(30, entity.getCustomValuesEmploymentStatusId());
+        stmt.bindLong(23, entity.getCustomValuesFamilyId());
+        stmt.bindLong(24, entity.getCustomValuesIdentificationId());
+        stmt.bindLong(25, entity.getCustomValuesJournalEntryId());
+        stmt.bindLong(26, entity.getCustomValuesApplicantChildId());
+        stmt.bindLong(27, entity.getCustomValuesEmployeeFileId());
+        stmt.bindLong(28, entity.getCustomValuesMedicalProviderId());
+        stmt.bindLong(29, entity.getCustomValuesSecurityQuestionId());
+        stmt.bindLong(30, entity.getCustomValuesPickupAuthorizationId());
+        stmt.bindLong(31, entity.getCustomValuesAuthorizedPersonId());
+        stmt.bindLong(32, entity.getCustomValuesGuardianId());
+        stmt.bindLong(33, entity.getCustomValuesEmploymentStatusId());
+        stmt.bindLong(34, entity.getCustomValuesApplicationId());
+        stmt.bindLong(35, entity.getCustomValuesImmunizationId());
  
         String externalID = entity.getExternalID();
         if (externalID != null) {
-            stmt.bindString(31, externalID);
+            stmt.bindString(36, externalID);
         }
  
         String guid = entity.getGuid();
         if (guid != null) {
-            stmt.bindString(32, guid);
+            stmt.bindString(37, guid);
         }
-        stmt.bindLong(33, entity.getCustomValuesImmunizationId());
-        stmt.bindLong(34, entity.getCustomValuesOUBaseId());
-        stmt.bindLong(35, entity.getCustomValuesCustomValueId());
-        stmt.bindLong(36, entity.getCustomValuesHolidayId());
-        stmt.bindLong(37, entity.getCustomValuesRoleBaseId());
-        stmt.bindLong(38, entity.getCustomValuesClassAssignmentId());
-        stmt.bindLong(39, entity.getCustomValuesCheckInId());
-        stmt.bindLong(40, entity.getCustomValuesEmploymentRoleId());
-        stmt.bindLong(41, entity.getCustomValuesImmunizationDefinitionId());
+        stmt.bindLong(38, entity.getCustomValuesOUBaseId());
+        stmt.bindLong(39, entity.getCustomValuesCustomValueId());
+        stmt.bindLong(40, entity.getCustomValuesHolidayId());
+        stmt.bindLong(41, entity.getCustomValuesRoleBaseId());
+        stmt.bindLong(42, entity.getCustomValuesCenterId());
+        stmt.bindLong(43, entity.getCustomValuesImmunizationDefinitionId());
+        stmt.bindLong(44, entity.getCustomValuesClassAssignmentId());
+        stmt.bindLong(45, entity.getCustomValuesEmploymentRoleId());
+        stmt.bindLong(46, entity.getCustomValuesCheckInId());
+        stmt.bindLong(47, entity.getCustomValuesCampaignId());
  
         String value = entity.getValue();
         if (value != null) {
-            stmt.bindString(42, value);
+            stmt.bindString(48, value);
         }
-        stmt.bindLong(43, entity.getCustomValuesAssociationId());
-        stmt.bindLong(44, entity.getCustomValuesValueListItemId());
-        stmt.bindLong(45, entity.getCustomValuesStudentId());
-        stmt.bindLong(46, entity.getCustomValuesDepartmentId());
-        stmt.bindLong(47, entity.getCustomValuesSchoolId());
-        stmt.bindLong(48, entity.getCustomValuesPhoneNumberId());
-        stmt.bindLong(49, entity.getCustomValuesClaszId());
-        stmt.bindLong(50, entity.getValuesCustomFieldId());
-        stmt.bindLong(51, entity.getCustomValuesJournalEntryCommentId());
-        stmt.bindLong(52, entity.getSaveResultSaveResultId());
-        stmt.bindLong(53, entity.getCustomValuesPersonalRelationshipId());
-        stmt.bindLong(54, entity.getCustomValuesAllergyId());
-        stmt.bindLong(55, entity.getCustomValuesOUTypeId());
-        stmt.bindLong(56, entity.getCustomValuesApplicationSourceId());
-        stmt.bindLong(57, entity.getCustomValuesDeviceId());
-        stmt.bindLong(58, entity.getCustomValuesOUId());
-        stmt.bindLong(59, entity.getCustomValuesNoteId());
-        stmt.bindLong(60, entity.getCustomValuesLedgerGroupId());
-        stmt.bindLong(61, entity.getCustomValuesPayrollDefinitionId());
+        stmt.bindLong(49, entity.getCustomValuesAssociationId());
+        stmt.bindLong(50, entity.getCustomValuesValueListItemId());
+        stmt.bindLong(51, entity.getCustomValuesStudentId());
+        stmt.bindLong(52, entity.getCustomValuesSchoolId());
+        stmt.bindLong(53, entity.getCustomValuesPhoneNumberId());
+        stmt.bindLong(54, entity.getCustomValuesDepartmentId());
+        stmt.bindLong(55, entity.getCustomValuesClaszId());
+        stmt.bindLong(56, entity.getValuesCustomFieldId());
+        stmt.bindLong(57, entity.getCustomValuesJournalEntryCommentId());
+        stmt.bindLong(58, entity.getCustomValuesAllergyId());
+        stmt.bindLong(59, entity.getCustomValuesPersonalRelationshipId());
+        stmt.bindLong(60, entity.getSaveResultSaveResultId());
+        stmt.bindLong(61, entity.getCustomValuesOUTypeId());
+        stmt.bindLong(62, entity.getCustomValuesApplicationSourceId());
+        stmt.bindLong(63, entity.getCustomValuesDeviceId());
+        stmt.bindLong(64, entity.getCustomValuesOUId());
+        stmt.bindLong(65, entity.getCustomValuesNoteId());
+        stmt.bindLong(66, entity.getCustomValuesLedgerGroupId());
+        stmt.bindLong(67, entity.getCustomValuesPayrollDefinitionId());
     }
 
     @Override
@@ -348,7 +429,7 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10);
+        return cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11);
     }    
 
     /** @inheritdoc */
@@ -356,66 +437,72 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
     public CustomValue readEntity(Cursor cursor, int offset) {
         CustomValue entity = new CustomValue( //
             cursor.getLong(offset + 0), // customValuesPayPeriodId
-            cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // dateLastModified
-            cursor.getLong(offset + 2), // customValuesAddressId
-            cursor.getLong(offset + 3), // customValuesWithdrawalCodeId
-            cursor.isNull(offset + 4) ? null : cursor.getShort(offset + 4) != 0, // isDeleted
-            cursor.getLong(offset + 5), // customValuesImmunizationScheduleId
-            cursor.isNull(offset + 6) ? null : cursor.getInt(offset + 6), // version
-            cursor.getLong(offset + 7), // customValuesVehicleId
-            cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8), // ownerID
-            cursor.getLong(offset + 9), // customValuesCustomFieldId
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // id
-            cursor.getLong(offset + 11), // customValuesLedgerItemId
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // dateCreated
-            cursor.getLong(offset + 13), // customValuesAttachmentId
-            cursor.getLong(offset + 14), // customValuesCheckOutId
-            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // name
-            cursor.getLong(offset + 16), // customValuesLedgerAccountId
-            cursor.getLong(offset + 17), // customValuesActivityId
-            cursor.getLong(offset + 18), // customValuesPersonId
-            cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19), // tagString
-            cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20), // tenantID
-            cursor.getLong(offset + 21), // customValuesFamilyId
-            cursor.getLong(offset + 22), // customValuesIdentificationId
-            cursor.getLong(offset + 23), // customValuesJournalEntryId
-            cursor.getLong(offset + 24), // customValuesEmployeeFileId
-            cursor.getLong(offset + 25), // customValuesMedicalProviderId
-            cursor.getLong(offset + 26), // customValuesSecurityQuestionId
-            cursor.getLong(offset + 27), // customValuesPickupAuthorizationId
-            cursor.getLong(offset + 28), // customValuesAuthorizedPersonId
-            cursor.getLong(offset + 29), // customValuesEmploymentStatusId
-            cursor.isNull(offset + 30) ? null : cursor.getString(offset + 30), // externalID
-            cursor.isNull(offset + 31) ? null : cursor.getString(offset + 31), // guid
-            cursor.getLong(offset + 32), // customValuesImmunizationId
-            cursor.getLong(offset + 33), // customValuesOUBaseId
-            cursor.getLong(offset + 34), // customValuesCustomValueId
-            cursor.getLong(offset + 35), // customValuesHolidayId
-            cursor.getLong(offset + 36), // customValuesRoleBaseId
-            cursor.getLong(offset + 37), // customValuesClassAssignmentId
-            cursor.getLong(offset + 38), // customValuesCheckInId
-            cursor.getLong(offset + 39), // customValuesEmploymentRoleId
-            cursor.getLong(offset + 40), // customValuesImmunizationDefinitionId
-            cursor.isNull(offset + 41) ? null : cursor.getString(offset + 41), // value
-            cursor.getLong(offset + 42), // customValuesAssociationId
-            cursor.getLong(offset + 43), // customValuesValueListItemId
-            cursor.getLong(offset + 44), // customValuesStudentId
-            cursor.getLong(offset + 45), // customValuesDepartmentId
-            cursor.getLong(offset + 46), // customValuesSchoolId
-            cursor.getLong(offset + 47), // customValuesPhoneNumberId
-            cursor.getLong(offset + 48), // customValuesClaszId
-            cursor.getLong(offset + 49), // valuesCustomFieldId
-            cursor.getLong(offset + 50), // customValuesJournalEntryCommentId
-            cursor.getLong(offset + 51), // saveResultSaveResultId
-            cursor.getLong(offset + 52), // customValuesPersonalRelationshipId
-            cursor.getLong(offset + 53), // customValuesAllergyId
-            cursor.getLong(offset + 54), // customValuesOUTypeId
-            cursor.getLong(offset + 55), // customValuesApplicationSourceId
-            cursor.getLong(offset + 56), // customValuesDeviceId
-            cursor.getLong(offset + 57), // customValuesOUId
-            cursor.getLong(offset + 58), // customValuesNoteId
-            cursor.getLong(offset + 59), // customValuesLedgerGroupId
-            cursor.getLong(offset + 60) // customValuesPayrollDefinitionId
+            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // dateLastModified
+            cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2), // syncBaseId
+            cursor.getLong(offset + 3), // customValuesAddressId
+            cursor.getLong(offset + 4), // customValuesImmunizationScheduleId
+            cursor.getLong(offset + 5), // customValuesWithdrawalCodeId
+            cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0, // isDeleted
+            cursor.isNull(offset + 7) ? null : cursor.getInt(offset + 7), // version
+            cursor.getLong(offset + 8), // customValuesVehicleId
+            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // ownerID
+            cursor.getLong(offset + 10), // customValuesCustomFieldId
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // id
+            cursor.getLong(offset + 12), // customValuesLedgerItemId
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13), // dateCreated
+            cursor.getLong(offset + 14), // customValuesAttachmentId
+            cursor.getLong(offset + 15), // customValuesCheckOutId
+            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16), // name
+            cursor.getLong(offset + 17), // customValuesLedgerAccountId
+            cursor.getLong(offset + 18), // customValuesActivityId
+            cursor.getLong(offset + 19), // customValuesPersonId
+            cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20), // tagString
+            cursor.isNull(offset + 21) ? null : cursor.getLong(offset + 21), // tenantID
+            cursor.getLong(offset + 22), // customValuesFamilyId
+            cursor.getLong(offset + 23), // customValuesIdentificationId
+            cursor.getLong(offset + 24), // customValuesJournalEntryId
+            cursor.getLong(offset + 25), // customValuesApplicantChildId
+            cursor.getLong(offset + 26), // customValuesEmployeeFileId
+            cursor.getLong(offset + 27), // customValuesMedicalProviderId
+            cursor.getLong(offset + 28), // customValuesSecurityQuestionId
+            cursor.getLong(offset + 29), // customValuesPickupAuthorizationId
+            cursor.getLong(offset + 30), // customValuesAuthorizedPersonId
+            cursor.getLong(offset + 31), // customValuesGuardianId
+            cursor.getLong(offset + 32), // customValuesEmploymentStatusId
+            cursor.getLong(offset + 33), // customValuesApplicationId
+            cursor.getLong(offset + 34), // customValuesImmunizationId
+            cursor.isNull(offset + 35) ? null : cursor.getString(offset + 35), // externalID
+            cursor.isNull(offset + 36) ? null : cursor.getString(offset + 36), // guid
+            cursor.getLong(offset + 37), // customValuesOUBaseId
+            cursor.getLong(offset + 38), // customValuesCustomValueId
+            cursor.getLong(offset + 39), // customValuesHolidayId
+            cursor.getLong(offset + 40), // customValuesRoleBaseId
+            cursor.getLong(offset + 41), // customValuesCenterId
+            cursor.getLong(offset + 42), // customValuesImmunizationDefinitionId
+            cursor.getLong(offset + 43), // customValuesClassAssignmentId
+            cursor.getLong(offset + 44), // customValuesEmploymentRoleId
+            cursor.getLong(offset + 45), // customValuesCheckInId
+            cursor.getLong(offset + 46), // customValuesCampaignId
+            cursor.isNull(offset + 47) ? null : cursor.getString(offset + 47), // value
+            cursor.getLong(offset + 48), // customValuesAssociationId
+            cursor.getLong(offset + 49), // customValuesValueListItemId
+            cursor.getLong(offset + 50), // customValuesStudentId
+            cursor.getLong(offset + 51), // customValuesSchoolId
+            cursor.getLong(offset + 52), // customValuesPhoneNumberId
+            cursor.getLong(offset + 53), // customValuesDepartmentId
+            cursor.getLong(offset + 54), // customValuesClaszId
+            cursor.getLong(offset + 55), // valuesCustomFieldId
+            cursor.getLong(offset + 56), // customValuesJournalEntryCommentId
+            cursor.getLong(offset + 57), // customValuesAllergyId
+            cursor.getLong(offset + 58), // customValuesPersonalRelationshipId
+            cursor.getLong(offset + 59), // saveResultSaveResultId
+            cursor.getLong(offset + 60), // customValuesOUTypeId
+            cursor.getLong(offset + 61), // customValuesApplicationSourceId
+            cursor.getLong(offset + 62), // customValuesDeviceId
+            cursor.getLong(offset + 63), // customValuesOUId
+            cursor.getLong(offset + 64), // customValuesNoteId
+            cursor.getLong(offset + 65), // customValuesLedgerGroupId
+            cursor.getLong(offset + 66) // customValuesPayrollDefinitionId
         );
         return entity;
     }
@@ -424,66 +511,72 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
     @Override
     public void readEntity(Cursor cursor, CustomValue entity, int offset) {
         entity.setCustomValuesPayPeriodId(cursor.getLong(offset + 0));
-        entity.setDateLastModified(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
-        entity.setCustomValuesAddressId(cursor.getLong(offset + 2));
-        entity.setCustomValuesWithdrawalCodeId(cursor.getLong(offset + 3));
-        entity.setIsDeleted(cursor.isNull(offset + 4) ? null : cursor.getShort(offset + 4) != 0);
-        entity.setCustomValuesImmunizationScheduleId(cursor.getLong(offset + 5));
-        entity.setVersion(cursor.isNull(offset + 6) ? null : cursor.getInt(offset + 6));
-        entity.setCustomValuesVehicleId(cursor.getLong(offset + 7));
-        entity.setOwnerID(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
-        entity.setCustomValuesCustomFieldId(cursor.getLong(offset + 9));
-        entity.setId(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
-        entity.setCustomValuesLedgerItemId(cursor.getLong(offset + 11));
-        entity.setDateCreated(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
-        entity.setCustomValuesAttachmentId(cursor.getLong(offset + 13));
-        entity.setCustomValuesCheckOutId(cursor.getLong(offset + 14));
-        entity.setName(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
-        entity.setCustomValuesLedgerAccountId(cursor.getLong(offset + 16));
-        entity.setCustomValuesActivityId(cursor.getLong(offset + 17));
-        entity.setCustomValuesPersonId(cursor.getLong(offset + 18));
-        entity.setTagString(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
-        entity.setTenantID(cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20));
-        entity.setCustomValuesFamilyId(cursor.getLong(offset + 21));
-        entity.setCustomValuesIdentificationId(cursor.getLong(offset + 22));
-        entity.setCustomValuesJournalEntryId(cursor.getLong(offset + 23));
-        entity.setCustomValuesEmployeeFileId(cursor.getLong(offset + 24));
-        entity.setCustomValuesMedicalProviderId(cursor.getLong(offset + 25));
-        entity.setCustomValuesSecurityQuestionId(cursor.getLong(offset + 26));
-        entity.setCustomValuesPickupAuthorizationId(cursor.getLong(offset + 27));
-        entity.setCustomValuesAuthorizedPersonId(cursor.getLong(offset + 28));
-        entity.setCustomValuesEmploymentStatusId(cursor.getLong(offset + 29));
-        entity.setExternalID(cursor.isNull(offset + 30) ? null : cursor.getString(offset + 30));
-        entity.setGuid(cursor.isNull(offset + 31) ? null : cursor.getString(offset + 31));
-        entity.setCustomValuesImmunizationId(cursor.getLong(offset + 32));
-        entity.setCustomValuesOUBaseId(cursor.getLong(offset + 33));
-        entity.setCustomValuesCustomValueId(cursor.getLong(offset + 34));
-        entity.setCustomValuesHolidayId(cursor.getLong(offset + 35));
-        entity.setCustomValuesRoleBaseId(cursor.getLong(offset + 36));
-        entity.setCustomValuesClassAssignmentId(cursor.getLong(offset + 37));
-        entity.setCustomValuesCheckInId(cursor.getLong(offset + 38));
-        entity.setCustomValuesEmploymentRoleId(cursor.getLong(offset + 39));
-        entity.setCustomValuesImmunizationDefinitionId(cursor.getLong(offset + 40));
-        entity.setValue(cursor.isNull(offset + 41) ? null : cursor.getString(offset + 41));
-        entity.setCustomValuesAssociationId(cursor.getLong(offset + 42));
-        entity.setCustomValuesValueListItemId(cursor.getLong(offset + 43));
-        entity.setCustomValuesStudentId(cursor.getLong(offset + 44));
-        entity.setCustomValuesDepartmentId(cursor.getLong(offset + 45));
-        entity.setCustomValuesSchoolId(cursor.getLong(offset + 46));
-        entity.setCustomValuesPhoneNumberId(cursor.getLong(offset + 47));
-        entity.setCustomValuesClaszId(cursor.getLong(offset + 48));
-        entity.setValuesCustomFieldId(cursor.getLong(offset + 49));
-        entity.setCustomValuesJournalEntryCommentId(cursor.getLong(offset + 50));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 51));
-        entity.setCustomValuesPersonalRelationshipId(cursor.getLong(offset + 52));
-        entity.setCustomValuesAllergyId(cursor.getLong(offset + 53));
-        entity.setCustomValuesOUTypeId(cursor.getLong(offset + 54));
-        entity.setCustomValuesApplicationSourceId(cursor.getLong(offset + 55));
-        entity.setCustomValuesDeviceId(cursor.getLong(offset + 56));
-        entity.setCustomValuesOUId(cursor.getLong(offset + 57));
-        entity.setCustomValuesNoteId(cursor.getLong(offset + 58));
-        entity.setCustomValuesLedgerGroupId(cursor.getLong(offset + 59));
-        entity.setCustomValuesPayrollDefinitionId(cursor.getLong(offset + 60));
+        entity.setDateLastModified(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setSyncBaseId(cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2));
+        entity.setCustomValuesAddressId(cursor.getLong(offset + 3));
+        entity.setCustomValuesImmunizationScheduleId(cursor.getLong(offset + 4));
+        entity.setCustomValuesWithdrawalCodeId(cursor.getLong(offset + 5));
+        entity.setIsDeleted(cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0);
+        entity.setVersion(cursor.isNull(offset + 7) ? null : cursor.getInt(offset + 7));
+        entity.setCustomValuesVehicleId(cursor.getLong(offset + 8));
+        entity.setOwnerID(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+        entity.setCustomValuesCustomFieldId(cursor.getLong(offset + 10));
+        entity.setId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setCustomValuesLedgerItemId(cursor.getLong(offset + 12));
+        entity.setDateCreated(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
+        entity.setCustomValuesAttachmentId(cursor.getLong(offset + 14));
+        entity.setCustomValuesCheckOutId(cursor.getLong(offset + 15));
+        entity.setName(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
+        entity.setCustomValuesLedgerAccountId(cursor.getLong(offset + 17));
+        entity.setCustomValuesActivityId(cursor.getLong(offset + 18));
+        entity.setCustomValuesPersonId(cursor.getLong(offset + 19));
+        entity.setTagString(cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20));
+        entity.setTenantID(cursor.isNull(offset + 21) ? null : cursor.getLong(offset + 21));
+        entity.setCustomValuesFamilyId(cursor.getLong(offset + 22));
+        entity.setCustomValuesIdentificationId(cursor.getLong(offset + 23));
+        entity.setCustomValuesJournalEntryId(cursor.getLong(offset + 24));
+        entity.setCustomValuesApplicantChildId(cursor.getLong(offset + 25));
+        entity.setCustomValuesEmployeeFileId(cursor.getLong(offset + 26));
+        entity.setCustomValuesMedicalProviderId(cursor.getLong(offset + 27));
+        entity.setCustomValuesSecurityQuestionId(cursor.getLong(offset + 28));
+        entity.setCustomValuesPickupAuthorizationId(cursor.getLong(offset + 29));
+        entity.setCustomValuesAuthorizedPersonId(cursor.getLong(offset + 30));
+        entity.setCustomValuesGuardianId(cursor.getLong(offset + 31));
+        entity.setCustomValuesEmploymentStatusId(cursor.getLong(offset + 32));
+        entity.setCustomValuesApplicationId(cursor.getLong(offset + 33));
+        entity.setCustomValuesImmunizationId(cursor.getLong(offset + 34));
+        entity.setExternalID(cursor.isNull(offset + 35) ? null : cursor.getString(offset + 35));
+        entity.setGuid(cursor.isNull(offset + 36) ? null : cursor.getString(offset + 36));
+        entity.setCustomValuesOUBaseId(cursor.getLong(offset + 37));
+        entity.setCustomValuesCustomValueId(cursor.getLong(offset + 38));
+        entity.setCustomValuesHolidayId(cursor.getLong(offset + 39));
+        entity.setCustomValuesRoleBaseId(cursor.getLong(offset + 40));
+        entity.setCustomValuesCenterId(cursor.getLong(offset + 41));
+        entity.setCustomValuesImmunizationDefinitionId(cursor.getLong(offset + 42));
+        entity.setCustomValuesClassAssignmentId(cursor.getLong(offset + 43));
+        entity.setCustomValuesEmploymentRoleId(cursor.getLong(offset + 44));
+        entity.setCustomValuesCheckInId(cursor.getLong(offset + 45));
+        entity.setCustomValuesCampaignId(cursor.getLong(offset + 46));
+        entity.setValue(cursor.isNull(offset + 47) ? null : cursor.getString(offset + 47));
+        entity.setCustomValuesAssociationId(cursor.getLong(offset + 48));
+        entity.setCustomValuesValueListItemId(cursor.getLong(offset + 49));
+        entity.setCustomValuesStudentId(cursor.getLong(offset + 50));
+        entity.setCustomValuesSchoolId(cursor.getLong(offset + 51));
+        entity.setCustomValuesPhoneNumberId(cursor.getLong(offset + 52));
+        entity.setCustomValuesDepartmentId(cursor.getLong(offset + 53));
+        entity.setCustomValuesClaszId(cursor.getLong(offset + 54));
+        entity.setValuesCustomFieldId(cursor.getLong(offset + 55));
+        entity.setCustomValuesJournalEntryCommentId(cursor.getLong(offset + 56));
+        entity.setCustomValuesAllergyId(cursor.getLong(offset + 57));
+        entity.setCustomValuesPersonalRelationshipId(cursor.getLong(offset + 58));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 59));
+        entity.setCustomValuesOUTypeId(cursor.getLong(offset + 60));
+        entity.setCustomValuesApplicationSourceId(cursor.getLong(offset + 61));
+        entity.setCustomValuesDeviceId(cursor.getLong(offset + 62));
+        entity.setCustomValuesOUId(cursor.getLong(offset + 63));
+        entity.setCustomValuesNoteId(cursor.getLong(offset + 64));
+        entity.setCustomValuesLedgerGroupId(cursor.getLong(offset + 65));
+        entity.setCustomValuesPayrollDefinitionId(cursor.getLong(offset + 66));
      }
     
     /** @inheritdoc */
@@ -509,17 +602,143 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         return true;
     }
     
-    /** Internal query to resolve the "customValues" to-many relationship of Activity. */
-    public List<CustomValue> _queryActivity_CustomValues(long customValuesActivityId) {
+    /** Internal query to resolve the "customValues" to-many relationship of Center. */
+    public List<CustomValue> _queryCenter_CustomValues(long customValuesCenterId) {
         synchronized (this) {
-            if (activity_CustomValuesQuery == null) {
+            if (center_CustomValuesQuery == null) {
                 QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesActivityId.eq(null));
-                activity_CustomValuesQuery = queryBuilder.build();
+                queryBuilder.where(Properties.CustomValuesCenterId.eq(null));
+                center_CustomValuesQuery = queryBuilder.build();
             }
         }
-        Query<CustomValue> query = activity_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesActivityId);
+        Query<CustomValue> query = center_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesCenterId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Application. */
+    public List<CustomValue> _queryApplication_CustomValues(long customValuesApplicationId) {
+        synchronized (this) {
+            if (application_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesApplicationId.eq(null));
+                application_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = application_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesApplicationId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Address. */
+    public List<CustomValue> _queryAddress_CustomValues(long customValuesAddressId) {
+        synchronized (this) {
+            if (address_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesAddressId.eq(null));
+                address_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = address_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesAddressId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of CustomValue. */
+    public List<CustomValue> _queryCustomValue_CustomValues(long customValuesCustomValueId) {
+        synchronized (this) {
+            if (customValue_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesCustomValueId.eq(null));
+                customValue_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = customValue_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesCustomValueId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Person. */
+    public List<CustomValue> _queryPerson_CustomValues(long customValuesPersonId) {
+        synchronized (this) {
+            if (person_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesPersonId.eq(null));
+                person_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = person_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesPersonId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Attachment. */
+    public List<CustomValue> _queryAttachment_CustomValues(long customValuesAttachmentId) {
+        synchronized (this) {
+            if (attachment_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesAttachmentId.eq(null));
+                attachment_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = attachment_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesAttachmentId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of PersonalRelationship. */
+    public List<CustomValue> _queryPersonalRelationship_CustomValues(long customValuesPersonalRelationshipId) {
+        synchronized (this) {
+            if (personalRelationship_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesPersonalRelationshipId.eq(null));
+                personalRelationship_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = personalRelationship_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesPersonalRelationshipId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Note. */
+    public List<CustomValue> _queryNote_CustomValues(long customValuesNoteId) {
+        synchronized (this) {
+            if (note_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesNoteId.eq(null));
+                note_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = note_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesNoteId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of PickupAuthorization. */
+    public List<CustomValue> _queryPickupAuthorization_CustomValues(long customValuesPickupAuthorizationId) {
+        synchronized (this) {
+            if (pickupAuthorization_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesPickupAuthorizationId.eq(null));
+                pickupAuthorization_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = pickupAuthorization_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesPickupAuthorizationId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Identification. */
+    public List<CustomValue> _queryIdentification_CustomValues(long customValuesIdentificationId) {
+        synchronized (this) {
+            if (identification_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesIdentificationId.eq(null));
+                identification_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = identification_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesIdentificationId);
         return query.list();
     }
 
@@ -565,20 +784,6 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         return query.list();
     }
 
-    /** Internal query to resolve the "customValues" to-many relationship of CustomValue. */
-    public List<CustomValue> _queryCustomValue_CustomValues(long customValuesCustomValueId) {
-        synchronized (this) {
-            if (customValue_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesCustomValueId.eq(null));
-                customValue_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = customValue_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesCustomValueId);
-        return query.list();
-    }
-
     /** Internal query to resolve the "customValues" to-many relationship of OU. */
     public List<CustomValue> _queryOU_CustomValues(long customValuesOUId) {
         synchronized (this) {
@@ -604,20 +809,6 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         }
         Query<CustomValue> query = oUType_CustomValuesQuery.forCurrentThread();
         query.setParameter(0, customValuesOUTypeId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of Address. */
-    public List<CustomValue> _queryAddress_CustomValues(long customValuesAddressId) {
-        synchronized (this) {
-            if (address_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesAddressId.eq(null));
-                address_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = address_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesAddressId);
         return query.list();
     }
 
@@ -761,199 +952,17 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         return query.list();
     }
 
-    /** Internal query to resolve the "customValues" to-many relationship of Person. */
-    public List<CustomValue> _queryPerson_CustomValues(long customValuesPersonId) {
+    /** Internal query to resolve the "customValues" to-many relationship of Holiday. */
+    public List<CustomValue> _queryHoliday_CustomValues(long customValuesHolidayId) {
         synchronized (this) {
-            if (person_CustomValuesQuery == null) {
+            if (holiday_CustomValuesQuery == null) {
                 QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesPersonId.eq(null));
-                person_CustomValuesQuery = queryBuilder.build();
+                queryBuilder.where(Properties.CustomValuesHolidayId.eq(null));
+                holiday_CustomValuesQuery = queryBuilder.build();
             }
         }
-        Query<CustomValue> query = person_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesPersonId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of Attachment. */
-    public List<CustomValue> _queryAttachment_CustomValues(long customValuesAttachmentId) {
-        synchronized (this) {
-            if (attachment_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesAttachmentId.eq(null));
-                attachment_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = attachment_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesAttachmentId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of PersonalRelationship. */
-    public List<CustomValue> _queryPersonalRelationship_CustomValues(long customValuesPersonalRelationshipId) {
-        synchronized (this) {
-            if (personalRelationship_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesPersonalRelationshipId.eq(null));
-                personalRelationship_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = personalRelationship_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesPersonalRelationshipId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of Note. */
-    public List<CustomValue> _queryNote_CustomValues(long customValuesNoteId) {
-        synchronized (this) {
-            if (note_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesNoteId.eq(null));
-                note_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = note_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesNoteId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of PickupAuthorization. */
-    public List<CustomValue> _queryPickupAuthorization_CustomValues(long customValuesPickupAuthorizationId) {
-        synchronized (this) {
-            if (pickupAuthorization_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesPickupAuthorizationId.eq(null));
-                pickupAuthorization_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = pickupAuthorization_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesPickupAuthorizationId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of Identification. */
-    public List<CustomValue> _queryIdentification_CustomValues(long customValuesIdentificationId) {
-        synchronized (this) {
-            if (identification_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesIdentificationId.eq(null));
-                identification_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = identification_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesIdentificationId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of Allergy. */
-    public List<CustomValue> _queryAllergy_CustomValues(long customValuesAllergyId) {
-        synchronized (this) {
-            if (allergy_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesAllergyId.eq(null));
-                allergy_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = allergy_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesAllergyId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of Immunization. */
-    public List<CustomValue> _queryImmunization_CustomValues(long customValuesImmunizationId) {
-        synchronized (this) {
-            if (immunization_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesImmunizationId.eq(null));
-                immunization_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = immunization_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesImmunizationId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of ImmunizationDefinition. */
-    public List<CustomValue> _queryImmunizationDefinition_CustomValues(long customValuesImmunizationDefinitionId) {
-        synchronized (this) {
-            if (immunizationDefinition_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesImmunizationDefinitionId.eq(null));
-                immunizationDefinition_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = immunizationDefinition_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesImmunizationDefinitionId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of ImmunizationSchedule. */
-    public List<CustomValue> _queryImmunizationSchedule_CustomValues(long customValuesImmunizationScheduleId) {
-        synchronized (this) {
-            if (immunizationSchedule_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesImmunizationScheduleId.eq(null));
-                immunizationSchedule_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = immunizationSchedule_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesImmunizationScheduleId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of JournalEntry. */
-    public List<CustomValue> _queryJournalEntry_CustomValues(long customValuesJournalEntryId) {
-        synchronized (this) {
-            if (journalEntry_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesJournalEntryId.eq(null));
-                journalEntry_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = journalEntry_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesJournalEntryId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of JournalEntryComment. */
-    public List<CustomValue> _queryJournalEntryComment_CustomValues(long customValuesJournalEntryCommentId) {
-        synchronized (this) {
-            if (journalEntryComment_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesJournalEntryCommentId.eq(null));
-                journalEntryComment_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = journalEntryComment_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesJournalEntryCommentId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of Vehicle. */
-    public List<CustomValue> _queryVehicle_CustomValues(long customValuesVehicleId) {
-        synchronized (this) {
-            if (vehicle_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesVehicleId.eq(null));
-                vehicle_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = vehicle_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesVehicleId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of Association. */
-    public List<CustomValue> _queryAssociation_CustomValues(long customValuesAssociationId) {
-        synchronized (this) {
-            if (association_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesAssociationId.eq(null));
-                association_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = association_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesAssociationId);
+        Query<CustomValue> query = holiday_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesHolidayId);
         return query.list();
     }
 
@@ -1027,6 +1036,20 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         return query.list();
     }
 
+    /** Internal query to resolve the "customValues" to-many relationship of Association. */
+    public List<CustomValue> _queryAssociation_CustomValues(long customValuesAssociationId) {
+        synchronized (this) {
+            if (association_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesAssociationId.eq(null));
+                association_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = association_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesAssociationId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "customValues" to-many relationship of AuthorizedPerson. */
     public List<CustomValue> _queryAuthorizedPerson_CustomValues(long customValuesAuthorizedPersonId) {
         synchronized (this) {
@@ -1052,20 +1075,6 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         }
         Query<CustomValue> query = device_CustomValuesQuery.forCurrentThread();
         query.setParameter(0, customValuesDeviceId);
-        return query.list();
-    }
-
-    /** Internal query to resolve the "customValues" to-many relationship of Holiday. */
-    public List<CustomValue> _queryHoliday_CustomValues(long customValuesHolidayId) {
-        synchronized (this) {
-            if (holiday_CustomValuesQuery == null) {
-                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.CustomValuesHolidayId.eq(null));
-                holiday_CustomValuesQuery = queryBuilder.build();
-            }
-        }
-        Query<CustomValue> query = holiday_CustomValuesQuery.forCurrentThread();
-        query.setParameter(0, customValuesHolidayId);
         return query.list();
     }
 
@@ -1153,6 +1162,34 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         return query.list();
     }
 
+    /** Internal query to resolve the "customValues" to-many relationship of Vehicle. */
+    public List<CustomValue> _queryVehicle_CustomValues(long customValuesVehicleId) {
+        synchronized (this) {
+            if (vehicle_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesVehicleId.eq(null));
+                vehicle_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = vehicle_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesVehicleId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Activity. */
+    public List<CustomValue> _queryActivity_CustomValues(long customValuesActivityId) {
+        synchronized (this) {
+            if (activity_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesActivityId.eq(null));
+                activity_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = activity_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesActivityId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "customValues" to-many relationship of ClassAssignment. */
     public List<CustomValue> _queryClassAssignment_CustomValues(long customValuesClassAssignmentId) {
         synchronized (this) {
@@ -1178,6 +1215,132 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         }
         Query<CustomValue> query = clasz_CustomValuesQuery.forCurrentThread();
         query.setParameter(0, customValuesClaszId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Allergy. */
+    public List<CustomValue> _queryAllergy_CustomValues(long customValuesAllergyId) {
+        synchronized (this) {
+            if (allergy_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesAllergyId.eq(null));
+                allergy_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = allergy_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesAllergyId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Immunization. */
+    public List<CustomValue> _queryImmunization_CustomValues(long customValuesImmunizationId) {
+        synchronized (this) {
+            if (immunization_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesImmunizationId.eq(null));
+                immunization_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = immunization_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesImmunizationId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of ImmunizationDefinition. */
+    public List<CustomValue> _queryImmunizationDefinition_CustomValues(long customValuesImmunizationDefinitionId) {
+        synchronized (this) {
+            if (immunizationDefinition_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesImmunizationDefinitionId.eq(null));
+                immunizationDefinition_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = immunizationDefinition_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesImmunizationDefinitionId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of ImmunizationSchedule. */
+    public List<CustomValue> _queryImmunizationSchedule_CustomValues(long customValuesImmunizationScheduleId) {
+        synchronized (this) {
+            if (immunizationSchedule_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesImmunizationScheduleId.eq(null));
+                immunizationSchedule_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = immunizationSchedule_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesImmunizationScheduleId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of JournalEntry. */
+    public List<CustomValue> _queryJournalEntry_CustomValues(long customValuesJournalEntryId) {
+        synchronized (this) {
+            if (journalEntry_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesJournalEntryId.eq(null));
+                journalEntry_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = journalEntry_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesJournalEntryId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of JournalEntryComment. */
+    public List<CustomValue> _queryJournalEntryComment_CustomValues(long customValuesJournalEntryCommentId) {
+        synchronized (this) {
+            if (journalEntryComment_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesJournalEntryCommentId.eq(null));
+                journalEntryComment_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = journalEntryComment_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesJournalEntryCommentId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of ApplicantChild. */
+    public List<CustomValue> _queryApplicantChild_CustomValues(long customValuesApplicantChildId) {
+        synchronized (this) {
+            if (applicantChild_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesApplicantChildId.eq(null));
+                applicantChild_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = applicantChild_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesApplicantChildId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Campaign. */
+    public List<CustomValue> _queryCampaign_CustomValues(long customValuesCampaignId) {
+        synchronized (this) {
+            if (campaign_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesCampaignId.eq(null));
+                campaign_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = campaign_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesCampaignId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "customValues" to-many relationship of Guardian. */
+    public List<CustomValue> _queryGuardian_CustomValues(long customValuesGuardianId) {
+        synchronized (this) {
+            if (guardian_CustomValuesQuery == null) {
+                QueryBuilder<CustomValue> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomValuesGuardianId.eq(null));
+                guardian_CustomValuesQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomValue> query = guardian_CustomValuesQuery.forCurrentThread();
+        query.setParameter(0, customValuesGuardianId);
         return query.list();
     }
 
@@ -1274,4 +1437,35 @@ public class CustomValueDao extends AbstractDao<CustomValue, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(CustomValue entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(CustomValue entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(CustomValue entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(CustomValue entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(CustomValue entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("CustomValue", new TypeToken<List<CustomValue>>(){}.getType());
+        GreenSync.registerTypeToken("CustomValue", CustomValue.class);
+    }
+
 }

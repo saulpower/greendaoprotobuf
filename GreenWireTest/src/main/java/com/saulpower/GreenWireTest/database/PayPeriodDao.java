@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -35,18 +37,22 @@ public class PayPeriodDao extends AbstractDao<PayPeriod, Long> {
         public final static Property PayPeriodsOUId = new Property(4, long.class, "payPeriodsOUId", false, "PAY_PERIODS_OUID");
         public final static Property TenantID = new Property(5, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(6, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(7, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDefault = new Property(8, Boolean.class, "isDefault", false, "IS_DEFAULT");
+        public final static Property DateLastModified = new Property(7, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(8, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
         public final static Property IsDeleted = new Property(9, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property StartDate = new Property(10, Long.class, "startDate", false, "START_DATE");
+        public final static Property IsDefault = new Property(10, Boolean.class, "isDefault", false, "IS_DEFAULT");
         public final static Property Version = new Property(11, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(12, Long.class, "id", true, "_id");
-        public final static Property OUOUId = new Property(13, long.class, "oUOUId", false, "O_UOUID");
-        public final static Property DateCreated = new Property(14, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property EndDate = new Property(15, Long.class, "endDate", false, "END_DATE");
+        public final static Property StartDate = new Property(12, String.class, "startDate", false, "START_DATE");
+        public final static Property PayPeriodsCenterId = new Property(13, long.class, "payPeriodsCenterId", false, "PAY_PERIODS_CENTER_ID");
+        public final static Property Id = new Property(14, Long.class, "id", true, "_id");
+        public final static Property OUOUId = new Property(15, long.class, "oUOUId", false, "O_UOUID");
+        public final static Property DateCreated = new Property(16, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property EndDate = new Property(17, String.class, "endDate", false, "END_DATE");
     };
 
     private DaoSession daoSession;
+
+    private Query<PayPeriod> center_PayPeriodsQuery;
 
     private Query<PayPeriod> oU_PayPeriodsQuery;
 
@@ -70,15 +76,17 @@ public class PayPeriodDao extends AbstractDao<PayPeriod, Long> {
                 "'PAY_PERIODS_OUID' INTEGER NOT NULL ," + // 4: payPeriodsOUId
                 "'TENANT_ID' INTEGER," + // 5: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 6: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 7: dateLastModified
-                "'IS_DEFAULT' INTEGER," + // 8: isDefault
+                "'DATE_LAST_MODIFIED' TEXT," + // 7: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 8: syncBaseId
                 "'IS_DELETED' INTEGER," + // 9: isDeleted
-                "'START_DATE' INTEGER," + // 10: startDate
+                "'IS_DEFAULT' INTEGER," + // 10: isDefault
                 "'VERSION' INTEGER," + // 11: version
-                "'_id' INTEGER PRIMARY KEY ," + // 12: id
-                "'O_UOUID' INTEGER NOT NULL ," + // 13: oUOUId
-                "'DATE_CREATED' INTEGER," + // 14: dateCreated
-                "'END_DATE' INTEGER);"); // 15: endDate
+                "'START_DATE' TEXT," + // 12: startDate
+                "'PAY_PERIODS_CENTER_ID' INTEGER NOT NULL ," + // 13: payPeriodsCenterId
+                "'_id' INTEGER PRIMARY KEY ," + // 14: id
+                "'O_UOUID' INTEGER NOT NULL ," + // 15: oUOUId
+                "'DATE_CREATED' TEXT," + // 16: dateCreated
+                "'END_DATE' TEXT);"); // 17: endDate
     }
 
     /** Drops the underlying database table. */
@@ -119,14 +127,14 @@ public class PayPeriodDao extends AbstractDao<PayPeriod, Long> {
         }
         stmt.bindLong(7, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(8, dateLastModified);
+            stmt.bindString(8, dateLastModified);
         }
  
-        Boolean isDefault = entity.getIsDefault();
-        if (isDefault != null) {
-            stmt.bindLong(9, isDefault ? 1l: 0l);
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(9, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
@@ -134,9 +142,9 @@ public class PayPeriodDao extends AbstractDao<PayPeriod, Long> {
             stmt.bindLong(10, isDeleted ? 1l: 0l);
         }
  
-        Long startDate = entity.getStartDate();
-        if (startDate != null) {
-            stmt.bindLong(11, startDate);
+        Boolean isDefault = entity.getIsDefault();
+        if (isDefault != null) {
+            stmt.bindLong(11, isDefault ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
@@ -144,20 +152,26 @@ public class PayPeriodDao extends AbstractDao<PayPeriod, Long> {
             stmt.bindLong(12, version);
         }
  
+        String startDate = entity.getStartDate();
+        if (startDate != null) {
+            stmt.bindString(13, startDate);
+        }
+        stmt.bindLong(14, entity.getPayPeriodsCenterId());
+ 
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(13, id);
+            stmt.bindLong(15, id);
         }
-        stmt.bindLong(14, entity.getOUOUId());
+        stmt.bindLong(16, entity.getOUOUId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(15, dateCreated);
+            stmt.bindString(17, dateCreated);
         }
  
-        Long endDate = entity.getEndDate();
+        String endDate = entity.getEndDate();
         if (endDate != null) {
-            stmt.bindLong(16, endDate);
+            stmt.bindString(18, endDate);
         }
     }
 
@@ -170,7 +184,7 @@ public class PayPeriodDao extends AbstractDao<PayPeriod, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12);
+        return cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14);
     }    
 
     /** @inheritdoc */
@@ -184,15 +198,17 @@ public class PayPeriodDao extends AbstractDao<PayPeriod, Long> {
             cursor.getLong(offset + 4), // payPeriodsOUId
             cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5), // tenantID
             cursor.getLong(offset + 6), // saveResultSaveResultId
-            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // dateLastModified
-            cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0, // isDefault
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // dateLastModified
+            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // syncBaseId
             cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0, // isDeleted
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // startDate
+            cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0, // isDefault
             cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11), // version
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // id
-            cursor.getLong(offset + 13), // oUOUId
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // dateCreated
-            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15) // endDate
+            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12), // startDate
+            cursor.getLong(offset + 13), // payPeriodsCenterId
+            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // id
+            cursor.getLong(offset + 15), // oUOUId
+            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16), // dateCreated
+            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17) // endDate
         );
         return entity;
     }
@@ -207,15 +223,17 @@ public class PayPeriodDao extends AbstractDao<PayPeriod, Long> {
         entity.setPayPeriodsOUId(cursor.getLong(offset + 4));
         entity.setTenantID(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 6));
-        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
-        entity.setIsDefault(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
+        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
+        entity.setSyncBaseId(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
         entity.setIsDeleted(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
-        entity.setStartDate(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
+        entity.setIsDefault(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
         entity.setVersion(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
-        entity.setId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
-        entity.setOUOUId(cursor.getLong(offset + 13));
-        entity.setDateCreated(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
-        entity.setEndDate(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
+        entity.setStartDate(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
+        entity.setPayPeriodsCenterId(cursor.getLong(offset + 13));
+        entity.setId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
+        entity.setOUOUId(cursor.getLong(offset + 15));
+        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
+        entity.setEndDate(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
      }
     
     /** @inheritdoc */
@@ -241,6 +259,20 @@ public class PayPeriodDao extends AbstractDao<PayPeriod, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "payPeriods" to-many relationship of Center. */
+    public List<PayPeriod> _queryCenter_PayPeriods(long payPeriodsCenterId) {
+        synchronized (this) {
+            if (center_PayPeriodsQuery == null) {
+                QueryBuilder<PayPeriod> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.PayPeriodsCenterId.eq(null));
+                center_PayPeriodsQuery = queryBuilder.build();
+            }
+        }
+        Query<PayPeriod> query = center_PayPeriodsQuery.forCurrentThread();
+        query.setParameter(0, payPeriodsCenterId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "payPeriods" to-many relationship of OU. */
     public List<PayPeriod> _queryOU_PayPeriods(long payPeriodsOUId) {
         synchronized (this) {
@@ -357,4 +389,35 @@ public class PayPeriodDao extends AbstractDao<PayPeriod, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(PayPeriod entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(PayPeriod entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(PayPeriod entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(PayPeriod entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(PayPeriod entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("PayPeriod", new TypeToken<List<PayPeriod>>(){}.getType());
+        GreenSync.registerTypeToken("PayPeriod", PayPeriod.class);
+    }
+
 }

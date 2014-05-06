@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -37,24 +39,26 @@ public class MedicalProviderDao extends AbstractDao<MedicalProvider, Long> {
         public final static Property Address = new Property(5, String.class, "address", false, "ADDRESS");
         public final static Property TenantID = new Property(6, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(7, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(8, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property DateLastModified = new Property(8, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
         public final static Property MedicalProvidersFamilyId = new Property(9, long.class, "medicalProvidersFamilyId", false, "MEDICAL_PROVIDERS_FAMILY_ID");
         public final static Property PolicyNumber = new Property(10, String.class, "policyNumber", false, "POLICY_NUMBER");
-        public final static Property PhoneNumber = new Property(11, String.class, "phoneNumber", false, "PHONE_NUMBER");
-        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(13, Integer.class, "version", false, "VERSION");
-        public final static Property ClinicName = new Property(14, String.class, "clinicName", false, "CLINIC_NAME");
-        public final static Property Id = new Property(15, Long.class, "id", true, "_id");
-        public final static Property MedicalProvidersStudentId = new Property(16, long.class, "medicalProvidersStudentId", false, "MEDICAL_PROVIDERS_STUDENT_ID");
-        public final static Property InsuranceProvider = new Property(17, String.class, "insuranceProvider", false, "INSURANCE_PROVIDER");
-        public final static Property StudentStudentId = new Property(18, long.class, "studentStudentId", false, "STUDENT_STUDENT_ID");
-        public final static Property DateCreated = new Property(19, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property Type = new Property(20, MedicalProviderType.class, "type", false, "TYPE");
+        public final static Property SyncBaseId = new Property(11, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property PhoneNumber = new Property(12, String.class, "phoneNumber", false, "PHONE_NUMBER");
+        public final static Property IsDeleted = new Property(13, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(14, Integer.class, "version", false, "VERSION");
+        public final static Property ClinicName = new Property(15, String.class, "clinicName", false, "CLINIC_NAME");
+        public final static Property Id = new Property(16, Long.class, "id", true, "_id");
+        public final static Property MedicalProvidersStudentId = new Property(17, long.class, "medicalProvidersStudentId", false, "MEDICAL_PROVIDERS_STUDENT_ID");
+        public final static Property InsuranceProvider = new Property(18, String.class, "insuranceProvider", false, "INSURANCE_PROVIDER");
+        public final static Property StudentStudentId = new Property(19, long.class, "studentStudentId", false, "STUDENT_STUDENT_ID");
+        public final static Property DateCreated = new Property(20, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property Type = new Property(21, MedicalProviderType.class, "type", false, "TYPE");
     };
 
     private DaoSession daoSession;
 
     private Query<MedicalProvider> student_MedicalProvidersQuery;
+
     private Query<MedicalProvider> family_MedicalProvidersQuery;
 
     public MedicalProviderDao(DaoConfig config) {
@@ -78,19 +82,20 @@ public class MedicalProviderDao extends AbstractDao<MedicalProvider, Long> {
                 "'ADDRESS' TEXT," + // 5: address
                 "'TENANT_ID' INTEGER," + // 6: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 7: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 8: dateLastModified
+                "'DATE_LAST_MODIFIED' TEXT," + // 8: dateLastModified
                 "'MEDICAL_PROVIDERS_FAMILY_ID' INTEGER NOT NULL ," + // 9: medicalProvidersFamilyId
                 "'POLICY_NUMBER' TEXT," + // 10: policyNumber
-                "'PHONE_NUMBER' TEXT," + // 11: phoneNumber
-                "'IS_DELETED' INTEGER," + // 12: isDeleted
-                "'VERSION' INTEGER," + // 13: version
-                "'CLINIC_NAME' TEXT," + // 14: clinicName
-                "'_id' INTEGER PRIMARY KEY ," + // 15: id
-                "'MEDICAL_PROVIDERS_STUDENT_ID' INTEGER NOT NULL ," + // 16: medicalProvidersStudentId
-                "'INSURANCE_PROVIDER' TEXT," + // 17: insuranceProvider
-                "'STUDENT_STUDENT_ID' INTEGER NOT NULL ," + // 18: studentStudentId
-                "'DATE_CREATED' INTEGER," + // 19: dateCreated
-                "'TYPE' INTEGER);"); // 20: type
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 11: syncBaseId
+                "'PHONE_NUMBER' TEXT," + // 12: phoneNumber
+                "'IS_DELETED' INTEGER," + // 13: isDeleted
+                "'VERSION' INTEGER," + // 14: version
+                "'CLINIC_NAME' TEXT," + // 15: clinicName
+                "'_id' INTEGER PRIMARY KEY ," + // 16: id
+                "'MEDICAL_PROVIDERS_STUDENT_ID' INTEGER NOT NULL ," + // 17: medicalProvidersStudentId
+                "'INSURANCE_PROVIDER' TEXT," + // 18: insuranceProvider
+                "'STUDENT_STUDENT_ID' INTEGER NOT NULL ," + // 19: studentStudentId
+                "'DATE_CREATED' TEXT," + // 20: dateCreated
+                "'TYPE' INTEGER);"); // 21: type
     }
 
     /** Drops the underlying database table. */
@@ -136,9 +141,9 @@ public class MedicalProviderDao extends AbstractDao<MedicalProvider, Long> {
         }
         stmt.bindLong(8, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(9, dateLastModified);
+            stmt.bindString(9, dateLastModified);
         }
         stmt.bindLong(10, entity.getMedicalProvidersFamilyId());
  
@@ -147,46 +152,51 @@ public class MedicalProviderDao extends AbstractDao<MedicalProvider, Long> {
             stmt.bindString(11, policyNumber);
         }
  
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(12, syncBaseId);
+        }
+ 
         String phoneNumber = entity.getPhoneNumber();
         if (phoneNumber != null) {
-            stmt.bindString(12, phoneNumber);
+            stmt.bindString(13, phoneNumber);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(13, isDeleted ? 1l: 0l);
+            stmt.bindLong(14, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(14, version);
+            stmt.bindLong(15, version);
         }
  
         String clinicName = entity.getClinicName();
         if (clinicName != null) {
-            stmt.bindString(15, clinicName);
+            stmt.bindString(16, clinicName);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(16, id);
+            stmt.bindLong(17, id);
         }
-        stmt.bindLong(17, entity.getMedicalProvidersStudentId());
+        stmt.bindLong(18, entity.getMedicalProvidersStudentId());
  
         String insuranceProvider = entity.getInsuranceProvider();
         if (insuranceProvider != null) {
-            stmt.bindString(18, insuranceProvider);
+            stmt.bindString(19, insuranceProvider);
         }
-        stmt.bindLong(19, entity.getStudentStudentId());
+        stmt.bindLong(20, entity.getStudentStudentId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(20, dateCreated);
+            stmt.bindString(21, dateCreated);
         }
  
         MedicalProviderType type = entity.getType();
         if (type != null) {
-            stmt.bindLong(21, type.getValue());
+            stmt.bindLong(22, type.getValue());
         }
     }
 
@@ -199,7 +209,7 @@ public class MedicalProviderDao extends AbstractDao<MedicalProvider, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15);
+        return cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16);
     }    
 
     /** @inheritdoc */
@@ -214,19 +224,20 @@ public class MedicalProviderDao extends AbstractDao<MedicalProvider, Long> {
             cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // address
             cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // tenantID
             cursor.getLong(offset + 7), // saveResultSaveResultId
-            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // dateLastModified
+            cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8), // dateLastModified
             cursor.getLong(offset + 9), // medicalProvidersFamilyId
             cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // policyNumber
-            cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // phoneNumber
-            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
-            cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13), // version
-            cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14), // clinicName
-            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // id
-            cursor.getLong(offset + 16), // medicalProvidersStudentId
-            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // insuranceProvider
-            cursor.getLong(offset + 18), // studentStudentId
-            cursor.isNull(offset + 19) ? null : cursor.getLong(offset + 19), // dateCreated
-            cursor.isNull(offset + 20) ? null : MedicalProviderType.fromInt(cursor.getLong(offset + 20)) // type
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // syncBaseId
+            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12), // phoneNumber
+            cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0, // isDeleted
+            cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14), // version
+            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // clinicName
+            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // id
+            cursor.getLong(offset + 17), // medicalProvidersStudentId
+            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18), // insuranceProvider
+            cursor.getLong(offset + 19), // studentStudentId
+            cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20), // dateCreated
+            cursor.isNull(offset + 21) ? null : MedicalProviderType.fromInt(cursor.getLong(offset + 21)) // type
         );
         return entity;
     }
@@ -242,19 +253,20 @@ public class MedicalProviderDao extends AbstractDao<MedicalProvider, Long> {
         entity.setAddress(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
         entity.setTenantID(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 7));
-        entity.setDateLastModified(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
+        entity.setDateLastModified(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
         entity.setMedicalProvidersFamilyId(cursor.getLong(offset + 9));
         entity.setPolicyNumber(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
-        entity.setPhoneNumber(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
-        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
-        entity.setVersion(cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13));
-        entity.setClinicName(cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14));
-        entity.setId(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
-        entity.setMedicalProvidersStudentId(cursor.getLong(offset + 16));
-        entity.setInsuranceProvider(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
-        entity.setStudentStudentId(cursor.getLong(offset + 18));
-        entity.setDateCreated(cursor.isNull(offset + 19) ? null : cursor.getLong(offset + 19));
-        entity.setType(cursor.isNull(offset + 20) ? null : MedicalProviderType.fromInt(cursor.getLong(offset + 20)));
+        entity.setSyncBaseId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setPhoneNumber(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
+        entity.setIsDeleted(cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0);
+        entity.setVersion(cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14));
+        entity.setClinicName(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
+        entity.setId(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
+        entity.setMedicalProvidersStudentId(cursor.getLong(offset + 17));
+        entity.setInsuranceProvider(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
+        entity.setStudentStudentId(cursor.getLong(offset + 19));
+        entity.setDateCreated(cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20));
+        entity.setType(cursor.isNull(offset + 21) ? null : MedicalProviderType.fromInt(cursor.getLong(offset + 21)));
      }
     
     /** @inheritdoc */
@@ -419,4 +431,35 @@ public class MedicalProviderDao extends AbstractDao<MedicalProvider, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(MedicalProvider entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(MedicalProvider entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(MedicalProvider entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(MedicalProvider entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(MedicalProvider entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("MedicalProvider", new TypeToken<List<MedicalProvider>>(){}.getType());
+        GreenSync.registerTypeToken("MedicalProvider", MedicalProvider.class);
+    }
+
 }

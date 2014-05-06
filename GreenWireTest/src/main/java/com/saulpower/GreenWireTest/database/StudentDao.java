@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -32,60 +34,73 @@ public class StudentDao extends AbstractDao<Student, Long> {
         public final static Property Prefix = new Property(0, String.class, "prefix", false, "PREFIX");
         public final static Property SocialSecurityRaw = new Property(1, String.class, "socialSecurityRaw", false, "SOCIAL_SECURITY_RAW");
         public final static Property AttendsSchool = new Property(2, Boolean.class, "attendsSchool", false, "ATTENDS_SCHOOL");
-        public final static Property DateLastModified = new Property(3, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property DateLastModified = new Property(3, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
         public final static Property CurrentDeviceDeviceId = new Property(4, long.class, "currentDeviceDeviceId", false, "CURRENT_DEVICE_DEVICE_ID");
         public final static Property SchoolSchoolId = new Property(5, long.class, "schoolSchoolId", false, "SCHOOL_SCHOOL_ID");
         public final static Property BlacklistedFromStudentId = new Property(6, long.class, "blacklistedFromStudentId", false, "BLACKLISTED_FROM_STUDENT_ID");
         public final static Property MiddleName = new Property(7, String.class, "middleName", false, "MIDDLE_NAME");
-        public final static Property IsDeleted = new Property(8, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property StudentsActivityId = new Property(9, long.class, "studentsActivityId", false, "STUDENTS_ACTIVITY_ID");
-        public final static Property StartDate = new Property(10, Long.class, "startDate", false, "START_DATE");
-        public final static Property Version = new Property(11, Integer.class, "version", false, "VERSION");
-        public final static Property EmailAddresses = new Property(12, String.class, "emailAddresses", false, "EMAIL_ADDRESSES");
-        public final static Property DistinguishingMarks = new Property(13, String.class, "distinguishingMarks", false, "DISTINGUISHING_MARKS");
-        public final static Property Id = new Property(14, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(15, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property SocialSecurityEntrypted = new Property(16, String.class, "socialSecurityEntrypted", false, "SOCIAL_SECURITY_ENTRYPTED");
-        public final static Property Name = new Property(17, String.class, "name", false, "NAME");
-        public final static Property Suffix = new Property(18, String.class, "suffix", false, "SUFFIX");
-        public final static Property Employer = new Property(19, String.class, "employer", false, "EMPLOYER");
-        public final static Property TagString = new Property(20, String.class, "tagString", false, "TAG_STRING");
-        public final static Property TenantID = new Property(21, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property SchoolID = new Property(22, Long.class, "schoolID", false, "SCHOOL_ID");
-        public final static Property YearInSchool = new Property(23, String.class, "yearInSchool", false, "YEAR_IN_SCHOOL");
-        public final static Property Languages = new Property(24, String.class, "languages", false, "LANGUAGES");
-        public final static Property InterestsString = new Property(25, String.class, "interestsString", false, "INTERESTS_STRING");
-        public final static Property IsEnabled = new Property(26, Boolean.class, "isEnabled", false, "IS_ENABLED");
-        public final static Property LastName = new Property(27, String.class, "lastName", false, "LAST_NAME");
-        public final static Property SchoolPickupTime = new Property(28, String.class, "schoolPickupTime", false, "SCHOOL_PICKUP_TIME");
-        public final static Property SocialSecurity = new Property(29, String.class, "socialSecurity", false, "SOCIAL_SECURITY");
-        public final static Property SchoolDropOffTime = new Property(30, String.class, "schoolDropOffTime", false, "SCHOOL_DROP_OFF_TIME");
-        public final static Property Guid = new Property(31, String.class, "guid", false, "GUID");
-        public final static Property ExternalID = new Property(32, String.class, "externalID", false, "EXTERNAL_ID");
-        public final static Property StudentsSchoolId = new Property(33, long.class, "studentsSchoolId", false, "STUDENTS_SCHOOL_ID");
-        public final static Property BlacklistedFromPersonId = new Property(34, long.class, "blacklistedFromPersonId", false, "BLACKLISTED_FROM_PERSON_ID");
-        public final static Property Height = new Property(35, String.class, "height", false, "HEIGHT");
-        public final static Property PreferredName = new Property(36, String.class, "preferredName", false, "PREFERRED_NAME");
-        public final static Property DateEnrolled = new Property(37, Long.class, "dateEnrolled", false, "DATE_ENROLLED");
-        public final static Property FirstName = new Property(38, String.class, "firstName", false, "FIRST_NAME");
-        public final static Property WorkHours = new Property(39, String.class, "workHours", false, "WORK_HOURS");
-        public final static Property Weight = new Property(40, String.class, "weight", false, "WEIGHT");
-        public final static Property WithrawalCodeWithdrawalCodeId = new Property(41, long.class, "withrawalCodeWithdrawalCodeId", false, "WITHRAWAL_CODE_WITHDRAWAL_CODE_ID");
-        public final static Property DateOfLastPhysical = new Property(42, Long.class, "dateOfLastPhysical", false, "DATE_OF_LAST_PHYSICAL");
-        public final static Property BirthDate = new Property(43, Long.class, "birthDate", false, "BIRTH_DATE");
-        public final static Property EmailAddressString = new Property(44, String.class, "emailAddressString", false, "EMAIL_ADDRESS_STRING");
-        public final static Property SaveResultSaveResultId = new Property(45, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property HairColor = new Property(46, String.class, "hairColor", false, "HAIR_COLOR");
-        public final static Property DateWithdrawn = new Property(47, Long.class, "dateWithdrawn", false, "DATE_WITHDRAWN");
-        public final static Property SchoolTransportation = new Property(48, SchoolTransportation.class, "schoolTransportation", false, "SCHOOL_TRANSPORTATION");
+        public final static Property SyncBaseId = new Property(8, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(9, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property StudentsActivityId = new Property(10, long.class, "studentsActivityId", false, "STUDENTS_ACTIVITY_ID");
+        public final static Property StartDate = new Property(11, String.class, "startDate", false, "START_DATE");
+        public final static Property Version = new Property(12, Integer.class, "version", false, "VERSION");
+        public final static Property EmailAddresses = new Property(13, String.class, "emailAddresses", false, "EMAIL_ADDRESSES");
+        public final static Property DistinguishingMarks = new Property(14, String.class, "distinguishingMarks", false, "DISTINGUISHING_MARKS");
+        public final static Property Id = new Property(15, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(16, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property SocialSecurityEntrypted = new Property(17, String.class, "socialSecurityEntrypted", false, "SOCIAL_SECURITY_ENTRYPTED");
+        public final static Property Name = new Property(18, String.class, "name", false, "NAME");
+        public final static Property Suffix = new Property(19, String.class, "suffix", false, "SUFFIX");
+        public final static Property Employer = new Property(20, String.class, "employer", false, "EMPLOYER");
+        public final static Property TagString = new Property(21, String.class, "tagString", false, "TAG_STRING");
+        public final static Property StudentsCenterId = new Property(22, long.class, "studentsCenterId", false, "STUDENTS_CENTER_ID");
+        public final static Property TenantID = new Property(23, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property StudentsGuardianId = new Property(24, long.class, "studentsGuardianId", false, "STUDENTS_GUARDIAN_ID");
+        public final static Property SchoolID = new Property(25, Long.class, "schoolID", false, "SCHOOL_ID");
+        public final static Property YearInSchool = new Property(26, String.class, "yearInSchool", false, "YEAR_IN_SCHOOL");
+        public final static Property Languages = new Property(27, String.class, "languages", false, "LANGUAGES");
+        public final static Property InterestsString = new Property(28, String.class, "interestsString", false, "INTERESTS_STRING");
+        public final static Property IsEnabled = new Property(29, Boolean.class, "isEnabled", false, "IS_ENABLED");
+        public final static Property LastName = new Property(30, String.class, "lastName", false, "LAST_NAME");
+        public final static Property SchoolPickupTime = new Property(31, String.class, "schoolPickupTime", false, "SCHOOL_PICKUP_TIME");
+        public final static Property SocialSecurity = new Property(32, String.class, "socialSecurity", false, "SOCIAL_SECURITY");
+        public final static Property SchoolDropOffTime = new Property(33, String.class, "schoolDropOffTime", false, "SCHOOL_DROP_OFF_TIME");
+        public final static Property StudentsSchoolId = new Property(34, long.class, "studentsSchoolId", false, "STUDENTS_SCHOOL_ID");
+        public final static Property Guid = new Property(35, String.class, "guid", false, "GUID");
+        public final static Property ExternalID = new Property(36, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property BlacklistedFromPersonId = new Property(37, long.class, "blacklistedFromPersonId", false, "BLACKLISTED_FROM_PERSON_ID");
+        public final static Property Height = new Property(38, String.class, "height", false, "HEIGHT");
+        public final static Property PreferredName = new Property(39, String.class, "preferredName", false, "PREFERRED_NAME");
+        public final static Property DateEnrolled = new Property(40, String.class, "dateEnrolled", false, "DATE_ENROLLED");
+        public final static Property FirstName = new Property(41, String.class, "firstName", false, "FIRST_NAME");
+        public final static Property WorkHours = new Property(42, String.class, "workHours", false, "WORK_HOURS");
+        public final static Property Weight = new Property(43, String.class, "weight", false, "WEIGHT");
+        public final static Property WithrawalCodeWithdrawalCodeId = new Property(44, long.class, "withrawalCodeWithdrawalCodeId", false, "WITHRAWAL_CODE_WITHDRAWAL_CODE_ID");
+        public final static Property DateOfLastPhysical = new Property(45, String.class, "dateOfLastPhysical", false, "DATE_OF_LAST_PHYSICAL");
+        public final static Property BlacklistedFromGuardianId = new Property(46, long.class, "blacklistedFromGuardianId", false, "BLACKLISTED_FROM_GUARDIAN_ID");
+        public final static Property BirthDate = new Property(47, String.class, "birthDate", false, "BIRTH_DATE");
+        public final static Property EmailAddressString = new Property(48, String.class, "emailAddressString", false, "EMAIL_ADDRESS_STRING");
+        public final static Property SaveResultSaveResultId = new Property(49, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property HairColor = new Property(50, String.class, "hairColor", false, "HAIR_COLOR");
+        public final static Property DateWithdrawn = new Property(51, String.class, "dateWithdrawn", false, "DATE_WITHDRAWN");
+        public final static Property SchoolTransportation = new Property(52, SchoolTransportation.class, "schoolTransportation", false, "SCHOOL_TRANSPORTATION");
     };
 
     private DaoSession daoSession;
 
-    private Query<Student> activity_StudentsQuery;
-    private Query<Student> student_BlacklistedFromQuery;
-    private Query<Student> school_StudentsQuery;
+    private Query<Student> center_StudentsQuery;
+
     private Query<Student> person_BlacklistedFromQuery;
+
+    private Query<Student> student_BlacklistedFromQuery;
+
+    private Query<Student> school_StudentsQuery;
+
+    private Query<Student> activity_StudentsQuery;
+
+    private Query<Student> guardian_StudentsQuery;
+
+    private Query<Student> guardian_BlacklistedFromQuery;
 
     public StudentDao(DaoConfig config) {
         super(config);
@@ -103,52 +118,56 @@ public class StudentDao extends AbstractDao<Student, Long> {
                 "'PREFIX' TEXT," + // 0: prefix
                 "'SOCIAL_SECURITY_RAW' TEXT," + // 1: socialSecurityRaw
                 "'ATTENDS_SCHOOL' INTEGER," + // 2: attendsSchool
-                "'DATE_LAST_MODIFIED' INTEGER," + // 3: dateLastModified
+                "'DATE_LAST_MODIFIED' TEXT," + // 3: dateLastModified
                 "'CURRENT_DEVICE_DEVICE_ID' INTEGER NOT NULL ," + // 4: currentDeviceDeviceId
                 "'SCHOOL_SCHOOL_ID' INTEGER NOT NULL ," + // 5: schoolSchoolId
                 "'BLACKLISTED_FROM_STUDENT_ID' INTEGER NOT NULL ," + // 6: blacklistedFromStudentId
                 "'MIDDLE_NAME' TEXT," + // 7: middleName
-                "'IS_DELETED' INTEGER," + // 8: isDeleted
-                "'STUDENTS_ACTIVITY_ID' INTEGER NOT NULL ," + // 9: studentsActivityId
-                "'START_DATE' INTEGER," + // 10: startDate
-                "'VERSION' INTEGER," + // 11: version
-                "'EMAIL_ADDRESSES' TEXT," + // 12: emailAddresses
-                "'DISTINGUISHING_MARKS' TEXT," + // 13: distinguishingMarks
-                "'_id' INTEGER PRIMARY KEY ," + // 14: id
-                "'DATE_CREATED' INTEGER," + // 15: dateCreated
-                "'SOCIAL_SECURITY_ENTRYPTED' TEXT," + // 16: socialSecurityEntrypted
-                "'NAME' TEXT," + // 17: name
-                "'SUFFIX' TEXT," + // 18: suffix
-                "'EMPLOYER' TEXT," + // 19: employer
-                "'TAG_STRING' TEXT," + // 20: tagString
-                "'TENANT_ID' INTEGER," + // 21: tenantID
-                "'SCHOOL_ID' INTEGER," + // 22: schoolID
-                "'YEAR_IN_SCHOOL' TEXT," + // 23: yearInSchool
-                "'LANGUAGES' TEXT," + // 24: languages
-                "'INTERESTS_STRING' TEXT," + // 25: interestsString
-                "'IS_ENABLED' INTEGER," + // 26: isEnabled
-                "'LAST_NAME' TEXT," + // 27: lastName
-                "'SCHOOL_PICKUP_TIME' TEXT," + // 28: schoolPickupTime
-                "'SOCIAL_SECURITY' TEXT," + // 29: socialSecurity
-                "'SCHOOL_DROP_OFF_TIME' TEXT," + // 30: schoolDropOffTime
-                "'GUID' TEXT," + // 31: guid
-                "'EXTERNAL_ID' TEXT," + // 32: externalID
-                "'STUDENTS_SCHOOL_ID' INTEGER NOT NULL ," + // 33: studentsSchoolId
-                "'BLACKLISTED_FROM_PERSON_ID' INTEGER NOT NULL ," + // 34: blacklistedFromPersonId
-                "'HEIGHT' TEXT," + // 35: height
-                "'PREFERRED_NAME' TEXT," + // 36: preferredName
-                "'DATE_ENROLLED' INTEGER," + // 37: dateEnrolled
-                "'FIRST_NAME' TEXT," + // 38: firstName
-                "'WORK_HOURS' TEXT," + // 39: workHours
-                "'WEIGHT' TEXT," + // 40: weight
-                "'WITHRAWAL_CODE_WITHDRAWAL_CODE_ID' INTEGER NOT NULL ," + // 41: withrawalCodeWithdrawalCodeId
-                "'DATE_OF_LAST_PHYSICAL' INTEGER," + // 42: dateOfLastPhysical
-                "'BIRTH_DATE' INTEGER," + // 43: birthDate
-                "'EMAIL_ADDRESS_STRING' TEXT," + // 44: emailAddressString
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 45: saveResultSaveResultId
-                "'HAIR_COLOR' TEXT," + // 46: hairColor
-                "'DATE_WITHDRAWN' INTEGER," + // 47: dateWithdrawn
-                "'SCHOOL_TRANSPORTATION' INTEGER);"); // 48: schoolTransportation
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 8: syncBaseId
+                "'IS_DELETED' INTEGER," + // 9: isDeleted
+                "'STUDENTS_ACTIVITY_ID' INTEGER NOT NULL ," + // 10: studentsActivityId
+                "'START_DATE' TEXT," + // 11: startDate
+                "'VERSION' INTEGER," + // 12: version
+                "'EMAIL_ADDRESSES' TEXT," + // 13: emailAddresses
+                "'DISTINGUISHING_MARKS' TEXT," + // 14: distinguishingMarks
+                "'_id' INTEGER PRIMARY KEY ," + // 15: id
+                "'DATE_CREATED' TEXT," + // 16: dateCreated
+                "'SOCIAL_SECURITY_ENTRYPTED' TEXT," + // 17: socialSecurityEntrypted
+                "'NAME' TEXT," + // 18: name
+                "'SUFFIX' TEXT," + // 19: suffix
+                "'EMPLOYER' TEXT," + // 20: employer
+                "'TAG_STRING' TEXT," + // 21: tagString
+                "'STUDENTS_CENTER_ID' INTEGER NOT NULL ," + // 22: studentsCenterId
+                "'TENANT_ID' INTEGER," + // 23: tenantID
+                "'STUDENTS_GUARDIAN_ID' INTEGER NOT NULL ," + // 24: studentsGuardianId
+                "'SCHOOL_ID' INTEGER," + // 25: schoolID
+                "'YEAR_IN_SCHOOL' TEXT," + // 26: yearInSchool
+                "'LANGUAGES' TEXT," + // 27: languages
+                "'INTERESTS_STRING' TEXT," + // 28: interestsString
+                "'IS_ENABLED' INTEGER," + // 29: isEnabled
+                "'LAST_NAME' TEXT," + // 30: lastName
+                "'SCHOOL_PICKUP_TIME' TEXT," + // 31: schoolPickupTime
+                "'SOCIAL_SECURITY' TEXT," + // 32: socialSecurity
+                "'SCHOOL_DROP_OFF_TIME' TEXT," + // 33: schoolDropOffTime
+                "'STUDENTS_SCHOOL_ID' INTEGER NOT NULL ," + // 34: studentsSchoolId
+                "'GUID' TEXT," + // 35: guid
+                "'EXTERNAL_ID' TEXT," + // 36: externalID
+                "'BLACKLISTED_FROM_PERSON_ID' INTEGER NOT NULL ," + // 37: blacklistedFromPersonId
+                "'HEIGHT' TEXT," + // 38: height
+                "'PREFERRED_NAME' TEXT," + // 39: preferredName
+                "'DATE_ENROLLED' TEXT," + // 40: dateEnrolled
+                "'FIRST_NAME' TEXT," + // 41: firstName
+                "'WORK_HOURS' TEXT," + // 42: workHours
+                "'WEIGHT' TEXT," + // 43: weight
+                "'WITHRAWAL_CODE_WITHDRAWAL_CODE_ID' INTEGER NOT NULL ," + // 44: withrawalCodeWithdrawalCodeId
+                "'DATE_OF_LAST_PHYSICAL' TEXT," + // 45: dateOfLastPhysical
+                "'BLACKLISTED_FROM_GUARDIAN_ID' INTEGER NOT NULL ," + // 46: blacklistedFromGuardianId
+                "'BIRTH_DATE' TEXT," + // 47: birthDate
+                "'EMAIL_ADDRESS_STRING' TEXT," + // 48: emailAddressString
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 49: saveResultSaveResultId
+                "'HAIR_COLOR' TEXT," + // 50: hairColor
+                "'DATE_WITHDRAWN' TEXT," + // 51: dateWithdrawn
+                "'SCHOOL_TRANSPORTATION' INTEGER);"); // 52: schoolTransportation
     }
 
     /** Drops the underlying database table. */
@@ -177,9 +196,9 @@ public class StudentDao extends AbstractDao<Student, Long> {
             stmt.bindLong(3, attendsSchool ? 1l: 0l);
         }
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(4, dateLastModified);
+            stmt.bindString(4, dateLastModified);
         }
         stmt.bindLong(5, entity.getCurrentDeviceDeviceId());
         stmt.bindLong(6, entity.getSchoolSchoolId());
@@ -190,189 +209,197 @@ public class StudentDao extends AbstractDao<Student, Long> {
             stmt.bindString(8, middleName);
         }
  
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(9, syncBaseId);
+        }
+ 
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(9, isDeleted ? 1l: 0l);
+            stmt.bindLong(10, isDeleted ? 1l: 0l);
         }
-        stmt.bindLong(10, entity.getStudentsActivityId());
+        stmt.bindLong(11, entity.getStudentsActivityId());
  
-        Long startDate = entity.getStartDate();
+        String startDate = entity.getStartDate();
         if (startDate != null) {
-            stmt.bindLong(11, startDate);
+            stmt.bindString(12, startDate);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(12, version);
+            stmt.bindLong(13, version);
         }
  
         String emailAddresses = entity.getEmailAddresses();
         if (emailAddresses != null) {
-            stmt.bindString(13, emailAddresses);
+            stmt.bindString(14, emailAddresses);
         }
  
         String distinguishingMarks = entity.getDistinguishingMarks();
         if (distinguishingMarks != null) {
-            stmt.bindString(14, distinguishingMarks);
+            stmt.bindString(15, distinguishingMarks);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(15, id);
+            stmt.bindLong(16, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(16, dateCreated);
+            stmt.bindString(17, dateCreated);
         }
  
         String socialSecurityEntrypted = entity.getSocialSecurityEntrypted();
         if (socialSecurityEntrypted != null) {
-            stmt.bindString(17, socialSecurityEntrypted);
+            stmt.bindString(18, socialSecurityEntrypted);
         }
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(18, name);
+            stmt.bindString(19, name);
         }
  
         String suffix = entity.getSuffix();
         if (suffix != null) {
-            stmt.bindString(19, suffix);
+            stmt.bindString(20, suffix);
         }
  
         String employer = entity.getEmployer();
         if (employer != null) {
-            stmt.bindString(20, employer);
+            stmt.bindString(21, employer);
         }
  
         String tagString = entity.getTagString();
         if (tagString != null) {
-            stmt.bindString(21, tagString);
+            stmt.bindString(22, tagString);
         }
+        stmt.bindLong(23, entity.getStudentsCenterId());
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
-            stmt.bindLong(22, tenantID);
+            stmt.bindLong(24, tenantID);
         }
+        stmt.bindLong(25, entity.getStudentsGuardianId());
  
         Long schoolID = entity.getSchoolID();
         if (schoolID != null) {
-            stmt.bindLong(23, schoolID);
+            stmt.bindLong(26, schoolID);
         }
  
         String yearInSchool = entity.getYearInSchool();
         if (yearInSchool != null) {
-            stmt.bindString(24, yearInSchool);
+            stmt.bindString(27, yearInSchool);
         }
  
         String languages = entity.getLanguages();
         if (languages != null) {
-            stmt.bindString(25, languages);
+            stmt.bindString(28, languages);
         }
  
         String interestsString = entity.getInterestsString();
         if (interestsString != null) {
-            stmt.bindString(26, interestsString);
+            stmt.bindString(29, interestsString);
         }
  
         Boolean isEnabled = entity.getIsEnabled();
         if (isEnabled != null) {
-            stmt.bindLong(27, isEnabled ? 1l: 0l);
+            stmt.bindLong(30, isEnabled ? 1l: 0l);
         }
  
         String lastName = entity.getLastName();
         if (lastName != null) {
-            stmt.bindString(28, lastName);
+            stmt.bindString(31, lastName);
         }
  
         String schoolPickupTime = entity.getSchoolPickupTime();
         if (schoolPickupTime != null) {
-            stmt.bindString(29, schoolPickupTime);
+            stmt.bindString(32, schoolPickupTime);
         }
  
         String socialSecurity = entity.getSocialSecurity();
         if (socialSecurity != null) {
-            stmt.bindString(30, socialSecurity);
+            stmt.bindString(33, socialSecurity);
         }
  
         String schoolDropOffTime = entity.getSchoolDropOffTime();
         if (schoolDropOffTime != null) {
-            stmt.bindString(31, schoolDropOffTime);
+            stmt.bindString(34, schoolDropOffTime);
         }
+        stmt.bindLong(35, entity.getStudentsSchoolId());
  
         String guid = entity.getGuid();
         if (guid != null) {
-            stmt.bindString(32, guid);
+            stmt.bindString(36, guid);
         }
  
         String externalID = entity.getExternalID();
         if (externalID != null) {
-            stmt.bindString(33, externalID);
+            stmt.bindString(37, externalID);
         }
-        stmt.bindLong(34, entity.getStudentsSchoolId());
-        stmt.bindLong(35, entity.getBlacklistedFromPersonId());
+        stmt.bindLong(38, entity.getBlacklistedFromPersonId());
  
         String height = entity.getHeight();
         if (height != null) {
-            stmt.bindString(36, height);
+            stmt.bindString(39, height);
         }
  
         String preferredName = entity.getPreferredName();
         if (preferredName != null) {
-            stmt.bindString(37, preferredName);
+            stmt.bindString(40, preferredName);
         }
  
-        Long dateEnrolled = entity.getDateEnrolled();
+        String dateEnrolled = entity.getDateEnrolled();
         if (dateEnrolled != null) {
-            stmt.bindLong(38, dateEnrolled);
+            stmt.bindString(41, dateEnrolled);
         }
  
         String firstName = entity.getFirstName();
         if (firstName != null) {
-            stmt.bindString(39, firstName);
+            stmt.bindString(42, firstName);
         }
  
         String workHours = entity.getWorkHours();
         if (workHours != null) {
-            stmt.bindString(40, workHours);
+            stmt.bindString(43, workHours);
         }
  
         String weight = entity.getWeight();
         if (weight != null) {
-            stmt.bindString(41, weight);
+            stmt.bindString(44, weight);
         }
-        stmt.bindLong(42, entity.getWithrawalCodeWithdrawalCodeId());
+        stmt.bindLong(45, entity.getWithrawalCodeWithdrawalCodeId());
  
-        Long dateOfLastPhysical = entity.getDateOfLastPhysical();
+        String dateOfLastPhysical = entity.getDateOfLastPhysical();
         if (dateOfLastPhysical != null) {
-            stmt.bindLong(43, dateOfLastPhysical);
+            stmt.bindString(46, dateOfLastPhysical);
         }
+        stmt.bindLong(47, entity.getBlacklistedFromGuardianId());
  
-        Long birthDate = entity.getBirthDate();
+        String birthDate = entity.getBirthDate();
         if (birthDate != null) {
-            stmt.bindLong(44, birthDate);
+            stmt.bindString(48, birthDate);
         }
  
         String emailAddressString = entity.getEmailAddressString();
         if (emailAddressString != null) {
-            stmt.bindString(45, emailAddressString);
+            stmt.bindString(49, emailAddressString);
         }
-        stmt.bindLong(46, entity.getSaveResultSaveResultId());
+        stmt.bindLong(50, entity.getSaveResultSaveResultId());
  
         String hairColor = entity.getHairColor();
         if (hairColor != null) {
-            stmt.bindString(47, hairColor);
+            stmt.bindString(51, hairColor);
         }
  
-        Long dateWithdrawn = entity.getDateWithdrawn();
+        String dateWithdrawn = entity.getDateWithdrawn();
         if (dateWithdrawn != null) {
-            stmt.bindLong(48, dateWithdrawn);
+            stmt.bindString(52, dateWithdrawn);
         }
  
         SchoolTransportation schoolTransportation = entity.getSchoolTransportation();
         if (schoolTransportation != null) {
-            stmt.bindLong(49, schoolTransportation.getValue());
+            stmt.bindLong(53, schoolTransportation.getValue());
         }
     }
 
@@ -385,7 +412,7 @@ public class StudentDao extends AbstractDao<Student, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14);
+        return cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15);
     }    
 
     /** @inheritdoc */
@@ -395,52 +422,56 @@ public class StudentDao extends AbstractDao<Student, Long> {
             cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // prefix
             cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // socialSecurityRaw
             cursor.isNull(offset + 2) ? null : cursor.getShort(offset + 2) != 0, // attendsSchool
-            cursor.isNull(offset + 3) ? null : cursor.getLong(offset + 3), // dateLastModified
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // dateLastModified
             cursor.getLong(offset + 4), // currentDeviceDeviceId
             cursor.getLong(offset + 5), // schoolSchoolId
             cursor.getLong(offset + 6), // blacklistedFromStudentId
             cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // middleName
-            cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0, // isDeleted
-            cursor.getLong(offset + 9), // studentsActivityId
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // startDate
-            cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11), // version
-            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12), // emailAddresses
-            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13), // distinguishingMarks
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // id
-            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // dateCreated
-            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16), // socialSecurityEntrypted
-            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // name
-            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18), // suffix
-            cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19), // employer
-            cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20), // tagString
-            cursor.isNull(offset + 21) ? null : cursor.getLong(offset + 21), // tenantID
-            cursor.isNull(offset + 22) ? null : cursor.getLong(offset + 22), // schoolID
-            cursor.isNull(offset + 23) ? null : cursor.getString(offset + 23), // yearInSchool
-            cursor.isNull(offset + 24) ? null : cursor.getString(offset + 24), // languages
-            cursor.isNull(offset + 25) ? null : cursor.getString(offset + 25), // interestsString
-            cursor.isNull(offset + 26) ? null : cursor.getShort(offset + 26) != 0, // isEnabled
-            cursor.isNull(offset + 27) ? null : cursor.getString(offset + 27), // lastName
-            cursor.isNull(offset + 28) ? null : cursor.getString(offset + 28), // schoolPickupTime
-            cursor.isNull(offset + 29) ? null : cursor.getString(offset + 29), // socialSecurity
-            cursor.isNull(offset + 30) ? null : cursor.getString(offset + 30), // schoolDropOffTime
-            cursor.isNull(offset + 31) ? null : cursor.getString(offset + 31), // guid
-            cursor.isNull(offset + 32) ? null : cursor.getString(offset + 32), // externalID
-            cursor.getLong(offset + 33), // studentsSchoolId
-            cursor.getLong(offset + 34), // blacklistedFromPersonId
-            cursor.isNull(offset + 35) ? null : cursor.getString(offset + 35), // height
-            cursor.isNull(offset + 36) ? null : cursor.getString(offset + 36), // preferredName
-            cursor.isNull(offset + 37) ? null : cursor.getLong(offset + 37), // dateEnrolled
-            cursor.isNull(offset + 38) ? null : cursor.getString(offset + 38), // firstName
-            cursor.isNull(offset + 39) ? null : cursor.getString(offset + 39), // workHours
-            cursor.isNull(offset + 40) ? null : cursor.getString(offset + 40), // weight
-            cursor.getLong(offset + 41), // withrawalCodeWithdrawalCodeId
-            cursor.isNull(offset + 42) ? null : cursor.getLong(offset + 42), // dateOfLastPhysical
-            cursor.isNull(offset + 43) ? null : cursor.getLong(offset + 43), // birthDate
-            cursor.isNull(offset + 44) ? null : cursor.getString(offset + 44), // emailAddressString
-            cursor.getLong(offset + 45), // saveResultSaveResultId
-            cursor.isNull(offset + 46) ? null : cursor.getString(offset + 46), // hairColor
-            cursor.isNull(offset + 47) ? null : cursor.getLong(offset + 47), // dateWithdrawn
-            cursor.isNull(offset + 48) ? null : SchoolTransportation.fromInt(cursor.getLong(offset + 48)) // schoolTransportation
+            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // syncBaseId
+            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0, // isDeleted
+            cursor.getLong(offset + 10), // studentsActivityId
+            cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // startDate
+            cursor.isNull(offset + 12) ? null : cursor.getInt(offset + 12), // version
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13), // emailAddresses
+            cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14), // distinguishingMarks
+            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // id
+            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16), // dateCreated
+            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // socialSecurityEntrypted
+            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18), // name
+            cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19), // suffix
+            cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20), // employer
+            cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21), // tagString
+            cursor.getLong(offset + 22), // studentsCenterId
+            cursor.isNull(offset + 23) ? null : cursor.getLong(offset + 23), // tenantID
+            cursor.getLong(offset + 24), // studentsGuardianId
+            cursor.isNull(offset + 25) ? null : cursor.getLong(offset + 25), // schoolID
+            cursor.isNull(offset + 26) ? null : cursor.getString(offset + 26), // yearInSchool
+            cursor.isNull(offset + 27) ? null : cursor.getString(offset + 27), // languages
+            cursor.isNull(offset + 28) ? null : cursor.getString(offset + 28), // interestsString
+            cursor.isNull(offset + 29) ? null : cursor.getShort(offset + 29) != 0, // isEnabled
+            cursor.isNull(offset + 30) ? null : cursor.getString(offset + 30), // lastName
+            cursor.isNull(offset + 31) ? null : cursor.getString(offset + 31), // schoolPickupTime
+            cursor.isNull(offset + 32) ? null : cursor.getString(offset + 32), // socialSecurity
+            cursor.isNull(offset + 33) ? null : cursor.getString(offset + 33), // schoolDropOffTime
+            cursor.getLong(offset + 34), // studentsSchoolId
+            cursor.isNull(offset + 35) ? null : cursor.getString(offset + 35), // guid
+            cursor.isNull(offset + 36) ? null : cursor.getString(offset + 36), // externalID
+            cursor.getLong(offset + 37), // blacklistedFromPersonId
+            cursor.isNull(offset + 38) ? null : cursor.getString(offset + 38), // height
+            cursor.isNull(offset + 39) ? null : cursor.getString(offset + 39), // preferredName
+            cursor.isNull(offset + 40) ? null : cursor.getString(offset + 40), // dateEnrolled
+            cursor.isNull(offset + 41) ? null : cursor.getString(offset + 41), // firstName
+            cursor.isNull(offset + 42) ? null : cursor.getString(offset + 42), // workHours
+            cursor.isNull(offset + 43) ? null : cursor.getString(offset + 43), // weight
+            cursor.getLong(offset + 44), // withrawalCodeWithdrawalCodeId
+            cursor.isNull(offset + 45) ? null : cursor.getString(offset + 45), // dateOfLastPhysical
+            cursor.getLong(offset + 46), // blacklistedFromGuardianId
+            cursor.isNull(offset + 47) ? null : cursor.getString(offset + 47), // birthDate
+            cursor.isNull(offset + 48) ? null : cursor.getString(offset + 48), // emailAddressString
+            cursor.getLong(offset + 49), // saveResultSaveResultId
+            cursor.isNull(offset + 50) ? null : cursor.getString(offset + 50), // hairColor
+            cursor.isNull(offset + 51) ? null : cursor.getString(offset + 51), // dateWithdrawn
+            cursor.isNull(offset + 52) ? null : SchoolTransportation.fromInt(cursor.getLong(offset + 52)) // schoolTransportation
         );
         return entity;
     }
@@ -451,52 +482,56 @@ public class StudentDao extends AbstractDao<Student, Long> {
         entity.setPrefix(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
         entity.setSocialSecurityRaw(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setAttendsSchool(cursor.isNull(offset + 2) ? null : cursor.getShort(offset + 2) != 0);
-        entity.setDateLastModified(cursor.isNull(offset + 3) ? null : cursor.getLong(offset + 3));
+        entity.setDateLastModified(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
         entity.setCurrentDeviceDeviceId(cursor.getLong(offset + 4));
         entity.setSchoolSchoolId(cursor.getLong(offset + 5));
         entity.setBlacklistedFromStudentId(cursor.getLong(offset + 6));
         entity.setMiddleName(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
-        entity.setIsDeleted(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
-        entity.setStudentsActivityId(cursor.getLong(offset + 9));
-        entity.setStartDate(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
-        entity.setVersion(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
-        entity.setEmailAddresses(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
-        entity.setDistinguishingMarks(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
-        entity.setId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
-        entity.setDateCreated(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
-        entity.setSocialSecurityEntrypted(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
-        entity.setName(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
-        entity.setSuffix(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
-        entity.setEmployer(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
-        entity.setTagString(cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20));
-        entity.setTenantID(cursor.isNull(offset + 21) ? null : cursor.getLong(offset + 21));
-        entity.setSchoolID(cursor.isNull(offset + 22) ? null : cursor.getLong(offset + 22));
-        entity.setYearInSchool(cursor.isNull(offset + 23) ? null : cursor.getString(offset + 23));
-        entity.setLanguages(cursor.isNull(offset + 24) ? null : cursor.getString(offset + 24));
-        entity.setInterestsString(cursor.isNull(offset + 25) ? null : cursor.getString(offset + 25));
-        entity.setIsEnabled(cursor.isNull(offset + 26) ? null : cursor.getShort(offset + 26) != 0);
-        entity.setLastName(cursor.isNull(offset + 27) ? null : cursor.getString(offset + 27));
-        entity.setSchoolPickupTime(cursor.isNull(offset + 28) ? null : cursor.getString(offset + 28));
-        entity.setSocialSecurity(cursor.isNull(offset + 29) ? null : cursor.getString(offset + 29));
-        entity.setSchoolDropOffTime(cursor.isNull(offset + 30) ? null : cursor.getString(offset + 30));
-        entity.setGuid(cursor.isNull(offset + 31) ? null : cursor.getString(offset + 31));
-        entity.setExternalID(cursor.isNull(offset + 32) ? null : cursor.getString(offset + 32));
-        entity.setStudentsSchoolId(cursor.getLong(offset + 33));
-        entity.setBlacklistedFromPersonId(cursor.getLong(offset + 34));
-        entity.setHeight(cursor.isNull(offset + 35) ? null : cursor.getString(offset + 35));
-        entity.setPreferredName(cursor.isNull(offset + 36) ? null : cursor.getString(offset + 36));
-        entity.setDateEnrolled(cursor.isNull(offset + 37) ? null : cursor.getLong(offset + 37));
-        entity.setFirstName(cursor.isNull(offset + 38) ? null : cursor.getString(offset + 38));
-        entity.setWorkHours(cursor.isNull(offset + 39) ? null : cursor.getString(offset + 39));
-        entity.setWeight(cursor.isNull(offset + 40) ? null : cursor.getString(offset + 40));
-        entity.setWithrawalCodeWithdrawalCodeId(cursor.getLong(offset + 41));
-        entity.setDateOfLastPhysical(cursor.isNull(offset + 42) ? null : cursor.getLong(offset + 42));
-        entity.setBirthDate(cursor.isNull(offset + 43) ? null : cursor.getLong(offset + 43));
-        entity.setEmailAddressString(cursor.isNull(offset + 44) ? null : cursor.getString(offset + 44));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 45));
-        entity.setHairColor(cursor.isNull(offset + 46) ? null : cursor.getString(offset + 46));
-        entity.setDateWithdrawn(cursor.isNull(offset + 47) ? null : cursor.getLong(offset + 47));
-        entity.setSchoolTransportation(cursor.isNull(offset + 48) ? null : SchoolTransportation.fromInt(cursor.getLong(offset + 48)));
+        entity.setSyncBaseId(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
+        entity.setIsDeleted(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
+        entity.setStudentsActivityId(cursor.getLong(offset + 10));
+        entity.setStartDate(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
+        entity.setVersion(cursor.isNull(offset + 12) ? null : cursor.getInt(offset + 12));
+        entity.setEmailAddresses(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
+        entity.setDistinguishingMarks(cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14));
+        entity.setId(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
+        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
+        entity.setSocialSecurityEntrypted(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
+        entity.setName(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
+        entity.setSuffix(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
+        entity.setEmployer(cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20));
+        entity.setTagString(cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21));
+        entity.setStudentsCenterId(cursor.getLong(offset + 22));
+        entity.setTenantID(cursor.isNull(offset + 23) ? null : cursor.getLong(offset + 23));
+        entity.setStudentsGuardianId(cursor.getLong(offset + 24));
+        entity.setSchoolID(cursor.isNull(offset + 25) ? null : cursor.getLong(offset + 25));
+        entity.setYearInSchool(cursor.isNull(offset + 26) ? null : cursor.getString(offset + 26));
+        entity.setLanguages(cursor.isNull(offset + 27) ? null : cursor.getString(offset + 27));
+        entity.setInterestsString(cursor.isNull(offset + 28) ? null : cursor.getString(offset + 28));
+        entity.setIsEnabled(cursor.isNull(offset + 29) ? null : cursor.getShort(offset + 29) != 0);
+        entity.setLastName(cursor.isNull(offset + 30) ? null : cursor.getString(offset + 30));
+        entity.setSchoolPickupTime(cursor.isNull(offset + 31) ? null : cursor.getString(offset + 31));
+        entity.setSocialSecurity(cursor.isNull(offset + 32) ? null : cursor.getString(offset + 32));
+        entity.setSchoolDropOffTime(cursor.isNull(offset + 33) ? null : cursor.getString(offset + 33));
+        entity.setStudentsSchoolId(cursor.getLong(offset + 34));
+        entity.setGuid(cursor.isNull(offset + 35) ? null : cursor.getString(offset + 35));
+        entity.setExternalID(cursor.isNull(offset + 36) ? null : cursor.getString(offset + 36));
+        entity.setBlacklistedFromPersonId(cursor.getLong(offset + 37));
+        entity.setHeight(cursor.isNull(offset + 38) ? null : cursor.getString(offset + 38));
+        entity.setPreferredName(cursor.isNull(offset + 39) ? null : cursor.getString(offset + 39));
+        entity.setDateEnrolled(cursor.isNull(offset + 40) ? null : cursor.getString(offset + 40));
+        entity.setFirstName(cursor.isNull(offset + 41) ? null : cursor.getString(offset + 41));
+        entity.setWorkHours(cursor.isNull(offset + 42) ? null : cursor.getString(offset + 42));
+        entity.setWeight(cursor.isNull(offset + 43) ? null : cursor.getString(offset + 43));
+        entity.setWithrawalCodeWithdrawalCodeId(cursor.getLong(offset + 44));
+        entity.setDateOfLastPhysical(cursor.isNull(offset + 45) ? null : cursor.getString(offset + 45));
+        entity.setBlacklistedFromGuardianId(cursor.getLong(offset + 46));
+        entity.setBirthDate(cursor.isNull(offset + 47) ? null : cursor.getString(offset + 47));
+        entity.setEmailAddressString(cursor.isNull(offset + 48) ? null : cursor.getString(offset + 48));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 49));
+        entity.setHairColor(cursor.isNull(offset + 50) ? null : cursor.getString(offset + 50));
+        entity.setDateWithdrawn(cursor.isNull(offset + 51) ? null : cursor.getString(offset + 51));
+        entity.setSchoolTransportation(cursor.isNull(offset + 52) ? null : SchoolTransportation.fromInt(cursor.getLong(offset + 52)));
      }
     
     /** @inheritdoc */
@@ -522,17 +557,31 @@ public class StudentDao extends AbstractDao<Student, Long> {
         return true;
     }
     
-    /** Internal query to resolve the "students" to-many relationship of Activity. */
-    public List<Student> _queryActivity_Students(long studentsActivityId) {
+    /** Internal query to resolve the "students" to-many relationship of Center. */
+    public List<Student> _queryCenter_Students(long studentsCenterId) {
         synchronized (this) {
-            if (activity_StudentsQuery == null) {
+            if (center_StudentsQuery == null) {
                 QueryBuilder<Student> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.StudentsActivityId.eq(null));
-                activity_StudentsQuery = queryBuilder.build();
+                queryBuilder.where(Properties.StudentsCenterId.eq(null));
+                center_StudentsQuery = queryBuilder.build();
             }
         }
-        Query<Student> query = activity_StudentsQuery.forCurrentThread();
-        query.setParameter(0, studentsActivityId);
+        Query<Student> query = center_StudentsQuery.forCurrentThread();
+        query.setParameter(0, studentsCenterId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "blacklistedFrom" to-many relationship of Person. */
+    public List<Student> _queryPerson_BlacklistedFrom(long blacklistedFromPersonId) {
+        synchronized (this) {
+            if (person_BlacklistedFromQuery == null) {
+                QueryBuilder<Student> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.BlacklistedFromPersonId.eq(null));
+                person_BlacklistedFromQuery = queryBuilder.build();
+            }
+        }
+        Query<Student> query = person_BlacklistedFromQuery.forCurrentThread();
+        query.setParameter(0, blacklistedFromPersonId);
         return query.list();
     }
 
@@ -564,17 +613,45 @@ public class StudentDao extends AbstractDao<Student, Long> {
         return query.list();
     }
 
-    /** Internal query to resolve the "blacklistedFrom" to-many relationship of Person. */
-    public List<Student> _queryPerson_BlacklistedFrom(long blacklistedFromPersonId) {
+    /** Internal query to resolve the "students" to-many relationship of Activity. */
+    public List<Student> _queryActivity_Students(long studentsActivityId) {
         synchronized (this) {
-            if (person_BlacklistedFromQuery == null) {
+            if (activity_StudentsQuery == null) {
                 QueryBuilder<Student> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.BlacklistedFromPersonId.eq(null));
-                person_BlacklistedFromQuery = queryBuilder.build();
+                queryBuilder.where(Properties.StudentsActivityId.eq(null));
+                activity_StudentsQuery = queryBuilder.build();
             }
         }
-        Query<Student> query = person_BlacklistedFromQuery.forCurrentThread();
-        query.setParameter(0, blacklistedFromPersonId);
+        Query<Student> query = activity_StudentsQuery.forCurrentThread();
+        query.setParameter(0, studentsActivityId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "students" to-many relationship of Guardian. */
+    public List<Student> _queryGuardian_Students(long studentsGuardianId) {
+        synchronized (this) {
+            if (guardian_StudentsQuery == null) {
+                QueryBuilder<Student> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.StudentsGuardianId.eq(null));
+                guardian_StudentsQuery = queryBuilder.build();
+            }
+        }
+        Query<Student> query = guardian_StudentsQuery.forCurrentThread();
+        query.setParameter(0, studentsGuardianId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "blacklistedFrom" to-many relationship of Guardian. */
+    public List<Student> _queryGuardian_BlacklistedFrom(long blacklistedFromGuardianId) {
+        synchronized (this) {
+            if (guardian_BlacklistedFromQuery == null) {
+                QueryBuilder<Student> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.BlacklistedFromGuardianId.eq(null));
+                guardian_BlacklistedFromQuery = queryBuilder.build();
+            }
+        }
+        Query<Student> query = guardian_BlacklistedFromQuery.forCurrentThread();
+        query.setParameter(0, blacklistedFromGuardianId);
         return query.list();
     }
 
@@ -698,4 +775,35 @@ public class StudentDao extends AbstractDao<Student, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Student entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Student entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Student entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Student entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Student entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Student", new TypeToken<List<Student>>(){}.getType());
+        GreenSync.registerTypeToken("Student", Student.class);
+    }
+
 }

@@ -113,6 +113,7 @@ public class GreenCompiler {
 
     private void initializeSchema(int version, String packageName) {
         schema = new Schema(version, packageName);
+        schema.enableGreenSync();
     }
 
     private void compileOne(ProtoFile protoFile) {
@@ -256,6 +257,7 @@ public class GreenCompiler {
                 } else {
                     entity = schema.addEntity(name);
                     entity.addIdProperty();
+                    entity.setImplementParcelable(true);
                     entities.put(name, entity);
                 }
 

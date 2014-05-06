@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -32,30 +34,35 @@ public class CustomFieldDao extends AbstractDao<CustomField, Long> {
     public static class Properties {
         public final static Property DataLength = new Property(0, Integer.class, "dataLength", false, "DATA_LENGTH");
         public final static Property ExternalID = new Property(1, String.class, "externalID", false, "EXTERNAL_ID");
-        public final static Property CustomFieldsOUBaseId = new Property(2, long.class, "customFieldsOUBaseId", false, "CUSTOM_FIELDS_OUBASE_ID");
+        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
         public final static Property Guid = new Property(3, String.class, "guid", false, "GUID");
-        public final static Property Name = new Property(4, String.class, "name", false, "NAME");
+        public final static Property CustomFieldsOUBaseId = new Property(4, long.class, "customFieldsOUBaseId", false, "CUSTOM_FIELDS_OUBASE_ID");
         public final static Property TagString = new Property(5, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(6, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(7, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
         public final static Property IsRequired = new Property(8, Boolean.class, "isRequired", false, "IS_REQUIRED");
         public final static Property ValueListType = new Property(9, ValueListType.class, "valueListType", false, "VALUE_LIST_TYPE");
-        public final static Property DateLastModified = new Property(10, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property DisplayName = new Property(11, String.class, "displayName", false, "DISPLAY_NAME");
-        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property DataType = new Property(13, CustomFieldDataType.class, "dataType", false, "DATA_TYPE");
-        public final static Property Version = new Property(14, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(15, Long.class, "id", true, "_id");
-        public final static Property CustomFieldsOUId = new Property(16, long.class, "customFieldsOUId", false, "CUSTOM_FIELDS_OUID");
-        public final static Property DateCreated = new Property(17, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property HasValueList = new Property(18, Boolean.class, "hasValueList", false, "HAS_VALUE_LIST");
-        public final static Property FormatString = new Property(19, String.class, "formatString", false, "FORMAT_STRING");
-        public final static Property ClassName = new Property(20, String.class, "className", false, "CLASS_NAME");
+        public final static Property DateLastModified = new Property(10, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(11, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property DisplayName = new Property(12, String.class, "displayName", false, "DISPLAY_NAME");
+        public final static Property IsDeleted = new Property(13, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property DataType = new Property(14, CustomFieldDataType.class, "dataType", false, "DATA_TYPE");
+        public final static Property Version = new Property(15, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(16, Long.class, "id", true, "_id");
+        public final static Property CustomFieldsOUId = new Property(17, long.class, "customFieldsOUId", false, "CUSTOM_FIELDS_OUID");
+        public final static Property DateCreated = new Property(18, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property HasValueList = new Property(19, Boolean.class, "hasValueList", false, "HAS_VALUE_LIST");
+        public final static Property CustomFieldsCenterId = new Property(20, long.class, "customFieldsCenterId", false, "CUSTOM_FIELDS_CENTER_ID");
+        public final static Property FormatString = new Property(21, String.class, "formatString", false, "FORMAT_STRING");
+        public final static Property ClassName = new Property(22, String.class, "className", false, "CLASS_NAME");
     };
 
     private DaoSession daoSession;
 
+    private Query<CustomField> center_CustomFieldsQuery;
+
     private Query<CustomField> oU_CustomFieldsQuery;
+
     private Query<CustomField> oUBase_CustomFieldsQuery;
 
     public CustomFieldDao(DaoConfig config) {
@@ -73,25 +80,27 @@ public class CustomFieldDao extends AbstractDao<CustomField, Long> {
         db.execSQL("CREATE TABLE " + constraint + "'CUSTOM_FIELD' (" + //
                 "'DATA_LENGTH' INTEGER," + // 0: dataLength
                 "'EXTERNAL_ID' TEXT," + // 1: externalID
-                "'CUSTOM_FIELDS_OUBASE_ID' INTEGER NOT NULL ," + // 2: customFieldsOUBaseId
+                "'NAME' TEXT," + // 2: name
                 "'GUID' TEXT," + // 3: guid
-                "'NAME' TEXT," + // 4: name
+                "'CUSTOM_FIELDS_OUBASE_ID' INTEGER NOT NULL ," + // 4: customFieldsOUBaseId
                 "'TAG_STRING' TEXT," + // 5: tagString
                 "'TENANT_ID' INTEGER," + // 6: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 7: saveResultSaveResultId
                 "'IS_REQUIRED' INTEGER," + // 8: isRequired
                 "'VALUE_LIST_TYPE' INTEGER," + // 9: valueListType
-                "'DATE_LAST_MODIFIED' INTEGER," + // 10: dateLastModified
-                "'DISPLAY_NAME' TEXT," + // 11: displayName
-                "'IS_DELETED' INTEGER," + // 12: isDeleted
-                "'DATA_TYPE' INTEGER," + // 13: dataType
-                "'VERSION' INTEGER," + // 14: version
-                "'_id' INTEGER PRIMARY KEY ," + // 15: id
-                "'CUSTOM_FIELDS_OUID' INTEGER NOT NULL ," + // 16: customFieldsOUId
-                "'DATE_CREATED' INTEGER," + // 17: dateCreated
-                "'HAS_VALUE_LIST' INTEGER," + // 18: hasValueList
-                "'FORMAT_STRING' TEXT," + // 19: formatString
-                "'CLASS_NAME' TEXT);"); // 20: className
+                "'DATE_LAST_MODIFIED' TEXT," + // 10: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 11: syncBaseId
+                "'DISPLAY_NAME' TEXT," + // 12: displayName
+                "'IS_DELETED' INTEGER," + // 13: isDeleted
+                "'DATA_TYPE' INTEGER," + // 14: dataType
+                "'VERSION' INTEGER," + // 15: version
+                "'_id' INTEGER PRIMARY KEY ," + // 16: id
+                "'CUSTOM_FIELDS_OUID' INTEGER NOT NULL ," + // 17: customFieldsOUId
+                "'DATE_CREATED' TEXT," + // 18: dateCreated
+                "'HAS_VALUE_LIST' INTEGER," + // 19: hasValueList
+                "'CUSTOM_FIELDS_CENTER_ID' INTEGER NOT NULL ," + // 20: customFieldsCenterId
+                "'FORMAT_STRING' TEXT," + // 21: formatString
+                "'CLASS_NAME' TEXT);"); // 22: className
     }
 
     /** Drops the underlying database table. */
@@ -114,17 +123,17 @@ public class CustomFieldDao extends AbstractDao<CustomField, Long> {
         if (externalID != null) {
             stmt.bindString(2, externalID);
         }
-        stmt.bindLong(3, entity.getCustomFieldsOUBaseId());
+ 
+        String name = entity.getName();
+        if (name != null) {
+            stmt.bindString(3, name);
+        }
  
         String guid = entity.getGuid();
         if (guid != null) {
             stmt.bindString(4, guid);
         }
- 
-        String name = entity.getName();
-        if (name != null) {
-            stmt.bindString(5, name);
-        }
+        stmt.bindLong(5, entity.getCustomFieldsOUBaseId());
  
         String tagString = entity.getTagString();
         if (tagString != null) {
@@ -147,55 +156,61 @@ public class CustomFieldDao extends AbstractDao<CustomField, Long> {
             stmt.bindLong(10, valueListType.getValue());
         }
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(11, dateLastModified);
+            stmt.bindString(11, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(12, syncBaseId);
         }
  
         String displayName = entity.getDisplayName();
         if (displayName != null) {
-            stmt.bindString(12, displayName);
+            stmt.bindString(13, displayName);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(13, isDeleted ? 1l: 0l);
+            stmt.bindLong(14, isDeleted ? 1l: 0l);
         }
  
         CustomFieldDataType dataType = entity.getDataType();
         if (dataType != null) {
-            stmt.bindLong(14, dataType.getValue());
+            stmt.bindLong(15, dataType.getValue());
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(15, version);
+            stmt.bindLong(16, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(16, id);
+            stmt.bindLong(17, id);
         }
-        stmt.bindLong(17, entity.getCustomFieldsOUId());
+        stmt.bindLong(18, entity.getCustomFieldsOUId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(18, dateCreated);
+            stmt.bindString(19, dateCreated);
         }
  
         Boolean hasValueList = entity.getHasValueList();
         if (hasValueList != null) {
-            stmt.bindLong(19, hasValueList ? 1l: 0l);
+            stmt.bindLong(20, hasValueList ? 1l: 0l);
         }
+        stmt.bindLong(21, entity.getCustomFieldsCenterId());
  
         String formatString = entity.getFormatString();
         if (formatString != null) {
-            stmt.bindString(20, formatString);
+            stmt.bindString(22, formatString);
         }
  
         String className = entity.getClassName();
         if (className != null) {
-            stmt.bindString(21, className);
+            stmt.bindString(23, className);
         }
     }
 
@@ -208,7 +223,7 @@ public class CustomFieldDao extends AbstractDao<CustomField, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15);
+        return cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16);
     }    
 
     /** @inheritdoc */
@@ -217,25 +232,27 @@ public class CustomFieldDao extends AbstractDao<CustomField, Long> {
         CustomField entity = new CustomField( //
             cursor.isNull(offset + 0) ? null : cursor.getInt(offset + 0), // dataLength
             cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // externalID
-            cursor.getLong(offset + 2), // customFieldsOUBaseId
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // guid
-            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // name
+            cursor.getLong(offset + 4), // customFieldsOUBaseId
             cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // tagString
             cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // tenantID
             cursor.getLong(offset + 7), // saveResultSaveResultId
             cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0, // isRequired
             cursor.isNull(offset + 9) ? null : ValueListType.fromInt(cursor.getLong(offset + 9)), // valueListType
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // dateLastModified
-            cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // displayName
-            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
-            cursor.isNull(offset + 13) ? null : CustomFieldDataType.fromInt(cursor.getLong(offset + 13)), // dataType
-            cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14), // version
-            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // id
-            cursor.getLong(offset + 16), // customFieldsOUId
-            cursor.isNull(offset + 17) ? null : cursor.getLong(offset + 17), // dateCreated
-            cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0, // hasValueList
-            cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19), // formatString
-            cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20) // className
+            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // dateLastModified
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // syncBaseId
+            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12), // displayName
+            cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0, // isDeleted
+            cursor.isNull(offset + 14) ? null : CustomFieldDataType.fromInt(cursor.getLong(offset + 14)), // dataType
+            cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15), // version
+            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // id
+            cursor.getLong(offset + 17), // customFieldsOUId
+            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18), // dateCreated
+            cursor.isNull(offset + 19) ? null : cursor.getShort(offset + 19) != 0, // hasValueList
+            cursor.getLong(offset + 20), // customFieldsCenterId
+            cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21), // formatString
+            cursor.isNull(offset + 22) ? null : cursor.getString(offset + 22) // className
         );
         return entity;
     }
@@ -245,25 +262,27 @@ public class CustomFieldDao extends AbstractDao<CustomField, Long> {
     public void readEntity(Cursor cursor, CustomField entity, int offset) {
         entity.setDataLength(cursor.isNull(offset + 0) ? null : cursor.getInt(offset + 0));
         entity.setExternalID(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
-        entity.setCustomFieldsOUBaseId(cursor.getLong(offset + 2));
+        entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setGuid(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setName(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setCustomFieldsOUBaseId(cursor.getLong(offset + 4));
         entity.setTagString(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
         entity.setTenantID(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 7));
         entity.setIsRequired(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
         entity.setValueListType(cursor.isNull(offset + 9) ? null : ValueListType.fromInt(cursor.getLong(offset + 9)));
-        entity.setDateLastModified(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
-        entity.setDisplayName(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
-        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
-        entity.setDataType(cursor.isNull(offset + 13) ? null : CustomFieldDataType.fromInt(cursor.getLong(offset + 13)));
-        entity.setVersion(cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14));
-        entity.setId(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
-        entity.setCustomFieldsOUId(cursor.getLong(offset + 16));
-        entity.setDateCreated(cursor.isNull(offset + 17) ? null : cursor.getLong(offset + 17));
-        entity.setHasValueList(cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0);
-        entity.setFormatString(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
-        entity.setClassName(cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20));
+        entity.setDateLastModified(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
+        entity.setSyncBaseId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setDisplayName(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
+        entity.setIsDeleted(cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0);
+        entity.setDataType(cursor.isNull(offset + 14) ? null : CustomFieldDataType.fromInt(cursor.getLong(offset + 14)));
+        entity.setVersion(cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15));
+        entity.setId(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
+        entity.setCustomFieldsOUId(cursor.getLong(offset + 17));
+        entity.setDateCreated(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
+        entity.setHasValueList(cursor.isNull(offset + 19) ? null : cursor.getShort(offset + 19) != 0);
+        entity.setCustomFieldsCenterId(cursor.getLong(offset + 20));
+        entity.setFormatString(cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21));
+        entity.setClassName(cursor.isNull(offset + 22) ? null : cursor.getString(offset + 22));
      }
     
     /** @inheritdoc */
@@ -289,6 +308,20 @@ public class CustomFieldDao extends AbstractDao<CustomField, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "customFields" to-many relationship of Center. */
+    public List<CustomField> _queryCenter_CustomFields(long customFieldsCenterId) {
+        synchronized (this) {
+            if (center_CustomFieldsQuery == null) {
+                QueryBuilder<CustomField> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.CustomFieldsCenterId.eq(null));
+                center_CustomFieldsQuery = queryBuilder.build();
+            }
+        }
+        Query<CustomField> query = center_CustomFieldsQuery.forCurrentThread();
+        query.setParameter(0, customFieldsCenterId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "customFields" to-many relationship of OU. */
     public List<CustomField> _queryOU_CustomFields(long customFieldsOUId) {
         synchronized (this) {
@@ -410,4 +443,35 @@ public class CustomFieldDao extends AbstractDao<CustomField, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(CustomField entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(CustomField entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(CustomField entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(CustomField entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(CustomField entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("CustomField", new TypeToken<List<CustomField>>(){}.getType());
+        GreenSync.registerTypeToken("CustomField", CustomField.class);
+    }
+
 }

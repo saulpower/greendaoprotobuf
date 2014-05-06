@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -32,18 +34,18 @@ public class SchoolDao extends AbstractDao<School, Long> {
         public final static Property TagString = new Property(3, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(4, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(5, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(6, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property PhoneNumberPhoneNumberId = new Property(7, long.class, "phoneNumberPhoneNumberId", false, "PHONE_NUMBER_PHONE_NUMBER_ID");
-        public final static Property IsDeleted = new Property(8, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(9, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(10, Long.class, "id", true, "_id");
-        public final static Property AddressAddressId = new Property(11, long.class, "addressAddressId", false, "ADDRESS_ADDRESS_ID");
-        public final static Property OUOUId = new Property(12, long.class, "oUOUId", false, "O_UOUID");
-        public final static Property DateCreated = new Property(13, Long.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property DateLastModified = new Property(6, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(7, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property PhoneNumberPhoneNumberId = new Property(8, long.class, "phoneNumberPhoneNumberId", false, "PHONE_NUMBER_PHONE_NUMBER_ID");
+        public final static Property IsDeleted = new Property(9, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(10, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(11, Long.class, "id", true, "_id");
+        public final static Property AddressAddressId = new Property(12, long.class, "addressAddressId", false, "ADDRESS_ADDRESS_ID");
+        public final static Property OUOUId = new Property(13, long.class, "oUOUId", false, "O_UOUID");
+        public final static Property DateCreated = new Property(14, String.class, "dateCreated", false, "DATE_CREATED");
     };
 
     private DaoSession daoSession;
-
 
     public SchoolDao(DaoConfig config) {
         super(config);
@@ -64,14 +66,15 @@ public class SchoolDao extends AbstractDao<School, Long> {
                 "'TAG_STRING' TEXT," + // 3: tagString
                 "'TENANT_ID' INTEGER," + // 4: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 5: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 6: dateLastModified
-                "'PHONE_NUMBER_PHONE_NUMBER_ID' INTEGER NOT NULL ," + // 7: phoneNumberPhoneNumberId
-                "'IS_DELETED' INTEGER," + // 8: isDeleted
-                "'VERSION' INTEGER," + // 9: version
-                "'_id' INTEGER PRIMARY KEY ," + // 10: id
-                "'ADDRESS_ADDRESS_ID' INTEGER NOT NULL ," + // 11: addressAddressId
-                "'O_UOUID' INTEGER NOT NULL ," + // 12: oUOUId
-                "'DATE_CREATED' INTEGER);"); // 13: dateCreated
+                "'DATE_LAST_MODIFIED' TEXT," + // 6: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 7: syncBaseId
+                "'PHONE_NUMBER_PHONE_NUMBER_ID' INTEGER NOT NULL ," + // 8: phoneNumberPhoneNumberId
+                "'IS_DELETED' INTEGER," + // 9: isDeleted
+                "'VERSION' INTEGER," + // 10: version
+                "'_id' INTEGER PRIMARY KEY ," + // 11: id
+                "'ADDRESS_ADDRESS_ID' INTEGER NOT NULL ," + // 12: addressAddressId
+                "'O_UOUID' INTEGER NOT NULL ," + // 13: oUOUId
+                "'DATE_CREATED' TEXT);"); // 14: dateCreated
     }
 
     /** Drops the underlying database table. */
@@ -111,32 +114,37 @@ public class SchoolDao extends AbstractDao<School, Long> {
         }
         stmt.bindLong(6, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(7, dateLastModified);
+            stmt.bindString(7, dateLastModified);
         }
-        stmt.bindLong(8, entity.getPhoneNumberPhoneNumberId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(8, syncBaseId);
+        }
+        stmt.bindLong(9, entity.getPhoneNumberPhoneNumberId());
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(9, isDeleted ? 1l: 0l);
+            stmt.bindLong(10, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(10, version);
+            stmt.bindLong(11, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(11, id);
+            stmt.bindLong(12, id);
         }
-        stmt.bindLong(12, entity.getAddressAddressId());
-        stmt.bindLong(13, entity.getOUOUId());
+        stmt.bindLong(13, entity.getAddressAddressId());
+        stmt.bindLong(14, entity.getOUOUId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(14, dateCreated);
+            stmt.bindString(15, dateCreated);
         }
     }
 
@@ -149,7 +157,7 @@ public class SchoolDao extends AbstractDao<School, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10);
+        return cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11);
     }    
 
     /** @inheritdoc */
@@ -162,14 +170,15 @@ public class SchoolDao extends AbstractDao<School, Long> {
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // tagString
             cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4), // tenantID
             cursor.getLong(offset + 5), // saveResultSaveResultId
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // dateLastModified
-            cursor.getLong(offset + 7), // phoneNumberPhoneNumberId
-            cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0, // isDeleted
-            cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9), // version
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // id
-            cursor.getLong(offset + 11), // addressAddressId
-            cursor.getLong(offset + 12), // oUOUId
-            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13) // dateCreated
+            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // dateLastModified
+            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // syncBaseId
+            cursor.getLong(offset + 8), // phoneNumberPhoneNumberId
+            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0, // isDeleted
+            cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // version
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // id
+            cursor.getLong(offset + 12), // addressAddressId
+            cursor.getLong(offset + 13), // oUOUId
+            cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14) // dateCreated
         );
         return entity;
     }
@@ -183,14 +192,15 @@ public class SchoolDao extends AbstractDao<School, Long> {
         entity.setTagString(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
         entity.setTenantID(cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 5));
-        entity.setDateLastModified(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setPhoneNumberPhoneNumberId(cursor.getLong(offset + 7));
-        entity.setIsDeleted(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
-        entity.setVersion(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
-        entity.setId(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
-        entity.setAddressAddressId(cursor.getLong(offset + 11));
-        entity.setOUOUId(cursor.getLong(offset + 12));
-        entity.setDateCreated(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
+        entity.setDateLastModified(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
+        entity.setSyncBaseId(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setPhoneNumberPhoneNumberId(cursor.getLong(offset + 8));
+        entity.setIsDeleted(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
+        entity.setVersion(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
+        entity.setId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setAddressAddressId(cursor.getLong(offset + 12));
+        entity.setOUOUId(cursor.getLong(offset + 13));
+        entity.setDateCreated(cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14));
      }
     
     /** @inheritdoc */
@@ -336,4 +346,35 @@ public class SchoolDao extends AbstractDao<School, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(School entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(School entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(School entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(School entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(School entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("School", new TypeToken<List<School>>(){}.getType());
+        GreenSync.registerTypeToken("School", School.class);
+    }
+
 }

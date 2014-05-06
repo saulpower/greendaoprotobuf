@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -29,33 +31,37 @@ public class EmployeeFileDao extends AbstractDao<EmployeeFile, Long> {
      * Can be used for QueryBuilder and for referencing column names.
     */
     public static class Properties {
-        public final static Property MinHoursPerWeek = new Property(0, Integer.class, "minHoursPerWeek", false, "MIN_HOURS_PER_WEEK");
-        public final static Property ExternalID = new Property(1, String.class, "externalID", false, "EXTERNAL_ID");
-        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
-        public final static Property Guid = new Property(3, String.class, "guid", false, "GUID");
-        public final static Property EmployeeFilesOUId = new Property(4, long.class, "employeeFilesOUId", false, "EMPLOYEE_FILES_OUID");
-        public final static Property Priority = new Property(5, Integer.class, "priority", false, "PRIORITY");
-        public final static Property TagString = new Property(6, String.class, "tagString", false, "TAG_STRING");
-        public final static Property RoleID = new Property(7, String.class, "roleID", false, "ROLE_ID");
-        public final static Property DepartmentID = new Property(8, String.class, "departmentID", false, "DEPARTMENT_ID");
-        public final static Property TenantID = new Property(9, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property SaveResultSaveResultId = new Property(10, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(11, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property RoleEmploymentRoleId = new Property(12, long.class, "roleEmploymentRoleId", false, "ROLE_EMPLOYMENT_ROLE_ID");
-        public final static Property EmploymentClass = new Property(13, EmploymentClass.class, "employmentClass", false, "EMPLOYMENT_CLASS");
-        public final static Property IsDeleted = new Property(14, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(15, Integer.class, "version", false, "VERSION");
-        public final static Property StartDate = new Property(16, Long.class, "startDate", false, "START_DATE");
-        public final static Property StatusID = new Property(17, String.class, "statusID", false, "STATUS_ID");
-        public final static Property MaxHoursPerWeek = new Property(18, Integer.class, "maxHoursPerWeek", false, "MAX_HOURS_PER_WEEK");
-        public final static Property StatusEmploymentStatusId = new Property(19, long.class, "statusEmploymentStatusId", false, "STATUS_EMPLOYMENT_STATUS_ID");
-        public final static Property Id = new Property(20, Long.class, "id", true, "_id");
-        public final static Property OUOUId = new Property(21, long.class, "oUOUId", false, "O_UOUID");
-        public final static Property DateCreated = new Property(22, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property EndDate = new Property(23, Long.class, "endDate", false, "END_DATE");
+        public final static Property EmployeeFilesOUId = new Property(0, long.class, "employeeFilesOUId", false, "EMPLOYEE_FILES_OUID");
+        public final static Property Guid = new Property(1, String.class, "guid", false, "GUID");
+        public final static Property ExternalID = new Property(2, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property DepartmentID = new Property(3, String.class, "departmentID", false, "DEPARTMENT_ID");
+        public final static Property DateLastModified = new Property(4, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property EmployeeFilesCenterId = new Property(5, long.class, "employeeFilesCenterId", false, "EMPLOYEE_FILES_CENTER_ID");
+        public final static Property SyncBaseId = new Property(6, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(7, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property StartDate = new Property(8, String.class, "startDate", false, "START_DATE");
+        public final static Property Version = new Property(9, Integer.class, "version", false, "VERSION");
+        public final static Property MaxHoursPerWeek = new Property(10, Integer.class, "maxHoursPerWeek", false, "MAX_HOURS_PER_WEEK");
+        public final static Property Id = new Property(11, Long.class, "id", true, "_id");
+        public final static Property StatusEmploymentStatusId = new Property(12, long.class, "statusEmploymentStatusId", false, "STATUS_EMPLOYMENT_STATUS_ID");
+        public final static Property DateCreated = new Property(13, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property EndDate = new Property(14, String.class, "endDate", false, "END_DATE");
+        public final static Property MinHoursPerWeek = new Property(15, Integer.class, "minHoursPerWeek", false, "MIN_HOURS_PER_WEEK");
+        public final static Property Name = new Property(16, String.class, "name", false, "NAME");
+        public final static Property Priority = new Property(17, Integer.class, "priority", false, "PRIORITY");
+        public final static Property TagString = new Property(18, String.class, "tagString", false, "TAG_STRING");
+        public final static Property RoleID = new Property(19, String.class, "roleID", false, "ROLE_ID");
+        public final static Property TenantID = new Property(20, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property SaveResultSaveResultId = new Property(21, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property RoleEmploymentRoleId = new Property(22, long.class, "roleEmploymentRoleId", false, "ROLE_EMPLOYMENT_ROLE_ID");
+        public final static Property EmploymentClass = new Property(23, EmploymentClass.class, "employmentClass", false, "EMPLOYMENT_CLASS");
+        public final static Property StatusID = new Property(24, String.class, "statusID", false, "STATUS_ID");
+        public final static Property OUOUId = new Property(25, long.class, "oUOUId", false, "O_UOUID");
     };
 
     private DaoSession daoSession;
+
+    private Query<EmployeeFile> center_EmployeeFilesQuery;
 
     private Query<EmployeeFile> oU_EmployeeFilesQuery;
 
@@ -72,30 +78,32 @@ public class EmployeeFileDao extends AbstractDao<EmployeeFile, Long> {
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'EMPLOYEE_FILE' (" + //
-                "'MIN_HOURS_PER_WEEK' INTEGER," + // 0: minHoursPerWeek
-                "'EXTERNAL_ID' TEXT," + // 1: externalID
-                "'NAME' TEXT," + // 2: name
-                "'GUID' TEXT," + // 3: guid
-                "'EMPLOYEE_FILES_OUID' INTEGER NOT NULL ," + // 4: employeeFilesOUId
-                "'PRIORITY' INTEGER," + // 5: priority
-                "'TAG_STRING' TEXT," + // 6: tagString
-                "'ROLE_ID' TEXT," + // 7: roleID
-                "'DEPARTMENT_ID' TEXT," + // 8: departmentID
-                "'TENANT_ID' INTEGER," + // 9: tenantID
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 10: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 11: dateLastModified
-                "'ROLE_EMPLOYMENT_ROLE_ID' INTEGER NOT NULL ," + // 12: roleEmploymentRoleId
-                "'EMPLOYMENT_CLASS' INTEGER," + // 13: employmentClass
-                "'IS_DELETED' INTEGER," + // 14: isDeleted
-                "'VERSION' INTEGER," + // 15: version
-                "'START_DATE' INTEGER," + // 16: startDate
-                "'STATUS_ID' TEXT," + // 17: statusID
-                "'MAX_HOURS_PER_WEEK' INTEGER," + // 18: maxHoursPerWeek
-                "'STATUS_EMPLOYMENT_STATUS_ID' INTEGER NOT NULL ," + // 19: statusEmploymentStatusId
-                "'_id' INTEGER PRIMARY KEY ," + // 20: id
-                "'O_UOUID' INTEGER NOT NULL ," + // 21: oUOUId
-                "'DATE_CREATED' INTEGER," + // 22: dateCreated
-                "'END_DATE' INTEGER);"); // 23: endDate
+                "'EMPLOYEE_FILES_OUID' INTEGER NOT NULL ," + // 0: employeeFilesOUId
+                "'GUID' TEXT," + // 1: guid
+                "'EXTERNAL_ID' TEXT," + // 2: externalID
+                "'DEPARTMENT_ID' TEXT," + // 3: departmentID
+                "'DATE_LAST_MODIFIED' TEXT," + // 4: dateLastModified
+                "'EMPLOYEE_FILES_CENTER_ID' INTEGER NOT NULL ," + // 5: employeeFilesCenterId
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 6: syncBaseId
+                "'IS_DELETED' INTEGER," + // 7: isDeleted
+                "'START_DATE' TEXT," + // 8: startDate
+                "'VERSION' INTEGER," + // 9: version
+                "'MAX_HOURS_PER_WEEK' INTEGER," + // 10: maxHoursPerWeek
+                "'_id' INTEGER PRIMARY KEY ," + // 11: id
+                "'STATUS_EMPLOYMENT_STATUS_ID' INTEGER NOT NULL ," + // 12: statusEmploymentStatusId
+                "'DATE_CREATED' TEXT," + // 13: dateCreated
+                "'END_DATE' TEXT," + // 14: endDate
+                "'MIN_HOURS_PER_WEEK' INTEGER," + // 15: minHoursPerWeek
+                "'NAME' TEXT," + // 16: name
+                "'PRIORITY' INTEGER," + // 17: priority
+                "'TAG_STRING' TEXT," + // 18: tagString
+                "'ROLE_ID' TEXT," + // 19: roleID
+                "'TENANT_ID' INTEGER," + // 20: tenantID
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 21: saveResultSaveResultId
+                "'ROLE_EMPLOYMENT_ROLE_ID' INTEGER NOT NULL ," + // 22: roleEmploymentRoleId
+                "'EMPLOYMENT_CLASS' INTEGER," + // 23: employmentClass
+                "'STATUS_ID' TEXT," + // 24: statusID
+                "'O_UOUID' INTEGER NOT NULL );"); // 25: oUOUId
     }
 
     /** Drops the underlying database table. */
@@ -108,106 +116,112 @@ public class EmployeeFileDao extends AbstractDao<EmployeeFile, Long> {
     @Override
     protected void bindValues(SQLiteStatement stmt, EmployeeFile entity) {
         stmt.clearBindings();
+        stmt.bindLong(1, entity.getEmployeeFilesOUId());
  
-        Integer minHoursPerWeek = entity.getMinHoursPerWeek();
-        if (minHoursPerWeek != null) {
-            stmt.bindLong(1, minHoursPerWeek);
+        String guid = entity.getGuid();
+        if (guid != null) {
+            stmt.bindString(2, guid);
         }
  
         String externalID = entity.getExternalID();
         if (externalID != null) {
-            stmt.bindString(2, externalID);
-        }
- 
-        String name = entity.getName();
-        if (name != null) {
-            stmt.bindString(3, name);
-        }
- 
-        String guid = entity.getGuid();
-        if (guid != null) {
-            stmt.bindString(4, guid);
-        }
-        stmt.bindLong(5, entity.getEmployeeFilesOUId());
- 
-        Integer priority = entity.getPriority();
-        if (priority != null) {
-            stmt.bindLong(6, priority);
-        }
- 
-        String tagString = entity.getTagString();
-        if (tagString != null) {
-            stmt.bindString(7, tagString);
-        }
- 
-        String roleID = entity.getRoleID();
-        if (roleID != null) {
-            stmt.bindString(8, roleID);
+            stmt.bindString(3, externalID);
         }
  
         String departmentID = entity.getDepartmentID();
         if (departmentID != null) {
-            stmt.bindString(9, departmentID);
+            stmt.bindString(4, departmentID);
         }
  
-        Long tenantID = entity.getTenantID();
-        if (tenantID != null) {
-            stmt.bindLong(10, tenantID);
-        }
-        stmt.bindLong(11, entity.getSaveResultSaveResultId());
- 
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(12, dateLastModified);
+            stmt.bindString(5, dateLastModified);
         }
-        stmt.bindLong(13, entity.getRoleEmploymentRoleId());
+        stmt.bindLong(6, entity.getEmployeeFilesCenterId());
  
-        EmploymentClass employmentClass = entity.getEmploymentClass();
-        if (employmentClass != null) {
-            stmt.bindLong(14, employmentClass.getValue());
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(7, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(15, isDeleted ? 1l: 0l);
+            stmt.bindLong(8, isDeleted ? 1l: 0l);
+        }
+ 
+        String startDate = entity.getStartDate();
+        if (startDate != null) {
+            stmt.bindString(9, startDate);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(16, version);
-        }
- 
-        Long startDate = entity.getStartDate();
-        if (startDate != null) {
-            stmt.bindLong(17, startDate);
-        }
- 
-        String statusID = entity.getStatusID();
-        if (statusID != null) {
-            stmt.bindString(18, statusID);
+            stmt.bindLong(10, version);
         }
  
         Integer maxHoursPerWeek = entity.getMaxHoursPerWeek();
         if (maxHoursPerWeek != null) {
-            stmt.bindLong(19, maxHoursPerWeek);
+            stmt.bindLong(11, maxHoursPerWeek);
         }
-        stmt.bindLong(20, entity.getStatusEmploymentStatusId());
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(21, id);
+            stmt.bindLong(12, id);
         }
-        stmt.bindLong(22, entity.getOUOUId());
+        stmt.bindLong(13, entity.getStatusEmploymentStatusId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(23, dateCreated);
+            stmt.bindString(14, dateCreated);
         }
  
-        Long endDate = entity.getEndDate();
+        String endDate = entity.getEndDate();
         if (endDate != null) {
-            stmt.bindLong(24, endDate);
+            stmt.bindString(15, endDate);
         }
+ 
+        Integer minHoursPerWeek = entity.getMinHoursPerWeek();
+        if (minHoursPerWeek != null) {
+            stmt.bindLong(16, minHoursPerWeek);
+        }
+ 
+        String name = entity.getName();
+        if (name != null) {
+            stmt.bindString(17, name);
+        }
+ 
+        Integer priority = entity.getPriority();
+        if (priority != null) {
+            stmt.bindLong(18, priority);
+        }
+ 
+        String tagString = entity.getTagString();
+        if (tagString != null) {
+            stmt.bindString(19, tagString);
+        }
+ 
+        String roleID = entity.getRoleID();
+        if (roleID != null) {
+            stmt.bindString(20, roleID);
+        }
+ 
+        Long tenantID = entity.getTenantID();
+        if (tenantID != null) {
+            stmt.bindLong(21, tenantID);
+        }
+        stmt.bindLong(22, entity.getSaveResultSaveResultId());
+        stmt.bindLong(23, entity.getRoleEmploymentRoleId());
+ 
+        EmploymentClass employmentClass = entity.getEmploymentClass();
+        if (employmentClass != null) {
+            stmt.bindLong(24, employmentClass.getValue());
+        }
+ 
+        String statusID = entity.getStatusID();
+        if (statusID != null) {
+            stmt.bindString(25, statusID);
+        }
+        stmt.bindLong(26, entity.getOUOUId());
     }
 
     @Override
@@ -219,37 +233,39 @@ public class EmployeeFileDao extends AbstractDao<EmployeeFile, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20);
+        return cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11);
     }    
 
     /** @inheritdoc */
     @Override
     public EmployeeFile readEntity(Cursor cursor, int offset) {
         EmployeeFile entity = new EmployeeFile( //
-            cursor.isNull(offset + 0) ? null : cursor.getInt(offset + 0), // minHoursPerWeek
-            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // externalID
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
-            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // guid
-            cursor.getLong(offset + 4), // employeeFilesOUId
-            cursor.isNull(offset + 5) ? null : cursor.getInt(offset + 5), // priority
-            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // tagString
-            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // roleID
-            cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8), // departmentID
-            cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // tenantID
-            cursor.getLong(offset + 10), // saveResultSaveResultId
-            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // dateLastModified
-            cursor.getLong(offset + 12), // roleEmploymentRoleId
-            cursor.isNull(offset + 13) ? null : EmploymentClass.fromInt(cursor.getLong(offset + 13)), // employmentClass
-            cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0, // isDeleted
-            cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15), // version
-            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // startDate
-            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // statusID
-            cursor.isNull(offset + 18) ? null : cursor.getInt(offset + 18), // maxHoursPerWeek
-            cursor.getLong(offset + 19), // statusEmploymentStatusId
-            cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20), // id
-            cursor.getLong(offset + 21), // oUOUId
-            cursor.isNull(offset + 22) ? null : cursor.getLong(offset + 22), // dateCreated
-            cursor.isNull(offset + 23) ? null : cursor.getLong(offset + 23) // endDate
+            cursor.getLong(offset + 0), // employeeFilesOUId
+            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // guid
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // externalID
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // departmentID
+            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // dateLastModified
+            cursor.getLong(offset + 5), // employeeFilesCenterId
+            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // syncBaseId
+            cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0, // isDeleted
+            cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8), // startDate
+            cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9), // version
+            cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // maxHoursPerWeek
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // id
+            cursor.getLong(offset + 12), // statusEmploymentStatusId
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13), // dateCreated
+            cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14), // endDate
+            cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15), // minHoursPerWeek
+            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16), // name
+            cursor.isNull(offset + 17) ? null : cursor.getInt(offset + 17), // priority
+            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18), // tagString
+            cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19), // roleID
+            cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20), // tenantID
+            cursor.getLong(offset + 21), // saveResultSaveResultId
+            cursor.getLong(offset + 22), // roleEmploymentRoleId
+            cursor.isNull(offset + 23) ? null : EmploymentClass.fromInt(cursor.getLong(offset + 23)), // employmentClass
+            cursor.isNull(offset + 24) ? null : cursor.getString(offset + 24), // statusID
+            cursor.getLong(offset + 25) // oUOUId
         );
         return entity;
     }
@@ -257,30 +273,32 @@ public class EmployeeFileDao extends AbstractDao<EmployeeFile, Long> {
     /** @inheritdoc */
     @Override
     public void readEntity(Cursor cursor, EmployeeFile entity, int offset) {
-        entity.setMinHoursPerWeek(cursor.isNull(offset + 0) ? null : cursor.getInt(offset + 0));
-        entity.setExternalID(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
-        entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setGuid(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setEmployeeFilesOUId(cursor.getLong(offset + 4));
-        entity.setPriority(cursor.isNull(offset + 5) ? null : cursor.getInt(offset + 5));
-        entity.setTagString(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
-        entity.setRoleID(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
-        entity.setDepartmentID(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
-        entity.setTenantID(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 10));
-        entity.setDateLastModified(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
-        entity.setRoleEmploymentRoleId(cursor.getLong(offset + 12));
-        entity.setEmploymentClass(cursor.isNull(offset + 13) ? null : EmploymentClass.fromInt(cursor.getLong(offset + 13)));
-        entity.setIsDeleted(cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0);
-        entity.setVersion(cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15));
-        entity.setStartDate(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
-        entity.setStatusID(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
-        entity.setMaxHoursPerWeek(cursor.isNull(offset + 18) ? null : cursor.getInt(offset + 18));
-        entity.setStatusEmploymentStatusId(cursor.getLong(offset + 19));
-        entity.setId(cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20));
-        entity.setOUOUId(cursor.getLong(offset + 21));
-        entity.setDateCreated(cursor.isNull(offset + 22) ? null : cursor.getLong(offset + 22));
-        entity.setEndDate(cursor.isNull(offset + 23) ? null : cursor.getLong(offset + 23));
+        entity.setEmployeeFilesOUId(cursor.getLong(offset + 0));
+        entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setExternalID(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setDepartmentID(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setDateLastModified(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setEmployeeFilesCenterId(cursor.getLong(offset + 5));
+        entity.setSyncBaseId(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
+        entity.setIsDeleted(cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0);
+        entity.setStartDate(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
+        entity.setVersion(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
+        entity.setMaxHoursPerWeek(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
+        entity.setId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setStatusEmploymentStatusId(cursor.getLong(offset + 12));
+        entity.setDateCreated(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
+        entity.setEndDate(cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14));
+        entity.setMinHoursPerWeek(cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15));
+        entity.setName(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
+        entity.setPriority(cursor.isNull(offset + 17) ? null : cursor.getInt(offset + 17));
+        entity.setTagString(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
+        entity.setRoleID(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
+        entity.setTenantID(cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 21));
+        entity.setRoleEmploymentRoleId(cursor.getLong(offset + 22));
+        entity.setEmploymentClass(cursor.isNull(offset + 23) ? null : EmploymentClass.fromInt(cursor.getLong(offset + 23)));
+        entity.setStatusID(cursor.isNull(offset + 24) ? null : cursor.getString(offset + 24));
+        entity.setOUOUId(cursor.getLong(offset + 25));
      }
     
     /** @inheritdoc */
@@ -306,6 +324,20 @@ public class EmployeeFileDao extends AbstractDao<EmployeeFile, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "employeeFiles" to-many relationship of Center. */
+    public List<EmployeeFile> _queryCenter_EmployeeFiles(long employeeFilesCenterId) {
+        synchronized (this) {
+            if (center_EmployeeFilesQuery == null) {
+                QueryBuilder<EmployeeFile> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.EmployeeFilesCenterId.eq(null));
+                center_EmployeeFilesQuery = queryBuilder.build();
+            }
+        }
+        Query<EmployeeFile> query = center_EmployeeFilesQuery.forCurrentThread();
+        query.setParameter(0, employeeFilesCenterId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "employeeFiles" to-many relationship of OU. */
     public List<EmployeeFile> _queryOU_EmployeeFiles(long employeeFilesOUId) {
         synchronized (this) {
@@ -440,4 +472,35 @@ public class EmployeeFileDao extends AbstractDao<EmployeeFile, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(EmployeeFile entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(EmployeeFile entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(EmployeeFile entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(EmployeeFile entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(EmployeeFile entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("EmployeeFile", new TypeToken<List<EmployeeFile>>(){}.getType());
+        GreenSync.registerTypeToken("EmployeeFile", EmployeeFile.class);
+    }
+
 }

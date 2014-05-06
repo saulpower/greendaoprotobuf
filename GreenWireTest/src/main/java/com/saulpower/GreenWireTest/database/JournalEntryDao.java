@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -33,26 +35,31 @@ public class JournalEntryDao extends AbstractDao<JournalEntry, Long> {
         public final static Property ExternalID = new Property(0, String.class, "externalID", false, "EXTERNAL_ID");
         public final static Property Guid = new Property(1, String.class, "guid", false, "GUID");
         public final static Property Name = new Property(2, String.class, "name", false, "NAME");
-        public final static Property TagString = new Property(3, String.class, "tagString", false, "TAG_STRING");
-        public final static Property JournalEntriesStudentId = new Property(4, long.class, "journalEntriesStudentId", false, "JOURNAL_ENTRIES_STUDENT_ID");
-        public final static Property MilestoneType = new Property(5, MilestoneType.class, "milestoneType", false, "MILESTONE_TYPE");
-        public final static Property TenantID = new Property(6, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property SaveResultSaveResultId = new Property(7, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(8, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property JournalEntriesPersonId = new Property(9, long.class, "journalEntriesPersonId", false, "JOURNAL_ENTRIES_PERSON_ID");
-        public final static Property IsDeleted = new Property(10, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(11, Integer.class, "version", false, "VERSION");
-        public final static Property IsPrivate = new Property(12, Boolean.class, "isPrivate", false, "IS_PRIVATE");
-        public final static Property Id = new Property(13, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(14, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property Notes = new Property(15, String.class, "notes", false, "NOTES");
-        public final static Property EntryType = new Property(16, JournalEntryType.class, "entryType", false, "ENTRY_TYPE");
+        public final static Property JournalEntriesGuardianId = new Property(3, long.class, "journalEntriesGuardianId", false, "JOURNAL_ENTRIES_GUARDIAN_ID");
+        public final static Property TagString = new Property(4, String.class, "tagString", false, "TAG_STRING");
+        public final static Property JournalEntriesStudentId = new Property(5, long.class, "journalEntriesStudentId", false, "JOURNAL_ENTRIES_STUDENT_ID");
+        public final static Property MilestoneType = new Property(6, MilestoneType.class, "milestoneType", false, "MILESTONE_TYPE");
+        public final static Property TenantID = new Property(7, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property SaveResultSaveResultId = new Property(8, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property DateLastModified = new Property(9, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property JournalEntriesPersonId = new Property(10, long.class, "journalEntriesPersonId", false, "JOURNAL_ENTRIES_PERSON_ID");
+        public final static Property SyncBaseId = new Property(11, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(13, Integer.class, "version", false, "VERSION");
+        public final static Property IsPrivate = new Property(14, Boolean.class, "isPrivate", false, "IS_PRIVATE");
+        public final static Property Id = new Property(15, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(16, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property Notes = new Property(17, String.class, "notes", false, "NOTES");
+        public final static Property EntryType = new Property(18, JournalEntryType.class, "entryType", false, "ENTRY_TYPE");
     };
 
     private DaoSession daoSession;
 
-    private Query<JournalEntry> student_JournalEntriesQuery;
     private Query<JournalEntry> person_JournalEntriesQuery;
+
+    private Query<JournalEntry> student_JournalEntriesQuery;
+
+    private Query<JournalEntry> guardian_JournalEntriesQuery;
 
     public JournalEntryDao(DaoConfig config) {
         super(config);
@@ -70,20 +77,22 @@ public class JournalEntryDao extends AbstractDao<JournalEntry, Long> {
                 "'EXTERNAL_ID' TEXT," + // 0: externalID
                 "'GUID' TEXT," + // 1: guid
                 "'NAME' TEXT," + // 2: name
-                "'TAG_STRING' TEXT," + // 3: tagString
-                "'JOURNAL_ENTRIES_STUDENT_ID' INTEGER NOT NULL ," + // 4: journalEntriesStudentId
-                "'MILESTONE_TYPE' INTEGER," + // 5: milestoneType
-                "'TENANT_ID' INTEGER," + // 6: tenantID
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 7: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 8: dateLastModified
-                "'JOURNAL_ENTRIES_PERSON_ID' INTEGER NOT NULL ," + // 9: journalEntriesPersonId
-                "'IS_DELETED' INTEGER," + // 10: isDeleted
-                "'VERSION' INTEGER," + // 11: version
-                "'IS_PRIVATE' INTEGER," + // 12: isPrivate
-                "'_id' INTEGER PRIMARY KEY ," + // 13: id
-                "'DATE_CREATED' INTEGER," + // 14: dateCreated
-                "'NOTES' TEXT," + // 15: notes
-                "'ENTRY_TYPE' INTEGER);"); // 16: entryType
+                "'JOURNAL_ENTRIES_GUARDIAN_ID' INTEGER NOT NULL ," + // 3: journalEntriesGuardianId
+                "'TAG_STRING' TEXT," + // 4: tagString
+                "'JOURNAL_ENTRIES_STUDENT_ID' INTEGER NOT NULL ," + // 5: journalEntriesStudentId
+                "'MILESTONE_TYPE' INTEGER," + // 6: milestoneType
+                "'TENANT_ID' INTEGER," + // 7: tenantID
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 8: saveResultSaveResultId
+                "'DATE_LAST_MODIFIED' TEXT," + // 9: dateLastModified
+                "'JOURNAL_ENTRIES_PERSON_ID' INTEGER NOT NULL ," + // 10: journalEntriesPersonId
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 11: syncBaseId
+                "'IS_DELETED' INTEGER," + // 12: isDeleted
+                "'VERSION' INTEGER," + // 13: version
+                "'IS_PRIVATE' INTEGER," + // 14: isPrivate
+                "'_id' INTEGER PRIMARY KEY ," + // 15: id
+                "'DATE_CREATED' TEXT," + // 16: dateCreated
+                "'NOTES' TEXT," + // 17: notes
+                "'ENTRY_TYPE' INTEGER);"); // 18: entryType
     }
 
     /** Drops the underlying database table. */
@@ -111,63 +120,69 @@ public class JournalEntryDao extends AbstractDao<JournalEntry, Long> {
         if (name != null) {
             stmt.bindString(3, name);
         }
+        stmt.bindLong(4, entity.getJournalEntriesGuardianId());
  
         String tagString = entity.getTagString();
         if (tagString != null) {
-            stmt.bindString(4, tagString);
+            stmt.bindString(5, tagString);
         }
-        stmt.bindLong(5, entity.getJournalEntriesStudentId());
+        stmt.bindLong(6, entity.getJournalEntriesStudentId());
  
         MilestoneType milestoneType = entity.getMilestoneType();
         if (milestoneType != null) {
-            stmt.bindLong(6, milestoneType.getValue());
+            stmt.bindLong(7, milestoneType.getValue());
         }
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
-            stmt.bindLong(7, tenantID);
+            stmt.bindLong(8, tenantID);
         }
-        stmt.bindLong(8, entity.getSaveResultSaveResultId());
+        stmt.bindLong(9, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(9, dateLastModified);
+            stmt.bindString(10, dateLastModified);
         }
-        stmt.bindLong(10, entity.getJournalEntriesPersonId());
+        stmt.bindLong(11, entity.getJournalEntriesPersonId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(12, syncBaseId);
+        }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(11, isDeleted ? 1l: 0l);
+            stmt.bindLong(13, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(12, version);
+            stmt.bindLong(14, version);
         }
  
         Boolean isPrivate = entity.getIsPrivate();
         if (isPrivate != null) {
-            stmt.bindLong(13, isPrivate ? 1l: 0l);
+            stmt.bindLong(15, isPrivate ? 1l: 0l);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(14, id);
+            stmt.bindLong(16, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(15, dateCreated);
+            stmt.bindString(17, dateCreated);
         }
  
         String notes = entity.getNotes();
         if (notes != null) {
-            stmt.bindString(16, notes);
+            stmt.bindString(18, notes);
         }
  
         JournalEntryType entryType = entity.getEntryType();
         if (entryType != null) {
-            stmt.bindLong(17, entryType.getValue());
+            stmt.bindLong(19, entryType.getValue());
         }
     }
 
@@ -180,7 +195,7 @@ public class JournalEntryDao extends AbstractDao<JournalEntry, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13);
+        return cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15);
     }    
 
     /** @inheritdoc */
@@ -190,20 +205,22 @@ public class JournalEntryDao extends AbstractDao<JournalEntry, Long> {
             cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // externalID
             cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // guid
             cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
-            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // tagString
-            cursor.getLong(offset + 4), // journalEntriesStudentId
-            cursor.isNull(offset + 5) ? null : MilestoneType.fromInt(cursor.getLong(offset + 5)), // milestoneType
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // tenantID
-            cursor.getLong(offset + 7), // saveResultSaveResultId
-            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // dateLastModified
-            cursor.getLong(offset + 9), // journalEntriesPersonId
-            cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0, // isDeleted
-            cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11), // version
-            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isPrivate
-            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // id
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // dateCreated
-            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // notes
-            cursor.isNull(offset + 16) ? null : JournalEntryType.fromInt(cursor.getLong(offset + 16)) // entryType
+            cursor.getLong(offset + 3), // journalEntriesGuardianId
+            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // tagString
+            cursor.getLong(offset + 5), // journalEntriesStudentId
+            cursor.isNull(offset + 6) ? null : MilestoneType.fromInt(cursor.getLong(offset + 6)), // milestoneType
+            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // tenantID
+            cursor.getLong(offset + 8), // saveResultSaveResultId
+            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // dateLastModified
+            cursor.getLong(offset + 10), // journalEntriesPersonId
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // syncBaseId
+            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
+            cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13), // version
+            cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0, // isPrivate
+            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // id
+            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16), // dateCreated
+            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // notes
+            cursor.isNull(offset + 18) ? null : JournalEntryType.fromInt(cursor.getLong(offset + 18)) // entryType
         );
         return entity;
     }
@@ -214,20 +231,22 @@ public class JournalEntryDao extends AbstractDao<JournalEntry, Long> {
         entity.setExternalID(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
         entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setTagString(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setJournalEntriesStudentId(cursor.getLong(offset + 4));
-        entity.setMilestoneType(cursor.isNull(offset + 5) ? null : MilestoneType.fromInt(cursor.getLong(offset + 5)));
-        entity.setTenantID(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 7));
-        entity.setDateLastModified(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
-        entity.setJournalEntriesPersonId(cursor.getLong(offset + 9));
-        entity.setIsDeleted(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
-        entity.setVersion(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
-        entity.setIsPrivate(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
-        entity.setId(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
-        entity.setDateCreated(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
-        entity.setNotes(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
-        entity.setEntryType(cursor.isNull(offset + 16) ? null : JournalEntryType.fromInt(cursor.getLong(offset + 16)));
+        entity.setJournalEntriesGuardianId(cursor.getLong(offset + 3));
+        entity.setTagString(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setJournalEntriesStudentId(cursor.getLong(offset + 5));
+        entity.setMilestoneType(cursor.isNull(offset + 6) ? null : MilestoneType.fromInt(cursor.getLong(offset + 6)));
+        entity.setTenantID(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 8));
+        entity.setDateLastModified(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+        entity.setJournalEntriesPersonId(cursor.getLong(offset + 10));
+        entity.setSyncBaseId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
+        entity.setVersion(cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13));
+        entity.setIsPrivate(cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0);
+        entity.setId(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
+        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
+        entity.setNotes(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
+        entity.setEntryType(cursor.isNull(offset + 18) ? null : JournalEntryType.fromInt(cursor.getLong(offset + 18)));
      }
     
     /** @inheritdoc */
@@ -253,6 +272,20 @@ public class JournalEntryDao extends AbstractDao<JournalEntry, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "journalEntries" to-many relationship of Person. */
+    public List<JournalEntry> _queryPerson_JournalEntries(long journalEntriesPersonId) {
+        synchronized (this) {
+            if (person_JournalEntriesQuery == null) {
+                QueryBuilder<JournalEntry> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.JournalEntriesPersonId.eq(null));
+                person_JournalEntriesQuery = queryBuilder.build();
+            }
+        }
+        Query<JournalEntry> query = person_JournalEntriesQuery.forCurrentThread();
+        query.setParameter(0, journalEntriesPersonId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "journalEntries" to-many relationship of Student. */
     public List<JournalEntry> _queryStudent_JournalEntries(long journalEntriesStudentId) {
         synchronized (this) {
@@ -267,17 +300,17 @@ public class JournalEntryDao extends AbstractDao<JournalEntry, Long> {
         return query.list();
     }
 
-    /** Internal query to resolve the "journalEntries" to-many relationship of Person. */
-    public List<JournalEntry> _queryPerson_JournalEntries(long journalEntriesPersonId) {
+    /** Internal query to resolve the "journalEntries" to-many relationship of Guardian. */
+    public List<JournalEntry> _queryGuardian_JournalEntries(long journalEntriesGuardianId) {
         synchronized (this) {
-            if (person_JournalEntriesQuery == null) {
+            if (guardian_JournalEntriesQuery == null) {
                 QueryBuilder<JournalEntry> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.JournalEntriesPersonId.eq(null));
-                person_JournalEntriesQuery = queryBuilder.build();
+                queryBuilder.where(Properties.JournalEntriesGuardianId.eq(null));
+                guardian_JournalEntriesQuery = queryBuilder.build();
             }
         }
-        Query<JournalEntry> query = person_JournalEntriesQuery.forCurrentThread();
-        query.setParameter(0, journalEntriesPersonId);
+        Query<JournalEntry> query = guardian_JournalEntriesQuery.forCurrentThread();
+        query.setParameter(0, journalEntriesGuardianId);
         return query.list();
     }
 
@@ -374,4 +407,35 @@ public class JournalEntryDao extends AbstractDao<JournalEntry, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(JournalEntry entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(JournalEntry entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(JournalEntry entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(JournalEntry entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(JournalEntry entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("JournalEntry", new TypeToken<List<JournalEntry>>(){}.getType());
+        GreenSync.registerTypeToken("JournalEntry", JournalEntry.class);
+    }
+
 }

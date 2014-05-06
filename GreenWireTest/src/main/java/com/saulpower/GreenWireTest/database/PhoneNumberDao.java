@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -31,31 +33,37 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
     public static class Properties {
         public final static Property PhoneNumbersStudentId = new Property(0, long.class, "phoneNumbersStudentId", false, "PHONE_NUMBERS_STUDENT_ID");
         public final static Property IsPrimary = new Property(1, Boolean.class, "isPrimary", false, "IS_PRIMARY");
-        public final static Property PhoneNumbersPersonId = new Property(2, long.class, "phoneNumbersPersonId", false, "PHONE_NUMBERS_PERSON_ID");
-        public final static Property ExternalID = new Property(3, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property ExternalID = new Property(2, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property PhoneNumbersPersonId = new Property(3, long.class, "phoneNumbersPersonId", false, "PHONE_NUMBERS_PERSON_ID");
         public final static Property Guid = new Property(4, String.class, "guid", false, "GUID");
         public final static Property Name = new Property(5, String.class, "name", false, "NAME");
         public final static Property TagString = new Property(6, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(7, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(8, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(9, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property DateLastModified = new Property(9, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
         public final static Property PhoneNumbersAuthorizedPersonId = new Property(10, long.class, "phoneNumbersAuthorizedPersonId", false, "PHONE_NUMBERS_AUTHORIZED_PERSON_ID");
         public final static Property Number = new Property(11, String.class, "number", false, "NUMBER");
         public final static Property PhoneType = new Property(12, PhoneType.class, "phoneType", false, "PHONE_TYPE");
-        public final static Property IsDeleted = new Property(13, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(14, Integer.class, "version", false, "VERSION");
-        public final static Property OwnerID = new Property(15, String.class, "ownerID", false, "OWNER_ID");
-        public final static Property Id = new Property(16, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(17, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property Extension = new Property(18, String.class, "extension", false, "EXTENSION");
-        public final static Property AreaCode = new Property(19, String.class, "areaCode", false, "AREA_CODE");
+        public final static Property SyncBaseId = new Property(13, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(14, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(15, Integer.class, "version", false, "VERSION");
+        public final static Property PhoneNumbersGuardianId = new Property(16, long.class, "phoneNumbersGuardianId", false, "PHONE_NUMBERS_GUARDIAN_ID");
+        public final static Property OwnerID = new Property(17, String.class, "ownerID", false, "OWNER_ID");
+        public final static Property Id = new Property(18, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(19, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property Extension = new Property(20, String.class, "extension", false, "EXTENSION");
+        public final static Property AreaCode = new Property(21, String.class, "areaCode", false, "AREA_CODE");
     };
 
     private DaoSession daoSession;
 
-    private Query<PhoneNumber> student_PhoneNumbersQuery;
     private Query<PhoneNumber> person_PhoneNumbersQuery;
+
+    private Query<PhoneNumber> student_PhoneNumbersQuery;
+
     private Query<PhoneNumber> authorizedPerson_PhoneNumbersQuery;
+
+    private Query<PhoneNumber> guardian_PhoneNumbersQuery;
 
     public PhoneNumberDao(DaoConfig config) {
         super(config);
@@ -72,24 +80,26 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
         db.execSQL("CREATE TABLE " + constraint + "'PHONE_NUMBER' (" + //
                 "'PHONE_NUMBERS_STUDENT_ID' INTEGER NOT NULL ," + // 0: phoneNumbersStudentId
                 "'IS_PRIMARY' INTEGER," + // 1: isPrimary
-                "'PHONE_NUMBERS_PERSON_ID' INTEGER NOT NULL ," + // 2: phoneNumbersPersonId
-                "'EXTERNAL_ID' TEXT," + // 3: externalID
+                "'EXTERNAL_ID' TEXT," + // 2: externalID
+                "'PHONE_NUMBERS_PERSON_ID' INTEGER NOT NULL ," + // 3: phoneNumbersPersonId
                 "'GUID' TEXT," + // 4: guid
                 "'NAME' TEXT," + // 5: name
                 "'TAG_STRING' TEXT," + // 6: tagString
                 "'TENANT_ID' INTEGER," + // 7: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 8: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 9: dateLastModified
+                "'DATE_LAST_MODIFIED' TEXT," + // 9: dateLastModified
                 "'PHONE_NUMBERS_AUTHORIZED_PERSON_ID' INTEGER NOT NULL ," + // 10: phoneNumbersAuthorizedPersonId
                 "'NUMBER' TEXT," + // 11: number
                 "'PHONE_TYPE' INTEGER," + // 12: phoneType
-                "'IS_DELETED' INTEGER," + // 13: isDeleted
-                "'VERSION' INTEGER," + // 14: version
-                "'OWNER_ID' TEXT," + // 15: ownerID
-                "'_id' INTEGER PRIMARY KEY ," + // 16: id
-                "'DATE_CREATED' INTEGER," + // 17: dateCreated
-                "'EXTENSION' TEXT," + // 18: extension
-                "'AREA_CODE' TEXT);"); // 19: areaCode
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 13: syncBaseId
+                "'IS_DELETED' INTEGER," + // 14: isDeleted
+                "'VERSION' INTEGER," + // 15: version
+                "'PHONE_NUMBERS_GUARDIAN_ID' INTEGER NOT NULL ," + // 16: phoneNumbersGuardianId
+                "'OWNER_ID' TEXT," + // 17: ownerID
+                "'_id' INTEGER PRIMARY KEY ," + // 18: id
+                "'DATE_CREATED' TEXT," + // 19: dateCreated
+                "'EXTENSION' TEXT," + // 20: extension
+                "'AREA_CODE' TEXT);"); // 21: areaCode
     }
 
     /** Drops the underlying database table. */
@@ -108,12 +118,12 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
         if (isPrimary != null) {
             stmt.bindLong(2, isPrimary ? 1l: 0l);
         }
-        stmt.bindLong(3, entity.getPhoneNumbersPersonId());
  
         String externalID = entity.getExternalID();
         if (externalID != null) {
-            stmt.bindString(4, externalID);
+            stmt.bindString(3, externalID);
         }
+        stmt.bindLong(4, entity.getPhoneNumbersPersonId());
  
         String guid = entity.getGuid();
         if (guid != null) {
@@ -136,9 +146,9 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
         }
         stmt.bindLong(9, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(10, dateLastModified);
+            stmt.bindString(10, dateLastModified);
         }
         stmt.bindLong(11, entity.getPhoneNumbersAuthorizedPersonId());
  
@@ -152,39 +162,45 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
             stmt.bindLong(13, phoneType.getValue());
         }
  
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(14, syncBaseId);
+        }
+ 
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(14, isDeleted ? 1l: 0l);
+            stmt.bindLong(15, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(15, version);
+            stmt.bindLong(16, version);
         }
+        stmt.bindLong(17, entity.getPhoneNumbersGuardianId());
  
         String ownerID = entity.getOwnerID();
         if (ownerID != null) {
-            stmt.bindString(16, ownerID);
+            stmt.bindString(18, ownerID);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(17, id);
+            stmt.bindLong(19, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(18, dateCreated);
+            stmt.bindString(20, dateCreated);
         }
  
         String extension = entity.getExtension();
         if (extension != null) {
-            stmt.bindString(19, extension);
+            stmt.bindString(21, extension);
         }
  
         String areaCode = entity.getAreaCode();
         if (areaCode != null) {
-            stmt.bindString(20, areaCode);
+            stmt.bindString(22, areaCode);
         }
     }
 
@@ -197,7 +213,7 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16);
+        return cursor.isNull(offset + 18) ? null : cursor.getLong(offset + 18);
     }    
 
     /** @inheritdoc */
@@ -206,24 +222,26 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
         PhoneNumber entity = new PhoneNumber( //
             cursor.getLong(offset + 0), // phoneNumbersStudentId
             cursor.isNull(offset + 1) ? null : cursor.getShort(offset + 1) != 0, // isPrimary
-            cursor.getLong(offset + 2), // phoneNumbersPersonId
-            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // externalID
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // externalID
+            cursor.getLong(offset + 3), // phoneNumbersPersonId
             cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // guid
             cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // name
             cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // tagString
             cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // tenantID
             cursor.getLong(offset + 8), // saveResultSaveResultId
-            cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // dateLastModified
+            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // dateLastModified
             cursor.getLong(offset + 10), // phoneNumbersAuthorizedPersonId
             cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // number
             cursor.isNull(offset + 12) ? null : PhoneType.fromInt(cursor.getLong(offset + 12)), // phoneType
-            cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0, // isDeleted
-            cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14), // version
-            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // ownerID
-            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // id
-            cursor.isNull(offset + 17) ? null : cursor.getLong(offset + 17), // dateCreated
-            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18), // extension
-            cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19) // areaCode
+            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // syncBaseId
+            cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0, // isDeleted
+            cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15), // version
+            cursor.getLong(offset + 16), // phoneNumbersGuardianId
+            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // ownerID
+            cursor.isNull(offset + 18) ? null : cursor.getLong(offset + 18), // id
+            cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19), // dateCreated
+            cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20), // extension
+            cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21) // areaCode
         );
         return entity;
     }
@@ -233,24 +251,26 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
     public void readEntity(Cursor cursor, PhoneNumber entity, int offset) {
         entity.setPhoneNumbersStudentId(cursor.getLong(offset + 0));
         entity.setIsPrimary(cursor.isNull(offset + 1) ? null : cursor.getShort(offset + 1) != 0);
-        entity.setPhoneNumbersPersonId(cursor.getLong(offset + 2));
-        entity.setExternalID(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setExternalID(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setPhoneNumbersPersonId(cursor.getLong(offset + 3));
         entity.setGuid(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
         entity.setName(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
         entity.setTagString(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
         entity.setTenantID(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 8));
-        entity.setDateLastModified(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
+        entity.setDateLastModified(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
         entity.setPhoneNumbersAuthorizedPersonId(cursor.getLong(offset + 10));
         entity.setNumber(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
         entity.setPhoneType(cursor.isNull(offset + 12) ? null : PhoneType.fromInt(cursor.getLong(offset + 12)));
-        entity.setIsDeleted(cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0);
-        entity.setVersion(cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14));
-        entity.setOwnerID(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
-        entity.setId(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
-        entity.setDateCreated(cursor.isNull(offset + 17) ? null : cursor.getLong(offset + 17));
-        entity.setExtension(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
-        entity.setAreaCode(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
+        entity.setSyncBaseId(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
+        entity.setIsDeleted(cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0);
+        entity.setVersion(cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15));
+        entity.setPhoneNumbersGuardianId(cursor.getLong(offset + 16));
+        entity.setOwnerID(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
+        entity.setId(cursor.isNull(offset + 18) ? null : cursor.getLong(offset + 18));
+        entity.setDateCreated(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
+        entity.setExtension(cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20));
+        entity.setAreaCode(cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21));
      }
     
     /** @inheritdoc */
@@ -276,20 +296,6 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
         return true;
     }
     
-    /** Internal query to resolve the "phoneNumbers" to-many relationship of Student. */
-    public List<PhoneNumber> _queryStudent_PhoneNumbers(long phoneNumbersStudentId) {
-        synchronized (this) {
-            if (student_PhoneNumbersQuery == null) {
-                QueryBuilder<PhoneNumber> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.PhoneNumbersStudentId.eq(null));
-                student_PhoneNumbersQuery = queryBuilder.build();
-            }
-        }
-        Query<PhoneNumber> query = student_PhoneNumbersQuery.forCurrentThread();
-        query.setParameter(0, phoneNumbersStudentId);
-        return query.list();
-    }
-
     /** Internal query to resolve the "phoneNumbers" to-many relationship of Person. */
     public List<PhoneNumber> _queryPerson_PhoneNumbers(long phoneNumbersPersonId) {
         synchronized (this) {
@@ -304,6 +310,20 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
         return query.list();
     }
 
+    /** Internal query to resolve the "phoneNumbers" to-many relationship of Student. */
+    public List<PhoneNumber> _queryStudent_PhoneNumbers(long phoneNumbersStudentId) {
+        synchronized (this) {
+            if (student_PhoneNumbersQuery == null) {
+                QueryBuilder<PhoneNumber> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.PhoneNumbersStudentId.eq(null));
+                student_PhoneNumbersQuery = queryBuilder.build();
+            }
+        }
+        Query<PhoneNumber> query = student_PhoneNumbersQuery.forCurrentThread();
+        query.setParameter(0, phoneNumbersStudentId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "phoneNumbers" to-many relationship of AuthorizedPerson. */
     public List<PhoneNumber> _queryAuthorizedPerson_PhoneNumbers(long phoneNumbersAuthorizedPersonId) {
         synchronized (this) {
@@ -315,6 +335,20 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
         }
         Query<PhoneNumber> query = authorizedPerson_PhoneNumbersQuery.forCurrentThread();
         query.setParameter(0, phoneNumbersAuthorizedPersonId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "phoneNumbers" to-many relationship of Guardian. */
+    public List<PhoneNumber> _queryGuardian_PhoneNumbers(long phoneNumbersGuardianId) {
+        synchronized (this) {
+            if (guardian_PhoneNumbersQuery == null) {
+                QueryBuilder<PhoneNumber> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.PhoneNumbersGuardianId.eq(null));
+                guardian_PhoneNumbersQuery = queryBuilder.build();
+            }
+        }
+        Query<PhoneNumber> query = guardian_PhoneNumbersQuery.forCurrentThread();
+        query.setParameter(0, phoneNumbersGuardianId);
         return query.list();
     }
 
@@ -411,4 +445,35 @@ public class PhoneNumberDao extends AbstractDao<PhoneNumber, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(PhoneNumber entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(PhoneNumber entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(PhoneNumber entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(PhoneNumber entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(PhoneNumber entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("PhoneNumber", new TypeToken<List<PhoneNumber>>(){}.getType());
+        GreenSync.registerTypeToken("PhoneNumber", PhoneNumber.class);
+    }
+
 }

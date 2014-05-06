@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -29,35 +31,46 @@ public class AssociationDao extends AbstractDao<Association, Long> {
     */
     public static class Properties {
         public final static Property ExternalID = new Property(0, String.class, "externalID", false, "EXTERNAL_ID");
-        public final static Property Guid = new Property(1, String.class, "guid", false, "GUID");
-        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
+        public final static Property Name = new Property(1, String.class, "name", false, "NAME");
+        public final static Property Guid = new Property(2, String.class, "guid", false, "GUID");
         public final static Property TagString = new Property(3, String.class, "tagString", false, "TAG_STRING");
         public final static Property RoleID = new Property(4, String.class, "roleID", false, "ROLE_ID");
         public final static Property RoleRoleBaseId = new Property(5, long.class, "roleRoleBaseId", false, "ROLE_ROLE_BASE_ID");
-        public final static Property TenantID = new Property(6, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property SaveResultSaveResultId = new Property(7, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(8, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property AssociationsOUId = new Property(9, long.class, "associationsOUId", false, "ASSOCIATIONS_OUID");
-        public final static Property AssociationsOUBaseId = new Property(10, long.class, "associationsOUBaseId", false, "ASSOCIATIONS_OUBASE_ID");
+        public final static Property AssociationsGuardianId = new Property(6, long.class, "associationsGuardianId", false, "ASSOCIATIONS_GUARDIAN_ID");
+        public final static Property TenantID = new Property(7, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property SaveResultSaveResultId = new Property(8, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property DateLastModified = new Property(9, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property AssociationsOUId = new Property(10, long.class, "associationsOUId", false, "ASSOCIATIONS_OUID");
         public final static Property AssociationsStudentId = new Property(11, long.class, "associationsStudentId", false, "ASSOCIATIONS_STUDENT_ID");
-        public final static Property UserAuthorizedPersonId = new Property(12, long.class, "userAuthorizedPersonId", false, "USER_AUTHORIZED_PERSON_ID");
-        public final static Property AssociationsPersonId = new Property(13, long.class, "associationsPersonId", false, "ASSOCIATIONS_PERSON_ID");
-        public final static Property IsDeleted = new Property(14, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(15, Integer.class, "version", false, "VERSION");
-        public final static Property AssociationsAuthorizedPersonId = new Property(16, long.class, "associationsAuthorizedPersonId", false, "ASSOCIATIONS_AUTHORIZED_PERSON_ID");
-        public final static Property Id = new Property(17, Long.class, "id", true, "_id");
-        public final static Property OUOUBaseId = new Property(18, long.class, "oUOUBaseId", false, "O_UOUBASE_ID");
-        public final static Property DateCreated = new Property(19, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property IsActive = new Property(20, Boolean.class, "isActive", false, "IS_ACTIVE");
+        public final static Property AssociationsOUBaseId = new Property(12, long.class, "associationsOUBaseId", false, "ASSOCIATIONS_OUBASE_ID");
+        public final static Property UserAuthorizedPersonId = new Property(13, long.class, "userAuthorizedPersonId", false, "USER_AUTHORIZED_PERSON_ID");
+        public final static Property SyncBaseId = new Property(14, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property AssociationsPersonId = new Property(15, long.class, "associationsPersonId", false, "ASSOCIATIONS_PERSON_ID");
+        public final static Property IsDeleted = new Property(16, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(17, Integer.class, "version", false, "VERSION");
+        public final static Property AssociationsCenterId = new Property(18, long.class, "associationsCenterId", false, "ASSOCIATIONS_CENTER_ID");
+        public final static Property AssociationsAuthorizedPersonId = new Property(19, long.class, "associationsAuthorizedPersonId", false, "ASSOCIATIONS_AUTHORIZED_PERSON_ID");
+        public final static Property Id = new Property(20, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(21, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property OUOUBaseId = new Property(22, long.class, "oUOUBaseId", false, "O_UOUBASE_ID");
+        public final static Property IsActive = new Property(23, Boolean.class, "isActive", false, "IS_ACTIVE");
     };
 
     private DaoSession daoSession;
 
-    private Query<Association> student_AssociationsQuery;
-    private Query<Association> oU_AssociationsQuery;
+    private Query<Association> center_AssociationsQuery;
+
     private Query<Association> person_AssociationsQuery;
+
+    private Query<Association> student_AssociationsQuery;
+
+    private Query<Association> oU_AssociationsQuery;
+
     private Query<Association> oUBase_AssociationsQuery;
+
     private Query<Association> authorizedPerson_AssociationsQuery;
+
+    private Query<Association> guardian_AssociationsQuery;
 
     public AssociationDao(DaoConfig config) {
         super(config);
@@ -73,26 +86,29 @@ public class AssociationDao extends AbstractDao<Association, Long> {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'ASSOCIATION' (" + //
                 "'EXTERNAL_ID' TEXT," + // 0: externalID
-                "'GUID' TEXT," + // 1: guid
-                "'NAME' TEXT," + // 2: name
+                "'NAME' TEXT," + // 1: name
+                "'GUID' TEXT," + // 2: guid
                 "'TAG_STRING' TEXT," + // 3: tagString
                 "'ROLE_ID' TEXT," + // 4: roleID
                 "'ROLE_ROLE_BASE_ID' INTEGER NOT NULL ," + // 5: roleRoleBaseId
-                "'TENANT_ID' INTEGER," + // 6: tenantID
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 7: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 8: dateLastModified
-                "'ASSOCIATIONS_OUID' INTEGER NOT NULL ," + // 9: associationsOUId
-                "'ASSOCIATIONS_OUBASE_ID' INTEGER NOT NULL ," + // 10: associationsOUBaseId
+                "'ASSOCIATIONS_GUARDIAN_ID' INTEGER NOT NULL ," + // 6: associationsGuardianId
+                "'TENANT_ID' INTEGER," + // 7: tenantID
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 8: saveResultSaveResultId
+                "'DATE_LAST_MODIFIED' TEXT," + // 9: dateLastModified
+                "'ASSOCIATIONS_OUID' INTEGER NOT NULL ," + // 10: associationsOUId
                 "'ASSOCIATIONS_STUDENT_ID' INTEGER NOT NULL ," + // 11: associationsStudentId
-                "'USER_AUTHORIZED_PERSON_ID' INTEGER NOT NULL ," + // 12: userAuthorizedPersonId
-                "'ASSOCIATIONS_PERSON_ID' INTEGER NOT NULL ," + // 13: associationsPersonId
-                "'IS_DELETED' INTEGER," + // 14: isDeleted
-                "'VERSION' INTEGER," + // 15: version
-                "'ASSOCIATIONS_AUTHORIZED_PERSON_ID' INTEGER NOT NULL ," + // 16: associationsAuthorizedPersonId
-                "'_id' INTEGER PRIMARY KEY ," + // 17: id
-                "'O_UOUBASE_ID' INTEGER NOT NULL ," + // 18: oUOUBaseId
-                "'DATE_CREATED' INTEGER," + // 19: dateCreated
-                "'IS_ACTIVE' INTEGER);"); // 20: isActive
+                "'ASSOCIATIONS_OUBASE_ID' INTEGER NOT NULL ," + // 12: associationsOUBaseId
+                "'USER_AUTHORIZED_PERSON_ID' INTEGER NOT NULL ," + // 13: userAuthorizedPersonId
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 14: syncBaseId
+                "'ASSOCIATIONS_PERSON_ID' INTEGER NOT NULL ," + // 15: associationsPersonId
+                "'IS_DELETED' INTEGER," + // 16: isDeleted
+                "'VERSION' INTEGER," + // 17: version
+                "'ASSOCIATIONS_CENTER_ID' INTEGER NOT NULL ," + // 18: associationsCenterId
+                "'ASSOCIATIONS_AUTHORIZED_PERSON_ID' INTEGER NOT NULL ," + // 19: associationsAuthorizedPersonId
+                "'_id' INTEGER PRIMARY KEY ," + // 20: id
+                "'DATE_CREATED' TEXT," + // 21: dateCreated
+                "'O_UOUBASE_ID' INTEGER NOT NULL ," + // 22: oUOUBaseId
+                "'IS_ACTIVE' INTEGER);"); // 23: isActive
     }
 
     /** Drops the underlying database table. */
@@ -111,14 +127,14 @@ public class AssociationDao extends AbstractDao<Association, Long> {
             stmt.bindString(1, externalID);
         }
  
-        String guid = entity.getGuid();
-        if (guid != null) {
-            stmt.bindString(2, guid);
-        }
- 
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(3, name);
+            stmt.bindString(2, name);
+        }
+ 
+        String guid = entity.getGuid();
+        if (guid != null) {
+            stmt.bindString(3, guid);
         }
  
         String tagString = entity.getTagString();
@@ -131,48 +147,55 @@ public class AssociationDao extends AbstractDao<Association, Long> {
             stmt.bindString(5, roleID);
         }
         stmt.bindLong(6, entity.getRoleRoleBaseId());
+        stmt.bindLong(7, entity.getAssociationsGuardianId());
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
-            stmt.bindLong(7, tenantID);
+            stmt.bindLong(8, tenantID);
         }
-        stmt.bindLong(8, entity.getSaveResultSaveResultId());
+        stmt.bindLong(9, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(9, dateLastModified);
+            stmt.bindString(10, dateLastModified);
         }
-        stmt.bindLong(10, entity.getAssociationsOUId());
-        stmt.bindLong(11, entity.getAssociationsOUBaseId());
+        stmt.bindLong(11, entity.getAssociationsOUId());
         stmt.bindLong(12, entity.getAssociationsStudentId());
-        stmt.bindLong(13, entity.getUserAuthorizedPersonId());
-        stmt.bindLong(14, entity.getAssociationsPersonId());
+        stmt.bindLong(13, entity.getAssociationsOUBaseId());
+        stmt.bindLong(14, entity.getUserAuthorizedPersonId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(15, syncBaseId);
+        }
+        stmt.bindLong(16, entity.getAssociationsPersonId());
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(15, isDeleted ? 1l: 0l);
+            stmt.bindLong(17, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(16, version);
+            stmt.bindLong(18, version);
         }
-        stmt.bindLong(17, entity.getAssociationsAuthorizedPersonId());
+        stmt.bindLong(19, entity.getAssociationsCenterId());
+        stmt.bindLong(20, entity.getAssociationsAuthorizedPersonId());
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(18, id);
+            stmt.bindLong(21, id);
         }
-        stmt.bindLong(19, entity.getOUOUBaseId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(20, dateCreated);
+            stmt.bindString(22, dateCreated);
         }
+        stmt.bindLong(23, entity.getOUOUBaseId());
  
         Boolean isActive = entity.getIsActive();
         if (isActive != null) {
-            stmt.bindLong(21, isActive ? 1l: 0l);
+            stmt.bindLong(24, isActive ? 1l: 0l);
         }
     }
 
@@ -185,7 +208,7 @@ public class AssociationDao extends AbstractDao<Association, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 17) ? null : cursor.getLong(offset + 17);
+        return cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20);
     }    
 
     /** @inheritdoc */
@@ -193,26 +216,29 @@ public class AssociationDao extends AbstractDao<Association, Long> {
     public Association readEntity(Cursor cursor, int offset) {
         Association entity = new Association( //
             cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // externalID
-            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // guid
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
+            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // name
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // guid
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // tagString
             cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // roleID
             cursor.getLong(offset + 5), // roleRoleBaseId
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // tenantID
-            cursor.getLong(offset + 7), // saveResultSaveResultId
-            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // dateLastModified
-            cursor.getLong(offset + 9), // associationsOUId
-            cursor.getLong(offset + 10), // associationsOUBaseId
+            cursor.getLong(offset + 6), // associationsGuardianId
+            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // tenantID
+            cursor.getLong(offset + 8), // saveResultSaveResultId
+            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // dateLastModified
+            cursor.getLong(offset + 10), // associationsOUId
             cursor.getLong(offset + 11), // associationsStudentId
-            cursor.getLong(offset + 12), // userAuthorizedPersonId
-            cursor.getLong(offset + 13), // associationsPersonId
-            cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0, // isDeleted
-            cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15), // version
-            cursor.getLong(offset + 16), // associationsAuthorizedPersonId
-            cursor.isNull(offset + 17) ? null : cursor.getLong(offset + 17), // id
-            cursor.getLong(offset + 18), // oUOUBaseId
-            cursor.isNull(offset + 19) ? null : cursor.getLong(offset + 19), // dateCreated
-            cursor.isNull(offset + 20) ? null : cursor.getShort(offset + 20) != 0 // isActive
+            cursor.getLong(offset + 12), // associationsOUBaseId
+            cursor.getLong(offset + 13), // userAuthorizedPersonId
+            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // syncBaseId
+            cursor.getLong(offset + 15), // associationsPersonId
+            cursor.isNull(offset + 16) ? null : cursor.getShort(offset + 16) != 0, // isDeleted
+            cursor.isNull(offset + 17) ? null : cursor.getInt(offset + 17), // version
+            cursor.getLong(offset + 18), // associationsCenterId
+            cursor.getLong(offset + 19), // associationsAuthorizedPersonId
+            cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20), // id
+            cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21), // dateCreated
+            cursor.getLong(offset + 22), // oUOUBaseId
+            cursor.isNull(offset + 23) ? null : cursor.getShort(offset + 23) != 0 // isActive
         );
         return entity;
     }
@@ -221,26 +247,29 @@ public class AssociationDao extends AbstractDao<Association, Long> {
     @Override
     public void readEntity(Cursor cursor, Association entity, int offset) {
         entity.setExternalID(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
-        entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
-        entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setName(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setGuid(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setTagString(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
         entity.setRoleID(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
         entity.setRoleRoleBaseId(cursor.getLong(offset + 5));
-        entity.setTenantID(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 7));
-        entity.setDateLastModified(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
-        entity.setAssociationsOUId(cursor.getLong(offset + 9));
-        entity.setAssociationsOUBaseId(cursor.getLong(offset + 10));
+        entity.setAssociationsGuardianId(cursor.getLong(offset + 6));
+        entity.setTenantID(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 8));
+        entity.setDateLastModified(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+        entity.setAssociationsOUId(cursor.getLong(offset + 10));
         entity.setAssociationsStudentId(cursor.getLong(offset + 11));
-        entity.setUserAuthorizedPersonId(cursor.getLong(offset + 12));
-        entity.setAssociationsPersonId(cursor.getLong(offset + 13));
-        entity.setIsDeleted(cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0);
-        entity.setVersion(cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15));
-        entity.setAssociationsAuthorizedPersonId(cursor.getLong(offset + 16));
-        entity.setId(cursor.isNull(offset + 17) ? null : cursor.getLong(offset + 17));
-        entity.setOUOUBaseId(cursor.getLong(offset + 18));
-        entity.setDateCreated(cursor.isNull(offset + 19) ? null : cursor.getLong(offset + 19));
-        entity.setIsActive(cursor.isNull(offset + 20) ? null : cursor.getShort(offset + 20) != 0);
+        entity.setAssociationsOUBaseId(cursor.getLong(offset + 12));
+        entity.setUserAuthorizedPersonId(cursor.getLong(offset + 13));
+        entity.setSyncBaseId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
+        entity.setAssociationsPersonId(cursor.getLong(offset + 15));
+        entity.setIsDeleted(cursor.isNull(offset + 16) ? null : cursor.getShort(offset + 16) != 0);
+        entity.setVersion(cursor.isNull(offset + 17) ? null : cursor.getInt(offset + 17));
+        entity.setAssociationsCenterId(cursor.getLong(offset + 18));
+        entity.setAssociationsAuthorizedPersonId(cursor.getLong(offset + 19));
+        entity.setId(cursor.isNull(offset + 20) ? null : cursor.getLong(offset + 20));
+        entity.setDateCreated(cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21));
+        entity.setOUOUBaseId(cursor.getLong(offset + 22));
+        entity.setIsActive(cursor.isNull(offset + 23) ? null : cursor.getShort(offset + 23) != 0);
      }
     
     /** @inheritdoc */
@@ -266,6 +295,34 @@ public class AssociationDao extends AbstractDao<Association, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "associations" to-many relationship of Center. */
+    public List<Association> _queryCenter_Associations(long associationsCenterId) {
+        synchronized (this) {
+            if (center_AssociationsQuery == null) {
+                QueryBuilder<Association> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.AssociationsCenterId.eq(null));
+                center_AssociationsQuery = queryBuilder.build();
+            }
+        }
+        Query<Association> query = center_AssociationsQuery.forCurrentThread();
+        query.setParameter(0, associationsCenterId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "associations" to-many relationship of Person. */
+    public List<Association> _queryPerson_Associations(long associationsPersonId) {
+        synchronized (this) {
+            if (person_AssociationsQuery == null) {
+                QueryBuilder<Association> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.AssociationsPersonId.eq(null));
+                person_AssociationsQuery = queryBuilder.build();
+            }
+        }
+        Query<Association> query = person_AssociationsQuery.forCurrentThread();
+        query.setParameter(0, associationsPersonId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "associations" to-many relationship of Student. */
     public List<Association> _queryStudent_Associations(long associationsStudentId) {
         synchronized (this) {
@@ -294,20 +351,6 @@ public class AssociationDao extends AbstractDao<Association, Long> {
         return query.list();
     }
 
-    /** Internal query to resolve the "associations" to-many relationship of Person. */
-    public List<Association> _queryPerson_Associations(long associationsPersonId) {
-        synchronized (this) {
-            if (person_AssociationsQuery == null) {
-                QueryBuilder<Association> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.AssociationsPersonId.eq(null));
-                person_AssociationsQuery = queryBuilder.build();
-            }
-        }
-        Query<Association> query = person_AssociationsQuery.forCurrentThread();
-        query.setParameter(0, associationsPersonId);
-        return query.list();
-    }
-
     /** Internal query to resolve the "associations" to-many relationship of OUBase. */
     public List<Association> _queryOUBase_Associations(long associationsOUBaseId) {
         synchronized (this) {
@@ -333,6 +376,20 @@ public class AssociationDao extends AbstractDao<Association, Long> {
         }
         Query<Association> query = authorizedPerson_AssociationsQuery.forCurrentThread();
         query.setParameter(0, associationsAuthorizedPersonId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "associations" to-many relationship of Guardian. */
+    public List<Association> _queryGuardian_Associations(long associationsGuardianId) {
+        synchronized (this) {
+            if (guardian_AssociationsQuery == null) {
+                QueryBuilder<Association> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.AssociationsGuardianId.eq(null));
+                guardian_AssociationsQuery = queryBuilder.build();
+            }
+        }
+        Query<Association> query = guardian_AssociationsQuery.forCurrentThread();
+        query.setParameter(0, associationsGuardianId);
         return query.list();
     }
 
@@ -456,4 +513,35 @@ public class AssociationDao extends AbstractDao<Association, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Association entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Association entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Association entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Association entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Association entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Association", new TypeToken<List<Association>>(){}.getType());
+        GreenSync.registerTypeToken("Association", Association.class);
+    }
+
 }

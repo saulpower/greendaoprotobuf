@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -28,24 +30,28 @@ public class HolidayDao extends AbstractDao<Holiday, Long> {
      * Can be used for QueryBuilder and for referencing column names.
     */
     public static class Properties {
-        public final static Property Guid = new Property(0, String.class, "guid", false, "GUID");
-        public final static Property Name = new Property(1, String.class, "name", false, "NAME");
-        public final static Property ExternalID = new Property(2, String.class, "externalID", false, "EXTERNAL_ID");
-        public final static Property TagString = new Property(3, String.class, "tagString", false, "TAG_STRING");
-        public final static Property TenantID = new Property(4, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property SaveResultSaveResultId = new Property(5, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(6, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDeleted = new Property(7, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property StartDate = new Property(8, Long.class, "startDate", false, "START_DATE");
-        public final static Property Version = new Property(9, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(10, Long.class, "id", true, "_id");
-        public final static Property HolidaysOUId = new Property(11, long.class, "holidaysOUId", false, "HOLIDAYS_OUID");
-        public final static Property OUOUId = new Property(12, long.class, "oUOUId", false, "O_UOUID");
-        public final static Property DateCreated = new Property(13, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property EndDate = new Property(14, Long.class, "endDate", false, "END_DATE");
+        public final static Property HolidaysCenterId = new Property(0, long.class, "holidaysCenterId", false, "HOLIDAYS_CENTER_ID");
+        public final static Property ExternalID = new Property(1, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property Guid = new Property(2, String.class, "guid", false, "GUID");
+        public final static Property Name = new Property(3, String.class, "name", false, "NAME");
+        public final static Property TagString = new Property(4, String.class, "tagString", false, "TAG_STRING");
+        public final static Property TenantID = new Property(5, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property SaveResultSaveResultId = new Property(6, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property DateLastModified = new Property(7, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(8, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(9, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property StartDate = new Property(10, String.class, "startDate", false, "START_DATE");
+        public final static Property Version = new Property(11, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(12, Long.class, "id", true, "_id");
+        public final static Property HolidaysOUId = new Property(13, long.class, "holidaysOUId", false, "HOLIDAYS_OUID");
+        public final static Property OUOUId = new Property(14, long.class, "oUOUId", false, "O_UOUID");
+        public final static Property DateCreated = new Property(15, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property EndDate = new Property(16, String.class, "endDate", false, "END_DATE");
     };
 
     private DaoSession daoSession;
+
+    private Query<Holiday> center_HolidaysQuery;
 
     private Query<Holiday> oU_HolidaysQuery;
 
@@ -62,21 +68,23 @@ public class HolidayDao extends AbstractDao<Holiday, Long> {
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'HOLIDAY' (" + //
-                "'GUID' TEXT," + // 0: guid
-                "'NAME' TEXT," + // 1: name
-                "'EXTERNAL_ID' TEXT," + // 2: externalID
-                "'TAG_STRING' TEXT," + // 3: tagString
-                "'TENANT_ID' INTEGER," + // 4: tenantID
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 5: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 6: dateLastModified
-                "'IS_DELETED' INTEGER," + // 7: isDeleted
-                "'START_DATE' INTEGER," + // 8: startDate
-                "'VERSION' INTEGER," + // 9: version
-                "'_id' INTEGER PRIMARY KEY ," + // 10: id
-                "'HOLIDAYS_OUID' INTEGER NOT NULL ," + // 11: holidaysOUId
-                "'O_UOUID' INTEGER NOT NULL ," + // 12: oUOUId
-                "'DATE_CREATED' INTEGER," + // 13: dateCreated
-                "'END_DATE' INTEGER);"); // 14: endDate
+                "'HOLIDAYS_CENTER_ID' INTEGER NOT NULL ," + // 0: holidaysCenterId
+                "'EXTERNAL_ID' TEXT," + // 1: externalID
+                "'GUID' TEXT," + // 2: guid
+                "'NAME' TEXT," + // 3: name
+                "'TAG_STRING' TEXT," + // 4: tagString
+                "'TENANT_ID' INTEGER," + // 5: tenantID
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 6: saveResultSaveResultId
+                "'DATE_LAST_MODIFIED' TEXT," + // 7: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 8: syncBaseId
+                "'IS_DELETED' INTEGER," + // 9: isDeleted
+                "'START_DATE' TEXT," + // 10: startDate
+                "'VERSION' INTEGER," + // 11: version
+                "'_id' INTEGER PRIMARY KEY ," + // 12: id
+                "'HOLIDAYS_OUID' INTEGER NOT NULL ," + // 13: holidaysOUId
+                "'O_UOUID' INTEGER NOT NULL ," + // 14: oUOUId
+                "'DATE_CREATED' TEXT," + // 15: dateCreated
+                "'END_DATE' TEXT);"); // 16: endDate
     }
 
     /** Drops the underlying database table. */
@@ -89,68 +97,74 @@ public class HolidayDao extends AbstractDao<Holiday, Long> {
     @Override
     protected void bindValues(SQLiteStatement stmt, Holiday entity) {
         stmt.clearBindings();
+        stmt.bindLong(1, entity.getHolidaysCenterId());
+ 
+        String externalID = entity.getExternalID();
+        if (externalID != null) {
+            stmt.bindString(2, externalID);
+        }
  
         String guid = entity.getGuid();
         if (guid != null) {
-            stmt.bindString(1, guid);
+            stmt.bindString(3, guid);
         }
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(2, name);
-        }
- 
-        String externalID = entity.getExternalID();
-        if (externalID != null) {
-            stmt.bindString(3, externalID);
+            stmt.bindString(4, name);
         }
  
         String tagString = entity.getTagString();
         if (tagString != null) {
-            stmt.bindString(4, tagString);
+            stmt.bindString(5, tagString);
         }
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
-            stmt.bindLong(5, tenantID);
+            stmt.bindLong(6, tenantID);
         }
-        stmt.bindLong(6, entity.getSaveResultSaveResultId());
+        stmt.bindLong(7, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(7, dateLastModified);
+            stmt.bindString(8, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(9, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(8, isDeleted ? 1l: 0l);
+            stmt.bindLong(10, isDeleted ? 1l: 0l);
         }
  
-        Long startDate = entity.getStartDate();
+        String startDate = entity.getStartDate();
         if (startDate != null) {
-            stmt.bindLong(9, startDate);
+            stmt.bindString(11, startDate);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(10, version);
+            stmt.bindLong(12, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(11, id);
+            stmt.bindLong(13, id);
         }
-        stmt.bindLong(12, entity.getHolidaysOUId());
-        stmt.bindLong(13, entity.getOUOUId());
+        stmt.bindLong(14, entity.getHolidaysOUId());
+        stmt.bindLong(15, entity.getOUOUId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(14, dateCreated);
+            stmt.bindString(16, dateCreated);
         }
  
-        Long endDate = entity.getEndDate();
+        String endDate = entity.getEndDate();
         if (endDate != null) {
-            stmt.bindLong(15, endDate);
+            stmt.bindString(17, endDate);
         }
     }
 
@@ -163,28 +177,30 @@ public class HolidayDao extends AbstractDao<Holiday, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10);
+        return cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12);
     }    
 
     /** @inheritdoc */
     @Override
     public Holiday readEntity(Cursor cursor, int offset) {
         Holiday entity = new Holiday( //
-            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // guid
-            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // name
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // externalID
-            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // tagString
-            cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4), // tenantID
-            cursor.getLong(offset + 5), // saveResultSaveResultId
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // dateLastModified
-            cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0, // isDeleted
-            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // startDate
-            cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9), // version
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // id
-            cursor.getLong(offset + 11), // holidaysOUId
-            cursor.getLong(offset + 12), // oUOUId
-            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // dateCreated
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14) // endDate
+            cursor.getLong(offset + 0), // holidaysCenterId
+            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // externalID
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // guid
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // name
+            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // tagString
+            cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5), // tenantID
+            cursor.getLong(offset + 6), // saveResultSaveResultId
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // dateLastModified
+            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // syncBaseId
+            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0, // isDeleted
+            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // startDate
+            cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11), // version
+            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // id
+            cursor.getLong(offset + 13), // holidaysOUId
+            cursor.getLong(offset + 14), // oUOUId
+            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // dateCreated
+            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16) // endDate
         );
         return entity;
     }
@@ -192,21 +208,23 @@ public class HolidayDao extends AbstractDao<Holiday, Long> {
     /** @inheritdoc */
     @Override
     public void readEntity(Cursor cursor, Holiday entity, int offset) {
-        entity.setGuid(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
-        entity.setName(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
-        entity.setExternalID(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setTagString(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setTenantID(cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 5));
-        entity.setDateLastModified(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setIsDeleted(cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0);
-        entity.setStartDate(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
-        entity.setVersion(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
-        entity.setId(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
-        entity.setHolidaysOUId(cursor.getLong(offset + 11));
-        entity.setOUOUId(cursor.getLong(offset + 12));
-        entity.setDateCreated(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
-        entity.setEndDate(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
+        entity.setHolidaysCenterId(cursor.getLong(offset + 0));
+        entity.setExternalID(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setGuid(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setName(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setTagString(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setTenantID(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 6));
+        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
+        entity.setSyncBaseId(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
+        entity.setIsDeleted(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
+        entity.setStartDate(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
+        entity.setVersion(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
+        entity.setId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
+        entity.setHolidaysOUId(cursor.getLong(offset + 13));
+        entity.setOUOUId(cursor.getLong(offset + 14));
+        entity.setDateCreated(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
+        entity.setEndDate(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
      }
     
     /** @inheritdoc */
@@ -232,6 +250,20 @@ public class HolidayDao extends AbstractDao<Holiday, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "holidays" to-many relationship of Center. */
+    public List<Holiday> _queryCenter_Holidays(long holidaysCenterId) {
+        synchronized (this) {
+            if (center_HolidaysQuery == null) {
+                QueryBuilder<Holiday> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.HolidaysCenterId.eq(null));
+                center_HolidaysQuery = queryBuilder.build();
+            }
+        }
+        Query<Holiday> query = center_HolidaysQuery.forCurrentThread();
+        query.setParameter(0, holidaysCenterId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "holidays" to-many relationship of OU. */
     public List<Holiday> _queryOU_Holidays(long holidaysOUId) {
         synchronized (this) {
@@ -348,4 +380,35 @@ public class HolidayDao extends AbstractDao<Holiday, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Holiday entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Holiday entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Holiday entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Holiday entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Holiday entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Holiday", new TypeToken<List<Holiday>>(){}.getType());
+        GreenSync.registerTypeToken("Holiday", Holiday.class);
+    }
+
 }

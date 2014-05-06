@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -28,26 +30,31 @@ public class DepartmentDao extends AbstractDao<Department, Long> {
      * Can be used for QueryBuilder and for referencing column names.
     */
     public static class Properties {
-        public final static Property Guid = new Property(0, String.class, "guid", false, "GUID");
-        public final static Property Name = new Property(1, String.class, "name", false, "NAME");
-        public final static Property ExternalID = new Property(2, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property ExternalID = new Property(0, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property Guid = new Property(1, String.class, "guid", false, "GUID");
+        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
         public final static Property TagString = new Property(3, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(4, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(5, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(6, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDeleted = new Property(7, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(8, Integer.class, "version", false, "VERSION");
-        public final static Property DepartmentsEmployeeFileId = new Property(9, long.class, "departmentsEmployeeFileId", false, "DEPARTMENTS_EMPLOYEE_FILE_ID");
-        public final static Property Id = new Property(10, Long.class, "id", true, "_id");
-        public final static Property OUOUId = new Property(11, long.class, "oUOUId", false, "O_UOUID");
-        public final static Property DateCreated = new Property(12, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property DepartmentsOUId = new Property(13, long.class, "departmentsOUId", false, "DEPARTMENTS_OUID");
-        public final static Property IsActive = new Property(14, Boolean.class, "isActive", false, "IS_ACTIVE");
+        public final static Property DateLastModified = new Property(6, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property DepartmentsCenterId = new Property(7, long.class, "departmentsCenterId", false, "DEPARTMENTS_CENTER_ID");
+        public final static Property SyncBaseId = new Property(8, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(9, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(10, Integer.class, "version", false, "VERSION");
+        public final static Property DepartmentsEmployeeFileId = new Property(11, long.class, "departmentsEmployeeFileId", false, "DEPARTMENTS_EMPLOYEE_FILE_ID");
+        public final static Property Id = new Property(12, Long.class, "id", true, "_id");
+        public final static Property OUOUId = new Property(13, long.class, "oUOUId", false, "O_UOUID");
+        public final static Property DateCreated = new Property(14, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property DepartmentsOUId = new Property(15, long.class, "departmentsOUId", false, "DEPARTMENTS_OUID");
+        public final static Property IsActive = new Property(16, Boolean.class, "isActive", false, "IS_ACTIVE");
     };
 
     private DaoSession daoSession;
 
+    private Query<Department> center_DepartmentsQuery;
+
     private Query<Department> oU_DepartmentsQuery;
+
     private Query<Department> employeeFile_DepartmentsQuery;
 
     public DepartmentDao(DaoConfig config) {
@@ -63,21 +70,23 @@ public class DepartmentDao extends AbstractDao<Department, Long> {
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'DEPARTMENT' (" + //
-                "'GUID' TEXT," + // 0: guid
-                "'NAME' TEXT," + // 1: name
-                "'EXTERNAL_ID' TEXT," + // 2: externalID
+                "'EXTERNAL_ID' TEXT," + // 0: externalID
+                "'GUID' TEXT," + // 1: guid
+                "'NAME' TEXT," + // 2: name
                 "'TAG_STRING' TEXT," + // 3: tagString
                 "'TENANT_ID' INTEGER," + // 4: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 5: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 6: dateLastModified
-                "'IS_DELETED' INTEGER," + // 7: isDeleted
-                "'VERSION' INTEGER," + // 8: version
-                "'DEPARTMENTS_EMPLOYEE_FILE_ID' INTEGER NOT NULL ," + // 9: departmentsEmployeeFileId
-                "'_id' INTEGER PRIMARY KEY ," + // 10: id
-                "'O_UOUID' INTEGER NOT NULL ," + // 11: oUOUId
-                "'DATE_CREATED' INTEGER," + // 12: dateCreated
-                "'DEPARTMENTS_OUID' INTEGER NOT NULL ," + // 13: departmentsOUId
-                "'IS_ACTIVE' INTEGER);"); // 14: isActive
+                "'DATE_LAST_MODIFIED' TEXT," + // 6: dateLastModified
+                "'DEPARTMENTS_CENTER_ID' INTEGER NOT NULL ," + // 7: departmentsCenterId
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 8: syncBaseId
+                "'IS_DELETED' INTEGER," + // 9: isDeleted
+                "'VERSION' INTEGER," + // 10: version
+                "'DEPARTMENTS_EMPLOYEE_FILE_ID' INTEGER NOT NULL ," + // 11: departmentsEmployeeFileId
+                "'_id' INTEGER PRIMARY KEY ," + // 12: id
+                "'O_UOUID' INTEGER NOT NULL ," + // 13: oUOUId
+                "'DATE_CREATED' TEXT," + // 14: dateCreated
+                "'DEPARTMENTS_OUID' INTEGER NOT NULL ," + // 15: departmentsOUId
+                "'IS_ACTIVE' INTEGER);"); // 16: isActive
     }
 
     /** Drops the underlying database table. */
@@ -91,19 +100,19 @@ public class DepartmentDao extends AbstractDao<Department, Long> {
     protected void bindValues(SQLiteStatement stmt, Department entity) {
         stmt.clearBindings();
  
+        String externalID = entity.getExternalID();
+        if (externalID != null) {
+            stmt.bindString(1, externalID);
+        }
+ 
         String guid = entity.getGuid();
         if (guid != null) {
-            stmt.bindString(1, guid);
+            stmt.bindString(2, guid);
         }
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(2, name);
-        }
- 
-        String externalID = entity.getExternalID();
-        if (externalID != null) {
-            stmt.bindString(3, externalID);
+            stmt.bindString(3, name);
         }
  
         String tagString = entity.getTagString();
@@ -117,37 +126,43 @@ public class DepartmentDao extends AbstractDao<Department, Long> {
         }
         stmt.bindLong(6, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(7, dateLastModified);
+            stmt.bindString(7, dateLastModified);
+        }
+        stmt.bindLong(8, entity.getDepartmentsCenterId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(9, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(8, isDeleted ? 1l: 0l);
+            stmt.bindLong(10, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(9, version);
+            stmt.bindLong(11, version);
         }
-        stmt.bindLong(10, entity.getDepartmentsEmployeeFileId());
+        stmt.bindLong(12, entity.getDepartmentsEmployeeFileId());
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(11, id);
+            stmt.bindLong(13, id);
         }
-        stmt.bindLong(12, entity.getOUOUId());
+        stmt.bindLong(14, entity.getOUOUId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(13, dateCreated);
+            stmt.bindString(15, dateCreated);
         }
-        stmt.bindLong(14, entity.getDepartmentsOUId());
+        stmt.bindLong(16, entity.getDepartmentsOUId());
  
         Boolean isActive = entity.getIsActive();
         if (isActive != null) {
-            stmt.bindLong(15, isActive ? 1l: 0l);
+            stmt.bindLong(17, isActive ? 1l: 0l);
         }
     }
 
@@ -160,28 +175,30 @@ public class DepartmentDao extends AbstractDao<Department, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10);
+        return cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12);
     }    
 
     /** @inheritdoc */
     @Override
     public Department readEntity(Cursor cursor, int offset) {
         Department entity = new Department( //
-            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // guid
-            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // name
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // externalID
+            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // externalID
+            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // guid
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // tagString
             cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4), // tenantID
             cursor.getLong(offset + 5), // saveResultSaveResultId
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // dateLastModified
-            cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0, // isDeleted
-            cursor.isNull(offset + 8) ? null : cursor.getInt(offset + 8), // version
-            cursor.getLong(offset + 9), // departmentsEmployeeFileId
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // id
-            cursor.getLong(offset + 11), // oUOUId
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // dateCreated
-            cursor.getLong(offset + 13), // departmentsOUId
-            cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0 // isActive
+            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // dateLastModified
+            cursor.getLong(offset + 7), // departmentsCenterId
+            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // syncBaseId
+            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0, // isDeleted
+            cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // version
+            cursor.getLong(offset + 11), // departmentsEmployeeFileId
+            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // id
+            cursor.getLong(offset + 13), // oUOUId
+            cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14), // dateCreated
+            cursor.getLong(offset + 15), // departmentsOUId
+            cursor.isNull(offset + 16) ? null : cursor.getShort(offset + 16) != 0 // isActive
         );
         return entity;
     }
@@ -189,21 +206,23 @@ public class DepartmentDao extends AbstractDao<Department, Long> {
     /** @inheritdoc */
     @Override
     public void readEntity(Cursor cursor, Department entity, int offset) {
-        entity.setGuid(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
-        entity.setName(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
-        entity.setExternalID(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setExternalID(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
+        entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setTagString(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
         entity.setTenantID(cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 5));
-        entity.setDateLastModified(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setIsDeleted(cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0);
-        entity.setVersion(cursor.isNull(offset + 8) ? null : cursor.getInt(offset + 8));
-        entity.setDepartmentsEmployeeFileId(cursor.getLong(offset + 9));
-        entity.setId(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
-        entity.setOUOUId(cursor.getLong(offset + 11));
-        entity.setDateCreated(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
-        entity.setDepartmentsOUId(cursor.getLong(offset + 13));
-        entity.setIsActive(cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0);
+        entity.setDateLastModified(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
+        entity.setDepartmentsCenterId(cursor.getLong(offset + 7));
+        entity.setSyncBaseId(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
+        entity.setIsDeleted(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
+        entity.setVersion(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
+        entity.setDepartmentsEmployeeFileId(cursor.getLong(offset + 11));
+        entity.setId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
+        entity.setOUOUId(cursor.getLong(offset + 13));
+        entity.setDateCreated(cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14));
+        entity.setDepartmentsOUId(cursor.getLong(offset + 15));
+        entity.setIsActive(cursor.isNull(offset + 16) ? null : cursor.getShort(offset + 16) != 0);
      }
     
     /** @inheritdoc */
@@ -229,6 +248,20 @@ public class DepartmentDao extends AbstractDao<Department, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "departments" to-many relationship of Center. */
+    public List<Department> _queryCenter_Departments(long departmentsCenterId) {
+        synchronized (this) {
+            if (center_DepartmentsQuery == null) {
+                QueryBuilder<Department> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.DepartmentsCenterId.eq(null));
+                center_DepartmentsQuery = queryBuilder.build();
+            }
+        }
+        Query<Department> query = center_DepartmentsQuery.forCurrentThread();
+        query.setParameter(0, departmentsCenterId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "departments" to-many relationship of OU. */
     public List<Department> _queryOU_Departments(long departmentsOUId) {
         synchronized (this) {
@@ -359,4 +392,35 @@ public class DepartmentDao extends AbstractDao<Department, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Department entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Department entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Department entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Department entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Department entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Department", new TypeToken<List<Department>>(){}.getType());
+        GreenSync.registerTypeToken("Department", Department.class);
+    }
+
 }

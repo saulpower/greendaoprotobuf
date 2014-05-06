@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -26,25 +28,25 @@ public class DeviceDao extends AbstractDao<Device, Long> {
      * Can be used for QueryBuilder and for referencing column names.
     */
     public static class Properties {
-        public final static Property Guid = new Property(0, String.class, "guid", false, "GUID");
-        public final static Property Name = new Property(1, String.class, "name", false, "NAME");
-        public final static Property ExternalID = new Property(2, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property ExternalID = new Property(0, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property Guid = new Property(1, String.class, "guid", false, "GUID");
+        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
         public final static Property TagString = new Property(3, String.class, "tagString", false, "TAG_STRING");
         public final static Property UUID = new Property(4, String.class, "uUID", false, "U_UID");
         public final static Property TenantID = new Property(5, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(6, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(7, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property Model = new Property(8, String.class, "model", false, "MODEL");
-        public final static Property IsDeleted = new Property(9, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(10, Integer.class, "version", false, "VERSION");
-        public final static Property SytemVersion = new Property(11, String.class, "sytemVersion", false, "SYTEM_VERSION");
-        public final static Property Id = new Property(12, Long.class, "id", true, "_id");
-        public final static Property SystemName = new Property(13, String.class, "systemName", false, "SYSTEM_NAME");
-        public final static Property DateCreated = new Property(14, Long.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property DateLastModified = new Property(7, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(8, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property Model = new Property(9, String.class, "model", false, "MODEL");
+        public final static Property IsDeleted = new Property(10, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(11, Integer.class, "version", false, "VERSION");
+        public final static Property SytemVersion = new Property(12, String.class, "sytemVersion", false, "SYTEM_VERSION");
+        public final static Property Id = new Property(13, Long.class, "id", true, "_id");
+        public final static Property SystemName = new Property(14, String.class, "systemName", false, "SYSTEM_NAME");
+        public final static Property DateCreated = new Property(15, String.class, "dateCreated", false, "DATE_CREATED");
     };
 
     private DaoSession daoSession;
-
 
     public DeviceDao(DaoConfig config) {
         super(config);
@@ -59,21 +61,22 @@ public class DeviceDao extends AbstractDao<Device, Long> {
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'DEVICE' (" + //
-                "'GUID' TEXT," + // 0: guid
-                "'NAME' TEXT," + // 1: name
-                "'EXTERNAL_ID' TEXT," + // 2: externalID
+                "'EXTERNAL_ID' TEXT," + // 0: externalID
+                "'GUID' TEXT," + // 1: guid
+                "'NAME' TEXT," + // 2: name
                 "'TAG_STRING' TEXT," + // 3: tagString
                 "'U_UID' TEXT," + // 4: uUID
                 "'TENANT_ID' INTEGER," + // 5: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 6: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 7: dateLastModified
-                "'MODEL' TEXT," + // 8: model
-                "'IS_DELETED' INTEGER," + // 9: isDeleted
-                "'VERSION' INTEGER," + // 10: version
-                "'SYTEM_VERSION' TEXT," + // 11: sytemVersion
-                "'_id' INTEGER PRIMARY KEY ," + // 12: id
-                "'SYSTEM_NAME' TEXT," + // 13: systemName
-                "'DATE_CREATED' INTEGER);"); // 14: dateCreated
+                "'DATE_LAST_MODIFIED' TEXT," + // 7: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 8: syncBaseId
+                "'MODEL' TEXT," + // 9: model
+                "'IS_DELETED' INTEGER," + // 10: isDeleted
+                "'VERSION' INTEGER," + // 11: version
+                "'SYTEM_VERSION' TEXT," + // 12: sytemVersion
+                "'_id' INTEGER PRIMARY KEY ," + // 13: id
+                "'SYSTEM_NAME' TEXT," + // 14: systemName
+                "'DATE_CREATED' TEXT);"); // 15: dateCreated
     }
 
     /** Drops the underlying database table. */
@@ -87,19 +90,19 @@ public class DeviceDao extends AbstractDao<Device, Long> {
     protected void bindValues(SQLiteStatement stmt, Device entity) {
         stmt.clearBindings();
  
+        String externalID = entity.getExternalID();
+        if (externalID != null) {
+            stmt.bindString(1, externalID);
+        }
+ 
         String guid = entity.getGuid();
         if (guid != null) {
-            stmt.bindString(1, guid);
+            stmt.bindString(2, guid);
         }
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(2, name);
-        }
- 
-        String externalID = entity.getExternalID();
-        if (externalID != null) {
-            stmt.bindString(3, externalID);
+            stmt.bindString(3, name);
         }
  
         String tagString = entity.getTagString();
@@ -118,44 +121,49 @@ public class DeviceDao extends AbstractDao<Device, Long> {
         }
         stmt.bindLong(7, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(8, dateLastModified);
+            stmt.bindString(8, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(9, syncBaseId);
         }
  
         String model = entity.getModel();
         if (model != null) {
-            stmt.bindString(9, model);
+            stmt.bindString(10, model);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(10, isDeleted ? 1l: 0l);
+            stmt.bindLong(11, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(11, version);
+            stmt.bindLong(12, version);
         }
  
         String sytemVersion = entity.getSytemVersion();
         if (sytemVersion != null) {
-            stmt.bindString(12, sytemVersion);
+            stmt.bindString(13, sytemVersion);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(13, id);
+            stmt.bindLong(14, id);
         }
  
         String systemName = entity.getSystemName();
         if (systemName != null) {
-            stmt.bindString(14, systemName);
+            stmt.bindString(15, systemName);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(15, dateCreated);
+            stmt.bindString(16, dateCreated);
         }
     }
 
@@ -168,28 +176,29 @@ public class DeviceDao extends AbstractDao<Device, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12);
+        return cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13);
     }    
 
     /** @inheritdoc */
     @Override
     public Device readEntity(Cursor cursor, int offset) {
         Device entity = new Device( //
-            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // guid
-            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // name
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // externalID
+            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // externalID
+            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // guid
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // tagString
             cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // uUID
             cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5), // tenantID
             cursor.getLong(offset + 6), // saveResultSaveResultId
-            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // dateLastModified
-            cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8), // model
-            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0, // isDeleted
-            cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // version
-            cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // sytemVersion
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // id
-            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13), // systemName
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14) // dateCreated
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // dateLastModified
+            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // syncBaseId
+            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // model
+            cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0, // isDeleted
+            cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11), // version
+            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12), // sytemVersion
+            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // id
+            cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14), // systemName
+            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15) // dateCreated
         );
         return entity;
     }
@@ -197,21 +206,22 @@ public class DeviceDao extends AbstractDao<Device, Long> {
     /** @inheritdoc */
     @Override
     public void readEntity(Cursor cursor, Device entity, int offset) {
-        entity.setGuid(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
-        entity.setName(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
-        entity.setExternalID(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setExternalID(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
+        entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setTagString(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
         entity.setUUID(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
         entity.setTenantID(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 6));
-        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
-        entity.setModel(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
-        entity.setIsDeleted(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
-        entity.setVersion(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
-        entity.setSytemVersion(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
-        entity.setId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
-        entity.setSystemName(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
-        entity.setDateCreated(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
+        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
+        entity.setSyncBaseId(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
+        entity.setModel(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+        entity.setIsDeleted(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
+        entity.setVersion(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
+        entity.setSytemVersion(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
+        entity.setId(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
+        entity.setSystemName(cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14));
+        entity.setDateCreated(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
      }
     
     /** @inheritdoc */
@@ -330,4 +340,35 @@ public class DeviceDao extends AbstractDao<Device, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Device entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Device entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Device entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Device entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Device entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Device", new TypeToken<List<Device>>(){}.getType());
+        GreenSync.registerTypeToken("Device", Device.class);
+    }
+
 }

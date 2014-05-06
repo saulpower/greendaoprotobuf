@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -32,28 +34,34 @@ public class PickupAuthorizationDao extends AbstractDao<PickupAuthorization, Lon
         public final static Property Guid = new Property(1, String.class, "guid", false, "GUID");
         public final static Property Name = new Property(2, String.class, "name", false, "NAME");
         public final static Property PickupListStudentId = new Property(3, long.class, "pickupListStudentId", false, "PICKUP_LIST_STUDENT_ID");
-        public final static Property TagString = new Property(4, String.class, "tagString", false, "TAG_STRING");
-        public final static Property AuthorizedPickupsStudentId = new Property(5, long.class, "authorizedPickupsStudentId", false, "AUTHORIZED_PICKUPS_STUDENT_ID");
+        public final static Property AuthorizedPickupsStudentId = new Property(4, long.class, "authorizedPickupsStudentId", false, "AUTHORIZED_PICKUPS_STUDENT_ID");
+        public final static Property TagString = new Property(5, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(6, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(7, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
         public final static Property AuthorizedPickupsPersonId = new Property(8, long.class, "authorizedPickupsPersonId", false, "AUTHORIZED_PICKUPS_PERSON_ID");
-        public final static Property DateLastModified = new Property(9, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDeleted = new Property(10, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(11, Integer.class, "version", false, "VERSION");
-        public final static Property StartDate = new Property(12, Long.class, "startDate", false, "START_DATE");
-        public final static Property Id = new Property(13, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(14, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property RequiresConfirmation = new Property(15, Boolean.class, "requiresConfirmation", false, "REQUIRES_CONFIRMATION");
-        public final static Property IsActive = new Property(16, Boolean.class, "isActive", false, "IS_ACTIVE");
-        public final static Property Notes = new Property(17, String.class, "notes", false, "NOTES");
-        public final static Property EndDate = new Property(18, Long.class, "endDate", false, "END_DATE");
+        public final static Property AuthorizedPickupsGuardianId = new Property(9, long.class, "authorizedPickupsGuardianId", false, "AUTHORIZED_PICKUPS_GUARDIAN_ID");
+        public final static Property DateLastModified = new Property(10, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(11, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(13, Integer.class, "version", false, "VERSION");
+        public final static Property StartDate = new Property(14, String.class, "startDate", false, "START_DATE");
+        public final static Property Id = new Property(15, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(16, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property RequiresConfirmation = new Property(17, Boolean.class, "requiresConfirmation", false, "REQUIRES_CONFIRMATION");
+        public final static Property IsActive = new Property(18, Boolean.class, "isActive", false, "IS_ACTIVE");
+        public final static Property Notes = new Property(19, String.class, "notes", false, "NOTES");
+        public final static Property EndDate = new Property(20, String.class, "endDate", false, "END_DATE");
     };
 
     private DaoSession daoSession;
 
-    private Query<PickupAuthorization> student_PickupListQuery;
-    private Query<PickupAuthorization> student_AuthorizedPickupsQuery;
     private Query<PickupAuthorization> person_AuthorizedPickupsQuery;
+
+    private Query<PickupAuthorization> student_PickupListQuery;
+
+    private Query<PickupAuthorization> student_AuthorizedPickupsQuery;
+
+    private Query<PickupAuthorization> guardian_AuthorizedPickupsQuery;
 
     public PickupAuthorizationDao(DaoConfig config) {
         super(config);
@@ -72,21 +80,23 @@ public class PickupAuthorizationDao extends AbstractDao<PickupAuthorization, Lon
                 "'GUID' TEXT," + // 1: guid
                 "'NAME' TEXT," + // 2: name
                 "'PICKUP_LIST_STUDENT_ID' INTEGER NOT NULL ," + // 3: pickupListStudentId
-                "'TAG_STRING' TEXT," + // 4: tagString
-                "'AUTHORIZED_PICKUPS_STUDENT_ID' INTEGER NOT NULL ," + // 5: authorizedPickupsStudentId
+                "'AUTHORIZED_PICKUPS_STUDENT_ID' INTEGER NOT NULL ," + // 4: authorizedPickupsStudentId
+                "'TAG_STRING' TEXT," + // 5: tagString
                 "'TENANT_ID' INTEGER," + // 6: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 7: saveResultSaveResultId
                 "'AUTHORIZED_PICKUPS_PERSON_ID' INTEGER NOT NULL ," + // 8: authorizedPickupsPersonId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 9: dateLastModified
-                "'IS_DELETED' INTEGER," + // 10: isDeleted
-                "'VERSION' INTEGER," + // 11: version
-                "'START_DATE' INTEGER," + // 12: startDate
-                "'_id' INTEGER PRIMARY KEY ," + // 13: id
-                "'DATE_CREATED' INTEGER," + // 14: dateCreated
-                "'REQUIRES_CONFIRMATION' INTEGER," + // 15: requiresConfirmation
-                "'IS_ACTIVE' INTEGER," + // 16: isActive
-                "'NOTES' TEXT," + // 17: notes
-                "'END_DATE' INTEGER);"); // 18: endDate
+                "'AUTHORIZED_PICKUPS_GUARDIAN_ID' INTEGER NOT NULL ," + // 9: authorizedPickupsGuardianId
+                "'DATE_LAST_MODIFIED' TEXT," + // 10: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 11: syncBaseId
+                "'IS_DELETED' INTEGER," + // 12: isDeleted
+                "'VERSION' INTEGER," + // 13: version
+                "'START_DATE' TEXT," + // 14: startDate
+                "'_id' INTEGER PRIMARY KEY ," + // 15: id
+                "'DATE_CREATED' TEXT," + // 16: dateCreated
+                "'REQUIRES_CONFIRMATION' INTEGER," + // 17: requiresConfirmation
+                "'IS_ACTIVE' INTEGER," + // 18: isActive
+                "'NOTES' TEXT," + // 19: notes
+                "'END_DATE' TEXT);"); // 20: endDate
     }
 
     /** Drops the underlying database table. */
@@ -115,12 +125,12 @@ public class PickupAuthorizationDao extends AbstractDao<PickupAuthorization, Lon
             stmt.bindString(3, name);
         }
         stmt.bindLong(4, entity.getPickupListStudentId());
+        stmt.bindLong(5, entity.getAuthorizedPickupsStudentId());
  
         String tagString = entity.getTagString();
         if (tagString != null) {
-            stmt.bindString(5, tagString);
+            stmt.bindString(6, tagString);
         }
-        stmt.bindLong(6, entity.getAuthorizedPickupsStudentId());
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
@@ -128,55 +138,61 @@ public class PickupAuthorizationDao extends AbstractDao<PickupAuthorization, Lon
         }
         stmt.bindLong(8, entity.getSaveResultSaveResultId());
         stmt.bindLong(9, entity.getAuthorizedPickupsPersonId());
+        stmt.bindLong(10, entity.getAuthorizedPickupsGuardianId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(10, dateLastModified);
+            stmt.bindString(11, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(12, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(11, isDeleted ? 1l: 0l);
+            stmt.bindLong(13, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(12, version);
+            stmt.bindLong(14, version);
         }
  
-        Long startDate = entity.getStartDate();
+        String startDate = entity.getStartDate();
         if (startDate != null) {
-            stmt.bindLong(13, startDate);
+            stmt.bindString(15, startDate);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(14, id);
+            stmt.bindLong(16, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(15, dateCreated);
+            stmt.bindString(17, dateCreated);
         }
  
         Boolean requiresConfirmation = entity.getRequiresConfirmation();
         if (requiresConfirmation != null) {
-            stmt.bindLong(16, requiresConfirmation ? 1l: 0l);
+            stmt.bindLong(18, requiresConfirmation ? 1l: 0l);
         }
  
         Boolean isActive = entity.getIsActive();
         if (isActive != null) {
-            stmt.bindLong(17, isActive ? 1l: 0l);
+            stmt.bindLong(19, isActive ? 1l: 0l);
         }
  
         String notes = entity.getNotes();
         if (notes != null) {
-            stmt.bindString(18, notes);
+            stmt.bindString(20, notes);
         }
  
-        Long endDate = entity.getEndDate();
+        String endDate = entity.getEndDate();
         if (endDate != null) {
-            stmt.bindLong(19, endDate);
+            stmt.bindString(21, endDate);
         }
     }
 
@@ -189,7 +205,7 @@ public class PickupAuthorizationDao extends AbstractDao<PickupAuthorization, Lon
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13);
+        return cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15);
     }    
 
     /** @inheritdoc */
@@ -200,21 +216,23 @@ public class PickupAuthorizationDao extends AbstractDao<PickupAuthorization, Lon
             cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // guid
             cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
             cursor.getLong(offset + 3), // pickupListStudentId
-            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // tagString
-            cursor.getLong(offset + 5), // authorizedPickupsStudentId
+            cursor.getLong(offset + 4), // authorizedPickupsStudentId
+            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // tagString
             cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // tenantID
             cursor.getLong(offset + 7), // saveResultSaveResultId
             cursor.getLong(offset + 8), // authorizedPickupsPersonId
-            cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // dateLastModified
-            cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0, // isDeleted
-            cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11), // version
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // startDate
-            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // id
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // dateCreated
-            cursor.isNull(offset + 15) ? null : cursor.getShort(offset + 15) != 0, // requiresConfirmation
-            cursor.isNull(offset + 16) ? null : cursor.getShort(offset + 16) != 0, // isActive
-            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // notes
-            cursor.isNull(offset + 18) ? null : cursor.getLong(offset + 18) // endDate
+            cursor.getLong(offset + 9), // authorizedPickupsGuardianId
+            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // dateLastModified
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // syncBaseId
+            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
+            cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13), // version
+            cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14), // startDate
+            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // id
+            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16), // dateCreated
+            cursor.isNull(offset + 17) ? null : cursor.getShort(offset + 17) != 0, // requiresConfirmation
+            cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0, // isActive
+            cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19), // notes
+            cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20) // endDate
         );
         return entity;
     }
@@ -226,21 +244,23 @@ public class PickupAuthorizationDao extends AbstractDao<PickupAuthorization, Lon
         entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setPickupListStudentId(cursor.getLong(offset + 3));
-        entity.setTagString(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
-        entity.setAuthorizedPickupsStudentId(cursor.getLong(offset + 5));
+        entity.setAuthorizedPickupsStudentId(cursor.getLong(offset + 4));
+        entity.setTagString(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
         entity.setTenantID(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 7));
         entity.setAuthorizedPickupsPersonId(cursor.getLong(offset + 8));
-        entity.setDateLastModified(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
-        entity.setIsDeleted(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
-        entity.setVersion(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
-        entity.setStartDate(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
-        entity.setId(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
-        entity.setDateCreated(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
-        entity.setRequiresConfirmation(cursor.isNull(offset + 15) ? null : cursor.getShort(offset + 15) != 0);
-        entity.setIsActive(cursor.isNull(offset + 16) ? null : cursor.getShort(offset + 16) != 0);
-        entity.setNotes(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
-        entity.setEndDate(cursor.isNull(offset + 18) ? null : cursor.getLong(offset + 18));
+        entity.setAuthorizedPickupsGuardianId(cursor.getLong(offset + 9));
+        entity.setDateLastModified(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
+        entity.setSyncBaseId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
+        entity.setVersion(cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13));
+        entity.setStartDate(cursor.isNull(offset + 14) ? null : cursor.getString(offset + 14));
+        entity.setId(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
+        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
+        entity.setRequiresConfirmation(cursor.isNull(offset + 17) ? null : cursor.getShort(offset + 17) != 0);
+        entity.setIsActive(cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0);
+        entity.setNotes(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
+        entity.setEndDate(cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20));
      }
     
     /** @inheritdoc */
@@ -266,6 +286,20 @@ public class PickupAuthorizationDao extends AbstractDao<PickupAuthorization, Lon
         return true;
     }
     
+    /** Internal query to resolve the "authorizedPickups" to-many relationship of Person. */
+    public List<PickupAuthorization> _queryPerson_AuthorizedPickups(long authorizedPickupsPersonId) {
+        synchronized (this) {
+            if (person_AuthorizedPickupsQuery == null) {
+                QueryBuilder<PickupAuthorization> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.AuthorizedPickupsPersonId.eq(null));
+                person_AuthorizedPickupsQuery = queryBuilder.build();
+            }
+        }
+        Query<PickupAuthorization> query = person_AuthorizedPickupsQuery.forCurrentThread();
+        query.setParameter(0, authorizedPickupsPersonId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "pickupList" to-many relationship of Student. */
     public List<PickupAuthorization> _queryStudent_PickupList(long pickupListStudentId) {
         synchronized (this) {
@@ -294,17 +328,17 @@ public class PickupAuthorizationDao extends AbstractDao<PickupAuthorization, Lon
         return query.list();
     }
 
-    /** Internal query to resolve the "authorizedPickups" to-many relationship of Person. */
-    public List<PickupAuthorization> _queryPerson_AuthorizedPickups(long authorizedPickupsPersonId) {
+    /** Internal query to resolve the "authorizedPickups" to-many relationship of Guardian. */
+    public List<PickupAuthorization> _queryGuardian_AuthorizedPickups(long authorizedPickupsGuardianId) {
         synchronized (this) {
-            if (person_AuthorizedPickupsQuery == null) {
+            if (guardian_AuthorizedPickupsQuery == null) {
                 QueryBuilder<PickupAuthorization> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.AuthorizedPickupsPersonId.eq(null));
-                person_AuthorizedPickupsQuery = queryBuilder.build();
+                queryBuilder.where(Properties.AuthorizedPickupsGuardianId.eq(null));
+                guardian_AuthorizedPickupsQuery = queryBuilder.build();
             }
         }
-        Query<PickupAuthorization> query = person_AuthorizedPickupsQuery.forCurrentThread();
-        query.setParameter(0, authorizedPickupsPersonId);
+        Query<PickupAuthorization> query = guardian_AuthorizedPickupsQuery.forCurrentThread();
+        query.setParameter(0, authorizedPickupsGuardianId);
         return query.list();
     }
 
@@ -401,4 +435,35 @@ public class PickupAuthorizationDao extends AbstractDao<PickupAuthorization, Lon
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(PickupAuthorization entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(PickupAuthorization entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(PickupAuthorization entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(PickupAuthorization entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(PickupAuthorization entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("PickupAuthorization", new TypeToken<List<PickupAuthorization>>(){}.getType());
+        GreenSync.registerTypeToken("PickupAuthorization", PickupAuthorization.class);
+    }
+
 }

@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -34,20 +36,20 @@ public class OUDao extends AbstractDao<OU, Long> {
         public final static Property StateTaxID = new Property(5, String.class, "stateTaxID", false, "STATE_TAX_ID");
         public final static Property TenantID = new Property(6, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(7, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(8, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property DateLastModified = new Property(8, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
         public final static Property Number = new Property(9, String.class, "number", false, "NUMBER");
         public final static Property OUTypeOUTypeId = new Property(10, long.class, "oUTypeOUTypeId", false, "O_UTYPE_OUTYPE_ID");
-        public final static Property IsDeleted = new Property(11, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property FederalTaxID = new Property(12, String.class, "federalTaxID", false, "FEDERAL_TAX_ID");
-        public final static Property Version = new Property(13, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(14, Long.class, "id", true, "_id");
-        public final static Property ParentID = new Property(15, String.class, "parentID", false, "PARENT_ID");
-        public final static Property DateCreated = new Property(16, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property IsActive = new Property(17, Boolean.class, "isActive", false, "IS_ACTIVE");
+        public final static Property SyncBaseId = new Property(11, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property FederalTaxID = new Property(13, String.class, "federalTaxID", false, "FEDERAL_TAX_ID");
+        public final static Property Version = new Property(14, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(15, Long.class, "id", true, "_id");
+        public final static Property ParentID = new Property(16, String.class, "parentID", false, "PARENT_ID");
+        public final static Property DateCreated = new Property(17, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property IsActive = new Property(18, Boolean.class, "isActive", false, "IS_ACTIVE");
     };
 
     private DaoSession daoSession;
-
 
     public OUDao(DaoConfig config) {
         super(config);
@@ -70,16 +72,17 @@ public class OUDao extends AbstractDao<OU, Long> {
                 "'STATE_TAX_ID' TEXT," + // 5: stateTaxID
                 "'TENANT_ID' INTEGER," + // 6: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 7: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 8: dateLastModified
+                "'DATE_LAST_MODIFIED' TEXT," + // 8: dateLastModified
                 "'NUMBER' TEXT," + // 9: number
                 "'O_UTYPE_OUTYPE_ID' INTEGER NOT NULL ," + // 10: oUTypeOUTypeId
-                "'IS_DELETED' INTEGER," + // 11: isDeleted
-                "'FEDERAL_TAX_ID' TEXT," + // 12: federalTaxID
-                "'VERSION' INTEGER," + // 13: version
-                "'_id' INTEGER PRIMARY KEY ," + // 14: id
-                "'PARENT_ID' TEXT," + // 15: parentID
-                "'DATE_CREATED' INTEGER," + // 16: dateCreated
-                "'IS_ACTIVE' INTEGER);"); // 17: isActive
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 11: syncBaseId
+                "'IS_DELETED' INTEGER," + // 12: isDeleted
+                "'FEDERAL_TAX_ID' TEXT," + // 13: federalTaxID
+                "'VERSION' INTEGER," + // 14: version
+                "'_id' INTEGER PRIMARY KEY ," + // 15: id
+                "'PARENT_ID' TEXT," + // 16: parentID
+                "'DATE_CREATED' TEXT," + // 17: dateCreated
+                "'IS_ACTIVE' INTEGER);"); // 18: isActive
     }
 
     /** Drops the underlying database table. */
@@ -125,9 +128,9 @@ public class OUDao extends AbstractDao<OU, Long> {
         }
         stmt.bindLong(8, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(9, dateLastModified);
+            stmt.bindString(9, dateLastModified);
         }
  
         String number = entity.getNumber();
@@ -136,39 +139,44 @@ public class OUDao extends AbstractDao<OU, Long> {
         }
         stmt.bindLong(11, entity.getOUTypeOUTypeId());
  
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(12, syncBaseId);
+        }
+ 
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(12, isDeleted ? 1l: 0l);
+            stmt.bindLong(13, isDeleted ? 1l: 0l);
         }
  
         String federalTaxID = entity.getFederalTaxID();
         if (federalTaxID != null) {
-            stmt.bindString(13, federalTaxID);
+            stmt.bindString(14, federalTaxID);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(14, version);
+            stmt.bindLong(15, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(15, id);
+            stmt.bindLong(16, id);
         }
  
         String parentID = entity.getParentID();
         if (parentID != null) {
-            stmt.bindString(16, parentID);
+            stmt.bindString(17, parentID);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(17, dateCreated);
+            stmt.bindString(18, dateCreated);
         }
  
         Boolean isActive = entity.getIsActive();
         if (isActive != null) {
-            stmt.bindLong(18, isActive ? 1l: 0l);
+            stmt.bindLong(19, isActive ? 1l: 0l);
         }
     }
 
@@ -181,7 +189,7 @@ public class OUDao extends AbstractDao<OU, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14);
+        return cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15);
     }    
 
     /** @inheritdoc */
@@ -196,16 +204,17 @@ public class OUDao extends AbstractDao<OU, Long> {
             cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // stateTaxID
             cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // tenantID
             cursor.getLong(offset + 7), // saveResultSaveResultId
-            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // dateLastModified
+            cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8), // dateLastModified
             cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // number
             cursor.getLong(offset + 10), // oUTypeOUTypeId
-            cursor.isNull(offset + 11) ? null : cursor.getShort(offset + 11) != 0, // isDeleted
-            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12), // federalTaxID
-            cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13), // version
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // id
-            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // parentID
-            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // dateCreated
-            cursor.isNull(offset + 17) ? null : cursor.getShort(offset + 17) != 0 // isActive
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // syncBaseId
+            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13), // federalTaxID
+            cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14), // version
+            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // id
+            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16), // parentID
+            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // dateCreated
+            cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0 // isActive
         );
         return entity;
     }
@@ -221,16 +230,17 @@ public class OUDao extends AbstractDao<OU, Long> {
         entity.setStateTaxID(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
         entity.setTenantID(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 7));
-        entity.setDateLastModified(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
+        entity.setDateLastModified(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
         entity.setNumber(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
         entity.setOUTypeOUTypeId(cursor.getLong(offset + 10));
-        entity.setIsDeleted(cursor.isNull(offset + 11) ? null : cursor.getShort(offset + 11) != 0);
-        entity.setFederalTaxID(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
-        entity.setVersion(cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13));
-        entity.setId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
-        entity.setParentID(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
-        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
-        entity.setIsActive(cursor.isNull(offset + 17) ? null : cursor.getShort(offset + 17) != 0);
+        entity.setSyncBaseId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
+        entity.setFederalTaxID(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
+        entity.setVersion(cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14));
+        entity.setId(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
+        entity.setParentID(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
+        entity.setDateCreated(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
+        entity.setIsActive(cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0);
      }
     
     /** @inheritdoc */
@@ -367,4 +377,35 @@ public class OUDao extends AbstractDao<OU, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(OU entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(OU entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(OU entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(OU entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(OU entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("OU", new TypeToken<List<OU>>(){}.getType());
+        GreenSync.registerTypeToken("OU", OU.class);
+    }
+
 }

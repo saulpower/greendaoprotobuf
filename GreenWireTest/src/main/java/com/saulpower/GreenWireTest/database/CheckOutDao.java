@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -36,15 +38,16 @@ public class CheckOutDao extends AbstractDao<CheckOut, Long> {
         public final static Property TagString = new Property(4, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(5, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(6, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(7, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property DateLastModified = new Property(7, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
         public final static Property Latitude = new Property(8, Float.class, "latitude", false, "LATITUDE");
         public final static Property CaptureMethod = new Property(9, TimeCardCaptureMethod.class, "captureMethod", false, "CAPTURE_METHOD");
-        public final static Property ApproverID = new Property(10, String.class, "approverID", false, "APPROVER_ID");
-        public final static Property IsDeleted = new Property(11, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(12, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(13, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(14, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property Longitude = new Property(15, Float.class, "longitude", false, "LONGITUDE");
+        public final static Property SyncBaseId = new Property(10, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property ApproverID = new Property(11, String.class, "approverID", false, "APPROVER_ID");
+        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(13, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(14, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(15, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property Longitude = new Property(16, Float.class, "longitude", false, "LONGITUDE");
     };
 
     private DaoSession daoSession;
@@ -71,15 +74,16 @@ public class CheckOutDao extends AbstractDao<CheckOut, Long> {
                 "'TAG_STRING' TEXT," + // 4: tagString
                 "'TENANT_ID' INTEGER," + // 5: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 6: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 7: dateLastModified
+                "'DATE_LAST_MODIFIED' TEXT," + // 7: dateLastModified
                 "'LATITUDE' REAL," + // 8: latitude
                 "'CAPTURE_METHOD' INTEGER," + // 9: captureMethod
-                "'APPROVER_ID' TEXT," + // 10: approverID
-                "'IS_DELETED' INTEGER," + // 11: isDeleted
-                "'VERSION' INTEGER," + // 12: version
-                "'_id' INTEGER PRIMARY KEY ," + // 13: id
-                "'DATE_CREATED' INTEGER," + // 14: dateCreated
-                "'LONGITUDE' REAL);"); // 15: longitude
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 10: syncBaseId
+                "'APPROVER_ID' TEXT," + // 11: approverID
+                "'IS_DELETED' INTEGER," + // 12: isDeleted
+                "'VERSION' INTEGER," + // 13: version
+                "'_id' INTEGER PRIMARY KEY ," + // 14: id
+                "'DATE_CREATED' TEXT," + // 15: dateCreated
+                "'LONGITUDE' REAL);"); // 16: longitude
     }
 
     /** Drops the underlying database table. */
@@ -120,9 +124,9 @@ public class CheckOutDao extends AbstractDao<CheckOut, Long> {
         }
         stmt.bindLong(7, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(8, dateLastModified);
+            stmt.bindString(8, dateLastModified);
         }
  
         Float latitude = entity.getLatitude();
@@ -135,34 +139,39 @@ public class CheckOutDao extends AbstractDao<CheckOut, Long> {
             stmt.bindLong(10, captureMethod.getValue());
         }
  
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(11, syncBaseId);
+        }
+ 
         String approverID = entity.getApproverID();
         if (approverID != null) {
-            stmt.bindString(11, approverID);
+            stmt.bindString(12, approverID);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(12, isDeleted ? 1l: 0l);
+            stmt.bindLong(13, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(13, version);
+            stmt.bindLong(14, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(14, id);
+            stmt.bindLong(15, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(15, dateCreated);
+            stmt.bindString(16, dateCreated);
         }
  
         Float longitude = entity.getLongitude();
         if (longitude != null) {
-            stmt.bindDouble(16, longitude);
+            stmt.bindDouble(17, longitude);
         }
     }
 
@@ -175,7 +184,7 @@ public class CheckOutDao extends AbstractDao<CheckOut, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13);
+        return cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14);
     }    
 
     /** @inheritdoc */
@@ -189,15 +198,16 @@ public class CheckOutDao extends AbstractDao<CheckOut, Long> {
             cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // tagString
             cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5), // tenantID
             cursor.getLong(offset + 6), // saveResultSaveResultId
-            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // dateLastModified
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // dateLastModified
             cursor.isNull(offset + 8) ? null : cursor.getFloat(offset + 8), // latitude
             cursor.isNull(offset + 9) ? null : TimeCardCaptureMethod.fromInt(cursor.getLong(offset + 9)), // captureMethod
-            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // approverID
-            cursor.isNull(offset + 11) ? null : cursor.getShort(offset + 11) != 0, // isDeleted
-            cursor.isNull(offset + 12) ? null : cursor.getInt(offset + 12), // version
-            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // id
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // dateCreated
-            cursor.isNull(offset + 15) ? null : cursor.getFloat(offset + 15) // longitude
+            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // syncBaseId
+            cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // approverID
+            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
+            cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13), // version
+            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // id
+            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // dateCreated
+            cursor.isNull(offset + 16) ? null : cursor.getFloat(offset + 16) // longitude
         );
         return entity;
     }
@@ -212,15 +222,16 @@ public class CheckOutDao extends AbstractDao<CheckOut, Long> {
         entity.setTagString(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
         entity.setTenantID(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 6));
-        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
         entity.setLatitude(cursor.isNull(offset + 8) ? null : cursor.getFloat(offset + 8));
         entity.setCaptureMethod(cursor.isNull(offset + 9) ? null : TimeCardCaptureMethod.fromInt(cursor.getLong(offset + 9)));
-        entity.setApproverID(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
-        entity.setIsDeleted(cursor.isNull(offset + 11) ? null : cursor.getShort(offset + 11) != 0);
-        entity.setVersion(cursor.isNull(offset + 12) ? null : cursor.getInt(offset + 12));
-        entity.setId(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
-        entity.setDateCreated(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
-        entity.setLongitude(cursor.isNull(offset + 15) ? null : cursor.getFloat(offset + 15));
+        entity.setSyncBaseId(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
+        entity.setApproverID(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
+        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
+        entity.setVersion(cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13));
+        entity.setId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
+        entity.setDateCreated(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
+        entity.setLongitude(cursor.isNull(offset + 16) ? null : cursor.getFloat(offset + 16));
      }
     
     /** @inheritdoc */
@@ -353,4 +364,35 @@ public class CheckOutDao extends AbstractDao<CheckOut, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(CheckOut entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(CheckOut entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(CheckOut entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(CheckOut entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(CheckOut entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("CheckOut", new TypeToken<List<CheckOut>>(){}.getType());
+        GreenSync.registerTypeToken("CheckOut", CheckOut.class);
+    }
+
 }

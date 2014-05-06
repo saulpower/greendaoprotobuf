@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -38,20 +40,25 @@ public class AllergyDao extends AbstractDao<Allergy, Long> {
         public final static Property TagString = new Property(6, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(7, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(8, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(9, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDeleted = new Property(10, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(11, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(12, Long.class, "id", true, "_id");
-        public final static Property AllergiesStudentId = new Property(13, long.class, "allergiesStudentId", false, "ALLERGIES_STUDENT_ID");
-        public final static Property DateCreated = new Property(14, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property Treatment = new Property(15, String.class, "treatment", false, "TREATMENT");
-        public final static Property Notes = new Property(16, String.class, "notes", false, "NOTES");
+        public final static Property DateLastModified = new Property(9, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property AllergiesGuardianId = new Property(10, long.class, "allergiesGuardianId", false, "ALLERGIES_GUARDIAN_ID");
+        public final static Property SyncBaseId = new Property(11, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(12, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(13, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(14, Long.class, "id", true, "_id");
+        public final static Property AllergiesStudentId = new Property(15, long.class, "allergiesStudentId", false, "ALLERGIES_STUDENT_ID");
+        public final static Property DateCreated = new Property(16, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property Treatment = new Property(17, String.class, "treatment", false, "TREATMENT");
+        public final static Property Notes = new Property(18, String.class, "notes", false, "NOTES");
     };
 
     private DaoSession daoSession;
 
-    private Query<Allergy> student_AllergiesQuery;
     private Query<Allergy> person_AllergiesQuery;
+
+    private Query<Allergy> student_AllergiesQuery;
+
+    private Query<Allergy> guardian_AllergiesQuery;
 
     public AllergyDao(DaoConfig config) {
         super(config);
@@ -75,14 +82,16 @@ public class AllergyDao extends AbstractDao<Allergy, Long> {
                 "'TAG_STRING' TEXT," + // 6: tagString
                 "'TENANT_ID' INTEGER," + // 7: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 8: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 9: dateLastModified
-                "'IS_DELETED' INTEGER," + // 10: isDeleted
-                "'VERSION' INTEGER," + // 11: version
-                "'_id' INTEGER PRIMARY KEY ," + // 12: id
-                "'ALLERGIES_STUDENT_ID' INTEGER NOT NULL ," + // 13: allergiesStudentId
-                "'DATE_CREATED' INTEGER," + // 14: dateCreated
-                "'TREATMENT' TEXT," + // 15: treatment
-                "'NOTES' TEXT);"); // 16: notes
+                "'DATE_LAST_MODIFIED' TEXT," + // 9: dateLastModified
+                "'ALLERGIES_GUARDIAN_ID' INTEGER NOT NULL ," + // 10: allergiesGuardianId
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 11: syncBaseId
+                "'IS_DELETED' INTEGER," + // 12: isDeleted
+                "'VERSION' INTEGER," + // 13: version
+                "'_id' INTEGER PRIMARY KEY ," + // 14: id
+                "'ALLERGIES_STUDENT_ID' INTEGER NOT NULL ," + // 15: allergiesStudentId
+                "'DATE_CREATED' TEXT," + // 16: dateCreated
+                "'TREATMENT' TEXT," + // 17: treatment
+                "'NOTES' TEXT);"); // 18: notes
     }
 
     /** Drops the underlying database table. */
@@ -133,40 +142,46 @@ public class AllergyDao extends AbstractDao<Allergy, Long> {
         }
         stmt.bindLong(9, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(10, dateLastModified);
+            stmt.bindString(10, dateLastModified);
+        }
+        stmt.bindLong(11, entity.getAllergiesGuardianId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(12, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(11, isDeleted ? 1l: 0l);
+            stmt.bindLong(13, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(12, version);
+            stmt.bindLong(14, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(13, id);
+            stmt.bindLong(15, id);
         }
-        stmt.bindLong(14, entity.getAllergiesStudentId());
+        stmt.bindLong(16, entity.getAllergiesStudentId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(15, dateCreated);
+            stmt.bindString(17, dateCreated);
         }
  
         String treatment = entity.getTreatment();
         if (treatment != null) {
-            stmt.bindString(16, treatment);
+            stmt.bindString(18, treatment);
         }
  
         String notes = entity.getNotes();
         if (notes != null) {
-            stmt.bindString(17, notes);
+            stmt.bindString(19, notes);
         }
     }
 
@@ -179,7 +194,7 @@ public class AllergyDao extends AbstractDao<Allergy, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12);
+        return cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14);
     }    
 
     /** @inheritdoc */
@@ -195,14 +210,16 @@ public class AllergyDao extends AbstractDao<Allergy, Long> {
             cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // tagString
             cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // tenantID
             cursor.getLong(offset + 8), // saveResultSaveResultId
-            cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // dateLastModified
-            cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0, // isDeleted
-            cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11), // version
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // id
-            cursor.getLong(offset + 13), // allergiesStudentId
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // dateCreated
-            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // treatment
-            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16) // notes
+            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // dateLastModified
+            cursor.getLong(offset + 10), // allergiesGuardianId
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // syncBaseId
+            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // isDeleted
+            cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13), // version
+            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // id
+            cursor.getLong(offset + 15), // allergiesStudentId
+            cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16), // dateCreated
+            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // treatment
+            cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18) // notes
         );
         return entity;
     }
@@ -219,14 +236,16 @@ public class AllergyDao extends AbstractDao<Allergy, Long> {
         entity.setTagString(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
         entity.setTenantID(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 8));
-        entity.setDateLastModified(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
-        entity.setIsDeleted(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
-        entity.setVersion(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
-        entity.setId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
-        entity.setAllergiesStudentId(cursor.getLong(offset + 13));
-        entity.setDateCreated(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
-        entity.setTreatment(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
-        entity.setNotes(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
+        entity.setDateLastModified(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+        entity.setAllergiesGuardianId(cursor.getLong(offset + 10));
+        entity.setSyncBaseId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setIsDeleted(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
+        entity.setVersion(cursor.isNull(offset + 13) ? null : cursor.getInt(offset + 13));
+        entity.setId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
+        entity.setAllergiesStudentId(cursor.getLong(offset + 15));
+        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getString(offset + 16));
+        entity.setTreatment(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
+        entity.setNotes(cursor.isNull(offset + 18) ? null : cursor.getString(offset + 18));
      }
     
     /** @inheritdoc */
@@ -252,6 +271,20 @@ public class AllergyDao extends AbstractDao<Allergy, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "allergies" to-many relationship of Person. */
+    public List<Allergy> _queryPerson_Allergies(long allergiesPersonId) {
+        synchronized (this) {
+            if (person_AllergiesQuery == null) {
+                QueryBuilder<Allergy> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.AllergiesPersonId.eq(null));
+                person_AllergiesQuery = queryBuilder.build();
+            }
+        }
+        Query<Allergy> query = person_AllergiesQuery.forCurrentThread();
+        query.setParameter(0, allergiesPersonId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "allergies" to-many relationship of Student. */
     public List<Allergy> _queryStudent_Allergies(long allergiesStudentId) {
         synchronized (this) {
@@ -266,17 +299,17 @@ public class AllergyDao extends AbstractDao<Allergy, Long> {
         return query.list();
     }
 
-    /** Internal query to resolve the "allergies" to-many relationship of Person. */
-    public List<Allergy> _queryPerson_Allergies(long allergiesPersonId) {
+    /** Internal query to resolve the "allergies" to-many relationship of Guardian. */
+    public List<Allergy> _queryGuardian_Allergies(long allergiesGuardianId) {
         synchronized (this) {
-            if (person_AllergiesQuery == null) {
+            if (guardian_AllergiesQuery == null) {
                 QueryBuilder<Allergy> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.AllergiesPersonId.eq(null));
-                person_AllergiesQuery = queryBuilder.build();
+                queryBuilder.where(Properties.AllergiesGuardianId.eq(null));
+                guardian_AllergiesQuery = queryBuilder.build();
             }
         }
-        Query<Allergy> query = person_AllergiesQuery.forCurrentThread();
-        query.setParameter(0, allergiesPersonId);
+        Query<Allergy> query = guardian_AllergiesQuery.forCurrentThread();
+        query.setParameter(0, allergiesGuardianId);
         return query.list();
     }
 
@@ -373,4 +406,35 @@ public class AllergyDao extends AbstractDao<Allergy, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Allergy entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Allergy entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Allergy entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Allergy entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Allergy entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Allergy", new TypeToken<List<Allergy>>(){}.getType());
+        GreenSync.registerTypeToken("Allergy", Allergy.class);
+    }
+
 }

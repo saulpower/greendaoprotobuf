@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -34,16 +36,20 @@ public class EmploymentStatusDao extends AbstractDao<EmploymentStatus, Long> {
         public final static Property TagString = new Property(3, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(4, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(5, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(6, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDeleted = new Property(7, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(8, Integer.class, "version", false, "VERSION");
-        public final static Property EmploymentStatusesOUId = new Property(9, long.class, "employmentStatusesOUId", false, "EMPLOYMENT_STATUSES_OUID");
-        public final static Property Id = new Property(10, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(11, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property IsActive = new Property(12, Boolean.class, "isActive", false, "IS_ACTIVE");
+        public final static Property DateLastModified = new Property(6, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(7, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(8, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(9, Integer.class, "version", false, "VERSION");
+        public final static Property EmploymentStatusesOUId = new Property(10, long.class, "employmentStatusesOUId", false, "EMPLOYMENT_STATUSES_OUID");
+        public final static Property Id = new Property(11, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(12, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property EmploymentStatusesCenterId = new Property(13, long.class, "employmentStatusesCenterId", false, "EMPLOYMENT_STATUSES_CENTER_ID");
+        public final static Property IsActive = new Property(14, Boolean.class, "isActive", false, "IS_ACTIVE");
     };
 
     private DaoSession daoSession;
+
+    private Query<EmploymentStatus> center_EmploymentStatusesQuery;
 
     private Query<EmploymentStatus> oU_EmploymentStatusesQuery;
 
@@ -66,13 +72,15 @@ public class EmploymentStatusDao extends AbstractDao<EmploymentStatus, Long> {
                 "'TAG_STRING' TEXT," + // 3: tagString
                 "'TENANT_ID' INTEGER," + // 4: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 5: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 6: dateLastModified
-                "'IS_DELETED' INTEGER," + // 7: isDeleted
-                "'VERSION' INTEGER," + // 8: version
-                "'EMPLOYMENT_STATUSES_OUID' INTEGER NOT NULL ," + // 9: employmentStatusesOUId
-                "'_id' INTEGER PRIMARY KEY ," + // 10: id
-                "'DATE_CREATED' INTEGER," + // 11: dateCreated
-                "'IS_ACTIVE' INTEGER);"); // 12: isActive
+                "'DATE_LAST_MODIFIED' TEXT," + // 6: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 7: syncBaseId
+                "'IS_DELETED' INTEGER," + // 8: isDeleted
+                "'VERSION' INTEGER," + // 9: version
+                "'EMPLOYMENT_STATUSES_OUID' INTEGER NOT NULL ," + // 10: employmentStatusesOUId
+                "'_id' INTEGER PRIMARY KEY ," + // 11: id
+                "'DATE_CREATED' TEXT," + // 12: dateCreated
+                "'EMPLOYMENT_STATUSES_CENTER_ID' INTEGER NOT NULL ," + // 13: employmentStatusesCenterId
+                "'IS_ACTIVE' INTEGER);"); // 14: isActive
     }
 
     /** Drops the underlying database table. */
@@ -112,35 +120,41 @@ public class EmploymentStatusDao extends AbstractDao<EmploymentStatus, Long> {
         }
         stmt.bindLong(6, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(7, dateLastModified);
+            stmt.bindString(7, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(8, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(8, isDeleted ? 1l: 0l);
+            stmt.bindLong(9, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(9, version);
+            stmt.bindLong(10, version);
         }
-        stmt.bindLong(10, entity.getEmploymentStatusesOUId());
+        stmt.bindLong(11, entity.getEmploymentStatusesOUId());
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(11, id);
+            stmt.bindLong(12, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(12, dateCreated);
+            stmt.bindString(13, dateCreated);
         }
+        stmt.bindLong(14, entity.getEmploymentStatusesCenterId());
  
         Boolean isActive = entity.getIsActive();
         if (isActive != null) {
-            stmt.bindLong(13, isActive ? 1l: 0l);
+            stmt.bindLong(15, isActive ? 1l: 0l);
         }
     }
 
@@ -153,7 +167,7 @@ public class EmploymentStatusDao extends AbstractDao<EmploymentStatus, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10);
+        return cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11);
     }    
 
     /** @inheritdoc */
@@ -166,13 +180,15 @@ public class EmploymentStatusDao extends AbstractDao<EmploymentStatus, Long> {
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // tagString
             cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4), // tenantID
             cursor.getLong(offset + 5), // saveResultSaveResultId
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // dateLastModified
-            cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0, // isDeleted
-            cursor.isNull(offset + 8) ? null : cursor.getInt(offset + 8), // version
-            cursor.getLong(offset + 9), // employmentStatusesOUId
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // id
-            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // dateCreated
-            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0 // isActive
+            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // dateLastModified
+            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // syncBaseId
+            cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0, // isDeleted
+            cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9), // version
+            cursor.getLong(offset + 10), // employmentStatusesOUId
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // id
+            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12), // dateCreated
+            cursor.getLong(offset + 13), // employmentStatusesCenterId
+            cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0 // isActive
         );
         return entity;
     }
@@ -186,13 +202,15 @@ public class EmploymentStatusDao extends AbstractDao<EmploymentStatus, Long> {
         entity.setTagString(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
         entity.setTenantID(cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 5));
-        entity.setDateLastModified(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setIsDeleted(cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0);
-        entity.setVersion(cursor.isNull(offset + 8) ? null : cursor.getInt(offset + 8));
-        entity.setEmploymentStatusesOUId(cursor.getLong(offset + 9));
-        entity.setId(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
-        entity.setDateCreated(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
-        entity.setIsActive(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
+        entity.setDateLastModified(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
+        entity.setSyncBaseId(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setIsDeleted(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
+        entity.setVersion(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
+        entity.setEmploymentStatusesOUId(cursor.getLong(offset + 10));
+        entity.setId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setDateCreated(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
+        entity.setEmploymentStatusesCenterId(cursor.getLong(offset + 13));
+        entity.setIsActive(cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0);
      }
     
     /** @inheritdoc */
@@ -218,6 +236,20 @@ public class EmploymentStatusDao extends AbstractDao<EmploymentStatus, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "employmentStatuses" to-many relationship of Center. */
+    public List<EmploymentStatus> _queryCenter_EmploymentStatuses(long employmentStatusesCenterId) {
+        synchronized (this) {
+            if (center_EmploymentStatusesQuery == null) {
+                QueryBuilder<EmploymentStatus> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.EmploymentStatusesCenterId.eq(null));
+                center_EmploymentStatusesQuery = queryBuilder.build();
+            }
+        }
+        Query<EmploymentStatus> query = center_EmploymentStatusesQuery.forCurrentThread();
+        query.setParameter(0, employmentStatusesCenterId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "employmentStatuses" to-many relationship of OU. */
     public List<EmploymentStatus> _queryOU_EmploymentStatuses(long employmentStatusesOUId) {
         synchronized (this) {
@@ -325,4 +357,35 @@ public class EmploymentStatusDao extends AbstractDao<EmploymentStatus, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(EmploymentStatus entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(EmploymentStatus entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(EmploymentStatus entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(EmploymentStatus entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(EmploymentStatus entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("EmploymentStatus", new TypeToken<List<EmploymentStatus>>(){}.getType());
+        GreenSync.registerTypeToken("EmploymentStatus", EmploymentStatus.class);
+    }
+
 }

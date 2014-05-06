@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -29,29 +31,35 @@ public class ImmunizationDao extends AbstractDao<Immunization, Long> {
     */
     public static class Properties {
         public final static Property PersonPersonId = new Property(0, long.class, "personPersonId", false, "PERSON_PERSON_ID");
-        public final static Property DefinitionID = new Property(1, String.class, "definitionID", false, "DEFINITION_ID");
-        public final static Property ExternalID = new Property(2, String.class, "externalID", false, "EXTERNAL_ID");
-        public final static Property Guid = new Property(3, String.class, "guid", false, "GUID");
-        public final static Property Name = new Property(4, String.class, "name", false, "NAME");
-        public final static Property TagString = new Property(5, String.class, "tagString", false, "TAG_STRING");
-        public final static Property TenantID = new Property(6, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property SaveResultSaveResultId = new Property(7, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property ImmunizationsStudentId = new Property(8, long.class, "immunizationsStudentId", false, "IMMUNIZATIONS_STUDENT_ID");
-        public final static Property DateLastModified = new Property(9, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property DefinitionImmunizationDefinitionId = new Property(10, long.class, "definitionImmunizationDefinitionId", false, "DEFINITION_IMMUNIZATION_DEFINITION_ID");
-        public final static Property IsDeleted = new Property(11, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(12, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(13, Long.class, "id", true, "_id");
-        public final static Property ImmunizationsPersonId = new Property(14, long.class, "immunizationsPersonId", false, "IMMUNIZATIONS_PERSON_ID");
-        public final static Property DateCreated = new Property(15, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property ImmunizationsImmunizationDefinitionId = new Property(16, long.class, "immunizationsImmunizationDefinitionId", false, "IMMUNIZATIONS_IMMUNIZATION_DEFINITION_ID");
+        public final static Property ImmunizationsGuardianId = new Property(1, long.class, "immunizationsGuardianId", false, "IMMUNIZATIONS_GUARDIAN_ID");
+        public final static Property DefinitionID = new Property(2, String.class, "definitionID", false, "DEFINITION_ID");
+        public final static Property ExternalID = new Property(3, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property Guid = new Property(4, String.class, "guid", false, "GUID");
+        public final static Property Name = new Property(5, String.class, "name", false, "NAME");
+        public final static Property TagString = new Property(6, String.class, "tagString", false, "TAG_STRING");
+        public final static Property TenantID = new Property(7, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property SaveResultSaveResultId = new Property(8, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property ImmunizationsStudentId = new Property(9, long.class, "immunizationsStudentId", false, "IMMUNIZATIONS_STUDENT_ID");
+        public final static Property DateLastModified = new Property(10, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property DefinitionImmunizationDefinitionId = new Property(11, long.class, "definitionImmunizationDefinitionId", false, "DEFINITION_IMMUNIZATION_DEFINITION_ID");
+        public final static Property SyncBaseId = new Property(12, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(13, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(14, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(15, Long.class, "id", true, "_id");
+        public final static Property ImmunizationsPersonId = new Property(16, long.class, "immunizationsPersonId", false, "IMMUNIZATIONS_PERSON_ID");
+        public final static Property DateCreated = new Property(17, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property ImmunizationsImmunizationDefinitionId = new Property(18, long.class, "immunizationsImmunizationDefinitionId", false, "IMMUNIZATIONS_IMMUNIZATION_DEFINITION_ID");
     };
 
     private DaoSession daoSession;
 
-    private Query<Immunization> student_ImmunizationsQuery;
     private Query<Immunization> person_ImmunizationsQuery;
+
+    private Query<Immunization> student_ImmunizationsQuery;
+
     private Query<Immunization> immunizationDefinition_ImmunizationsQuery;
+
+    private Query<Immunization> guardian_ImmunizationsQuery;
 
     public ImmunizationDao(DaoConfig config) {
         super(config);
@@ -67,22 +75,24 @@ public class ImmunizationDao extends AbstractDao<Immunization, Long> {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'IMMUNIZATION' (" + //
                 "'PERSON_PERSON_ID' INTEGER NOT NULL ," + // 0: personPersonId
-                "'DEFINITION_ID' TEXT," + // 1: definitionID
-                "'EXTERNAL_ID' TEXT," + // 2: externalID
-                "'GUID' TEXT," + // 3: guid
-                "'NAME' TEXT," + // 4: name
-                "'TAG_STRING' TEXT," + // 5: tagString
-                "'TENANT_ID' INTEGER," + // 6: tenantID
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 7: saveResultSaveResultId
-                "'IMMUNIZATIONS_STUDENT_ID' INTEGER NOT NULL ," + // 8: immunizationsStudentId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 9: dateLastModified
-                "'DEFINITION_IMMUNIZATION_DEFINITION_ID' INTEGER NOT NULL ," + // 10: definitionImmunizationDefinitionId
-                "'IS_DELETED' INTEGER," + // 11: isDeleted
-                "'VERSION' INTEGER," + // 12: version
-                "'_id' INTEGER PRIMARY KEY ," + // 13: id
-                "'IMMUNIZATIONS_PERSON_ID' INTEGER NOT NULL ," + // 14: immunizationsPersonId
-                "'DATE_CREATED' INTEGER," + // 15: dateCreated
-                "'IMMUNIZATIONS_IMMUNIZATION_DEFINITION_ID' INTEGER NOT NULL );"); // 16: immunizationsImmunizationDefinitionId
+                "'IMMUNIZATIONS_GUARDIAN_ID' INTEGER NOT NULL ," + // 1: immunizationsGuardianId
+                "'DEFINITION_ID' TEXT," + // 2: definitionID
+                "'EXTERNAL_ID' TEXT," + // 3: externalID
+                "'GUID' TEXT," + // 4: guid
+                "'NAME' TEXT," + // 5: name
+                "'TAG_STRING' TEXT," + // 6: tagString
+                "'TENANT_ID' INTEGER," + // 7: tenantID
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 8: saveResultSaveResultId
+                "'IMMUNIZATIONS_STUDENT_ID' INTEGER NOT NULL ," + // 9: immunizationsStudentId
+                "'DATE_LAST_MODIFIED' TEXT," + // 10: dateLastModified
+                "'DEFINITION_IMMUNIZATION_DEFINITION_ID' INTEGER NOT NULL ," + // 11: definitionImmunizationDefinitionId
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 12: syncBaseId
+                "'IS_DELETED' INTEGER," + // 13: isDeleted
+                "'VERSION' INTEGER," + // 14: version
+                "'_id' INTEGER PRIMARY KEY ," + // 15: id
+                "'IMMUNIZATIONS_PERSON_ID' INTEGER NOT NULL ," + // 16: immunizationsPersonId
+                "'DATE_CREATED' TEXT," + // 17: dateCreated
+                "'IMMUNIZATIONS_IMMUNIZATION_DEFINITION_ID' INTEGER NOT NULL );"); // 18: immunizationsImmunizationDefinitionId
     }
 
     /** Drops the underlying database table. */
@@ -96,66 +106,72 @@ public class ImmunizationDao extends AbstractDao<Immunization, Long> {
     protected void bindValues(SQLiteStatement stmt, Immunization entity) {
         stmt.clearBindings();
         stmt.bindLong(1, entity.getPersonPersonId());
+        stmt.bindLong(2, entity.getImmunizationsGuardianId());
  
         String definitionID = entity.getDefinitionID();
         if (definitionID != null) {
-            stmt.bindString(2, definitionID);
+            stmt.bindString(3, definitionID);
         }
  
         String externalID = entity.getExternalID();
         if (externalID != null) {
-            stmt.bindString(3, externalID);
+            stmt.bindString(4, externalID);
         }
  
         String guid = entity.getGuid();
         if (guid != null) {
-            stmt.bindString(4, guid);
+            stmt.bindString(5, guid);
         }
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(5, name);
+            stmt.bindString(6, name);
         }
  
         String tagString = entity.getTagString();
         if (tagString != null) {
-            stmt.bindString(6, tagString);
+            stmt.bindString(7, tagString);
         }
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
-            stmt.bindLong(7, tenantID);
+            stmt.bindLong(8, tenantID);
         }
-        stmt.bindLong(8, entity.getSaveResultSaveResultId());
-        stmt.bindLong(9, entity.getImmunizationsStudentId());
+        stmt.bindLong(9, entity.getSaveResultSaveResultId());
+        stmt.bindLong(10, entity.getImmunizationsStudentId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(10, dateLastModified);
+            stmt.bindString(11, dateLastModified);
         }
-        stmt.bindLong(11, entity.getDefinitionImmunizationDefinitionId());
+        stmt.bindLong(12, entity.getDefinitionImmunizationDefinitionId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(13, syncBaseId);
+        }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(12, isDeleted ? 1l: 0l);
+            stmt.bindLong(14, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(13, version);
+            stmt.bindLong(15, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(14, id);
+            stmt.bindLong(16, id);
         }
-        stmt.bindLong(15, entity.getImmunizationsPersonId());
+        stmt.bindLong(17, entity.getImmunizationsPersonId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(16, dateCreated);
+            stmt.bindString(18, dateCreated);
         }
-        stmt.bindLong(17, entity.getImmunizationsImmunizationDefinitionId());
+        stmt.bindLong(19, entity.getImmunizationsImmunizationDefinitionId());
     }
 
     @Override
@@ -167,7 +183,7 @@ public class ImmunizationDao extends AbstractDao<Immunization, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13);
+        return cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15);
     }    
 
     /** @inheritdoc */
@@ -175,22 +191,24 @@ public class ImmunizationDao extends AbstractDao<Immunization, Long> {
     public Immunization readEntity(Cursor cursor, int offset) {
         Immunization entity = new Immunization( //
             cursor.getLong(offset + 0), // personPersonId
-            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // definitionID
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // externalID
-            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // guid
-            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // name
-            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // tagString
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // tenantID
-            cursor.getLong(offset + 7), // saveResultSaveResultId
-            cursor.getLong(offset + 8), // immunizationsStudentId
-            cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // dateLastModified
-            cursor.getLong(offset + 10), // definitionImmunizationDefinitionId
-            cursor.isNull(offset + 11) ? null : cursor.getShort(offset + 11) != 0, // isDeleted
-            cursor.isNull(offset + 12) ? null : cursor.getInt(offset + 12), // version
-            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // id
-            cursor.getLong(offset + 14), // immunizationsPersonId
-            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // dateCreated
-            cursor.getLong(offset + 16) // immunizationsImmunizationDefinitionId
+            cursor.getLong(offset + 1), // immunizationsGuardianId
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // definitionID
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // externalID
+            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // guid
+            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // name
+            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // tagString
+            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // tenantID
+            cursor.getLong(offset + 8), // saveResultSaveResultId
+            cursor.getLong(offset + 9), // immunizationsStudentId
+            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // dateLastModified
+            cursor.getLong(offset + 11), // definitionImmunizationDefinitionId
+            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // syncBaseId
+            cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0, // isDeleted
+            cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14), // version
+            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // id
+            cursor.getLong(offset + 16), // immunizationsPersonId
+            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // dateCreated
+            cursor.getLong(offset + 18) // immunizationsImmunizationDefinitionId
         );
         return entity;
     }
@@ -199,22 +217,24 @@ public class ImmunizationDao extends AbstractDao<Immunization, Long> {
     @Override
     public void readEntity(Cursor cursor, Immunization entity, int offset) {
         entity.setPersonPersonId(cursor.getLong(offset + 0));
-        entity.setDefinitionID(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
-        entity.setExternalID(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setGuid(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setName(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
-        entity.setTagString(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
-        entity.setTenantID(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 7));
-        entity.setImmunizationsStudentId(cursor.getLong(offset + 8));
-        entity.setDateLastModified(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
-        entity.setDefinitionImmunizationDefinitionId(cursor.getLong(offset + 10));
-        entity.setIsDeleted(cursor.isNull(offset + 11) ? null : cursor.getShort(offset + 11) != 0);
-        entity.setVersion(cursor.isNull(offset + 12) ? null : cursor.getInt(offset + 12));
-        entity.setId(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
-        entity.setImmunizationsPersonId(cursor.getLong(offset + 14));
-        entity.setDateCreated(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
-        entity.setImmunizationsImmunizationDefinitionId(cursor.getLong(offset + 16));
+        entity.setImmunizationsGuardianId(cursor.getLong(offset + 1));
+        entity.setDefinitionID(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setExternalID(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setGuid(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setName(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
+        entity.setTagString(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
+        entity.setTenantID(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 8));
+        entity.setImmunizationsStudentId(cursor.getLong(offset + 9));
+        entity.setDateLastModified(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
+        entity.setDefinitionImmunizationDefinitionId(cursor.getLong(offset + 11));
+        entity.setSyncBaseId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
+        entity.setIsDeleted(cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0);
+        entity.setVersion(cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14));
+        entity.setId(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
+        entity.setImmunizationsPersonId(cursor.getLong(offset + 16));
+        entity.setDateCreated(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
+        entity.setImmunizationsImmunizationDefinitionId(cursor.getLong(offset + 18));
      }
     
     /** @inheritdoc */
@@ -240,20 +260,6 @@ public class ImmunizationDao extends AbstractDao<Immunization, Long> {
         return true;
     }
     
-    /** Internal query to resolve the "immunizations" to-many relationship of Student. */
-    public List<Immunization> _queryStudent_Immunizations(long immunizationsStudentId) {
-        synchronized (this) {
-            if (student_ImmunizationsQuery == null) {
-                QueryBuilder<Immunization> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.ImmunizationsStudentId.eq(null));
-                student_ImmunizationsQuery = queryBuilder.build();
-            }
-        }
-        Query<Immunization> query = student_ImmunizationsQuery.forCurrentThread();
-        query.setParameter(0, immunizationsStudentId);
-        return query.list();
-    }
-
     /** Internal query to resolve the "immunizations" to-many relationship of Person. */
     public List<Immunization> _queryPerson_Immunizations(long immunizationsPersonId) {
         synchronized (this) {
@@ -268,6 +274,20 @@ public class ImmunizationDao extends AbstractDao<Immunization, Long> {
         return query.list();
     }
 
+    /** Internal query to resolve the "immunizations" to-many relationship of Student. */
+    public List<Immunization> _queryStudent_Immunizations(long immunizationsStudentId) {
+        synchronized (this) {
+            if (student_ImmunizationsQuery == null) {
+                QueryBuilder<Immunization> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.ImmunizationsStudentId.eq(null));
+                student_ImmunizationsQuery = queryBuilder.build();
+            }
+        }
+        Query<Immunization> query = student_ImmunizationsQuery.forCurrentThread();
+        query.setParameter(0, immunizationsStudentId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "immunizations" to-many relationship of ImmunizationDefinition. */
     public List<Immunization> _queryImmunizationDefinition_Immunizations(long immunizationsImmunizationDefinitionId) {
         synchronized (this) {
@@ -279,6 +299,20 @@ public class ImmunizationDao extends AbstractDao<Immunization, Long> {
         }
         Query<Immunization> query = immunizationDefinition_ImmunizationsQuery.forCurrentThread();
         query.setParameter(0, immunizationsImmunizationDefinitionId);
+        return query.list();
+    }
+
+    /** Internal query to resolve the "immunizations" to-many relationship of Guardian. */
+    public List<Immunization> _queryGuardian_Immunizations(long immunizationsGuardianId) {
+        synchronized (this) {
+            if (guardian_ImmunizationsQuery == null) {
+                QueryBuilder<Immunization> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.ImmunizationsGuardianId.eq(null));
+                guardian_ImmunizationsQuery = queryBuilder.build();
+            }
+        }
+        Query<Immunization> query = guardian_ImmunizationsQuery.forCurrentThread();
+        query.setParameter(0, immunizationsGuardianId);
         return query.list();
     }
 
@@ -393,4 +427,35 @@ public class ImmunizationDao extends AbstractDao<Immunization, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Immunization entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Immunization entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Immunization entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Immunization entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Immunization entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Immunization", new TypeToken<List<Immunization>>(){}.getType());
+        GreenSync.registerTypeToken("Immunization", Immunization.class);
+    }
+
 }

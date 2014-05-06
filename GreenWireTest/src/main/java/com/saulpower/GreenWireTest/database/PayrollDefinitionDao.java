@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -28,21 +30,22 @@ public class PayrollDefinitionDao extends AbstractDao<PayrollDefinition, Long> {
      * Can be used for QueryBuilder and for referencing column names.
     */
     public static class Properties {
-        public final static Property Guid = new Property(0, String.class, "guid", false, "GUID");
-        public final static Property Name = new Property(1, String.class, "name", false, "NAME");
-        public final static Property ExternalID = new Property(2, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property ExternalID = new Property(0, String.class, "externalID", false, "EXTERNAL_ID");
+        public final static Property Guid = new Property(1, String.class, "guid", false, "GUID");
+        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
         public final static Property TagString = new Property(3, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(4, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(5, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(6, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDeleted = new Property(7, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property StartDate = new Property(8, Long.class, "startDate", false, "START_DATE");
-        public final static Property Version = new Property(9, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(10, Long.class, "id", true, "_id");
-        public final static Property PayrollDefinitionsEmployeeFileId = new Property(11, long.class, "payrollDefinitionsEmployeeFileId", false, "PAYROLL_DEFINITIONS_EMPLOYEE_FILE_ID");
-        public final static Property DateCreated = new Property(12, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property IsActive = new Property(13, Boolean.class, "isActive", false, "IS_ACTIVE");
-        public final static Property EndDate = new Property(14, Long.class, "endDate", false, "END_DATE");
+        public final static Property DateLastModified = new Property(6, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(7, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(8, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property StartDate = new Property(9, String.class, "startDate", false, "START_DATE");
+        public final static Property Version = new Property(10, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(11, Long.class, "id", true, "_id");
+        public final static Property PayrollDefinitionsEmployeeFileId = new Property(12, long.class, "payrollDefinitionsEmployeeFileId", false, "PAYROLL_DEFINITIONS_EMPLOYEE_FILE_ID");
+        public final static Property DateCreated = new Property(13, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property IsActive = new Property(14, Boolean.class, "isActive", false, "IS_ACTIVE");
+        public final static Property EndDate = new Property(15, String.class, "endDate", false, "END_DATE");
     };
 
     private DaoSession daoSession;
@@ -62,21 +65,22 @@ public class PayrollDefinitionDao extends AbstractDao<PayrollDefinition, Long> {
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "'PAYROLL_DEFINITION' (" + //
-                "'GUID' TEXT," + // 0: guid
-                "'NAME' TEXT," + // 1: name
-                "'EXTERNAL_ID' TEXT," + // 2: externalID
+                "'EXTERNAL_ID' TEXT," + // 0: externalID
+                "'GUID' TEXT," + // 1: guid
+                "'NAME' TEXT," + // 2: name
                 "'TAG_STRING' TEXT," + // 3: tagString
                 "'TENANT_ID' INTEGER," + // 4: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 5: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 6: dateLastModified
-                "'IS_DELETED' INTEGER," + // 7: isDeleted
-                "'START_DATE' INTEGER," + // 8: startDate
-                "'VERSION' INTEGER," + // 9: version
-                "'_id' INTEGER PRIMARY KEY ," + // 10: id
-                "'PAYROLL_DEFINITIONS_EMPLOYEE_FILE_ID' INTEGER NOT NULL ," + // 11: payrollDefinitionsEmployeeFileId
-                "'DATE_CREATED' INTEGER," + // 12: dateCreated
-                "'IS_ACTIVE' INTEGER," + // 13: isActive
-                "'END_DATE' INTEGER);"); // 14: endDate
+                "'DATE_LAST_MODIFIED' TEXT," + // 6: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 7: syncBaseId
+                "'IS_DELETED' INTEGER," + // 8: isDeleted
+                "'START_DATE' TEXT," + // 9: startDate
+                "'VERSION' INTEGER," + // 10: version
+                "'_id' INTEGER PRIMARY KEY ," + // 11: id
+                "'PAYROLL_DEFINITIONS_EMPLOYEE_FILE_ID' INTEGER NOT NULL ," + // 12: payrollDefinitionsEmployeeFileId
+                "'DATE_CREATED' TEXT," + // 13: dateCreated
+                "'IS_ACTIVE' INTEGER," + // 14: isActive
+                "'END_DATE' TEXT);"); // 15: endDate
     }
 
     /** Drops the underlying database table. */
@@ -90,19 +94,19 @@ public class PayrollDefinitionDao extends AbstractDao<PayrollDefinition, Long> {
     protected void bindValues(SQLiteStatement stmt, PayrollDefinition entity) {
         stmt.clearBindings();
  
+        String externalID = entity.getExternalID();
+        if (externalID != null) {
+            stmt.bindString(1, externalID);
+        }
+ 
         String guid = entity.getGuid();
         if (guid != null) {
-            stmt.bindString(1, guid);
+            stmt.bindString(2, guid);
         }
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(2, name);
-        }
- 
-        String externalID = entity.getExternalID();
-        if (externalID != null) {
-            stmt.bindString(3, externalID);
+            stmt.bindString(3, name);
         }
  
         String tagString = entity.getTagString();
@@ -116,45 +120,50 @@ public class PayrollDefinitionDao extends AbstractDao<PayrollDefinition, Long> {
         }
         stmt.bindLong(6, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(7, dateLastModified);
+            stmt.bindString(7, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(8, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(8, isDeleted ? 1l: 0l);
+            stmt.bindLong(9, isDeleted ? 1l: 0l);
         }
  
-        Long startDate = entity.getStartDate();
+        String startDate = entity.getStartDate();
         if (startDate != null) {
-            stmt.bindLong(9, startDate);
+            stmt.bindString(10, startDate);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(10, version);
+            stmt.bindLong(11, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(11, id);
+            stmt.bindLong(12, id);
         }
-        stmt.bindLong(12, entity.getPayrollDefinitionsEmployeeFileId());
+        stmt.bindLong(13, entity.getPayrollDefinitionsEmployeeFileId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(13, dateCreated);
+            stmt.bindString(14, dateCreated);
         }
  
         Boolean isActive = entity.getIsActive();
         if (isActive != null) {
-            stmt.bindLong(14, isActive ? 1l: 0l);
+            stmt.bindLong(15, isActive ? 1l: 0l);
         }
  
-        Long endDate = entity.getEndDate();
+        String endDate = entity.getEndDate();
         if (endDate != null) {
-            stmt.bindLong(15, endDate);
+            stmt.bindString(16, endDate);
         }
     }
 
@@ -167,28 +176,29 @@ public class PayrollDefinitionDao extends AbstractDao<PayrollDefinition, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10);
+        return cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11);
     }    
 
     /** @inheritdoc */
     @Override
     public PayrollDefinition readEntity(Cursor cursor, int offset) {
         PayrollDefinition entity = new PayrollDefinition( //
-            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // guid
-            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // name
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // externalID
+            cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // externalID
+            cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // guid
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // tagString
             cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4), // tenantID
             cursor.getLong(offset + 5), // saveResultSaveResultId
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // dateLastModified
-            cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0, // isDeleted
-            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // startDate
-            cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9), // version
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // id
-            cursor.getLong(offset + 11), // payrollDefinitionsEmployeeFileId
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // dateCreated
-            cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0, // isActive
-            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14) // endDate
+            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // dateLastModified
+            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // syncBaseId
+            cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0, // isDeleted
+            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // startDate
+            cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // version
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // id
+            cursor.getLong(offset + 12), // payrollDefinitionsEmployeeFileId
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13), // dateCreated
+            cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0, // isActive
+            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15) // endDate
         );
         return entity;
     }
@@ -196,21 +206,22 @@ public class PayrollDefinitionDao extends AbstractDao<PayrollDefinition, Long> {
     /** @inheritdoc */
     @Override
     public void readEntity(Cursor cursor, PayrollDefinition entity, int offset) {
-        entity.setGuid(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
-        entity.setName(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
-        entity.setExternalID(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setExternalID(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
+        entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setTagString(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
         entity.setTenantID(cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 5));
-        entity.setDateLastModified(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setIsDeleted(cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0);
-        entity.setStartDate(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
-        entity.setVersion(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
-        entity.setId(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
-        entity.setPayrollDefinitionsEmployeeFileId(cursor.getLong(offset + 11));
-        entity.setDateCreated(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
-        entity.setIsActive(cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0);
-        entity.setEndDate(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
+        entity.setDateLastModified(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
+        entity.setSyncBaseId(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setIsDeleted(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
+        entity.setStartDate(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+        entity.setVersion(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
+        entity.setId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setPayrollDefinitionsEmployeeFileId(cursor.getLong(offset + 12));
+        entity.setDateCreated(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
+        entity.setIsActive(cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0);
+        entity.setEndDate(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
      }
     
     /** @inheritdoc */
@@ -343,4 +354,35 @@ public class PayrollDefinitionDao extends AbstractDao<PayrollDefinition, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(PayrollDefinition entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(PayrollDefinition entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(PayrollDefinition entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(PayrollDefinition entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(PayrollDefinition entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("PayrollDefinition", new TypeToken<List<PayrollDefinition>>(){}.getType());
+        GreenSync.registerTypeToken("PayrollDefinition", PayrollDefinition.class);
+    }
+
 }

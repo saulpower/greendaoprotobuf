@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -32,24 +34,29 @@ public class NoteDao extends AbstractDao<Note, Long> {
         public final static Property Guid = new Property(1, String.class, "guid", false, "GUID");
         public final static Property Name = new Property(2, String.class, "name", false, "NAME");
         public final static Property TagString = new Property(3, String.class, "tagString", false, "TAG_STRING");
-        public final static Property TenantID = new Property(4, Long.class, "tenantID", false, "TENANT_ID");
-        public final static Property SaveResultSaveResultId = new Property(5, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(6, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property NotesPersonId = new Property(7, long.class, "notesPersonId", false, "NOTES_PERSON_ID");
-        public final static Property IsDeleted = new Property(8, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(9, Integer.class, "version", false, "VERSION");
-        public final static Property Content = new Property(10, String.class, "content", false, "CONTENT");
-        public final static Property OwnerID = new Property(11, String.class, "ownerID", false, "OWNER_ID");
-        public final static Property Id = new Property(12, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(13, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property NotesStudentId = new Property(14, long.class, "notesStudentId", false, "NOTES_STUDENT_ID");
-        public final static Property UserID = new Property(15, String.class, "userID", false, "USER_ID");
+        public final static Property NotesGuardianId = new Property(4, long.class, "notesGuardianId", false, "NOTES_GUARDIAN_ID");
+        public final static Property TenantID = new Property(5, Long.class, "tenantID", false, "TENANT_ID");
+        public final static Property SaveResultSaveResultId = new Property(6, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
+        public final static Property DateLastModified = new Property(7, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property NotesPersonId = new Property(8, long.class, "notesPersonId", false, "NOTES_PERSON_ID");
+        public final static Property SyncBaseId = new Property(9, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(10, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(11, Integer.class, "version", false, "VERSION");
+        public final static Property Content = new Property(12, String.class, "content", false, "CONTENT");
+        public final static Property OwnerID = new Property(13, String.class, "ownerID", false, "OWNER_ID");
+        public final static Property Id = new Property(14, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(15, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property NotesStudentId = new Property(16, long.class, "notesStudentId", false, "NOTES_STUDENT_ID");
+        public final static Property UserID = new Property(17, String.class, "userID", false, "USER_ID");
     };
 
     private DaoSession daoSession;
 
-    private Query<Note> student_NotesQuery;
     private Query<Note> person_NotesQuery;
+
+    private Query<Note> student_NotesQuery;
+
+    private Query<Note> guardian_NotesQuery;
 
     public NoteDao(DaoConfig config) {
         super(config);
@@ -68,18 +75,20 @@ public class NoteDao extends AbstractDao<Note, Long> {
                 "'GUID' TEXT," + // 1: guid
                 "'NAME' TEXT," + // 2: name
                 "'TAG_STRING' TEXT," + // 3: tagString
-                "'TENANT_ID' INTEGER," + // 4: tenantID
-                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 5: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 6: dateLastModified
-                "'NOTES_PERSON_ID' INTEGER NOT NULL ," + // 7: notesPersonId
-                "'IS_DELETED' INTEGER," + // 8: isDeleted
-                "'VERSION' INTEGER," + // 9: version
-                "'CONTENT' TEXT," + // 10: content
-                "'OWNER_ID' TEXT," + // 11: ownerID
-                "'_id' INTEGER PRIMARY KEY ," + // 12: id
-                "'DATE_CREATED' INTEGER," + // 13: dateCreated
-                "'NOTES_STUDENT_ID' INTEGER NOT NULL ," + // 14: notesStudentId
-                "'USER_ID' TEXT);"); // 15: userID
+                "'NOTES_GUARDIAN_ID' INTEGER NOT NULL ," + // 4: notesGuardianId
+                "'TENANT_ID' INTEGER," + // 5: tenantID
+                "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 6: saveResultSaveResultId
+                "'DATE_LAST_MODIFIED' TEXT," + // 7: dateLastModified
+                "'NOTES_PERSON_ID' INTEGER NOT NULL ," + // 8: notesPersonId
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 9: syncBaseId
+                "'IS_DELETED' INTEGER," + // 10: isDeleted
+                "'VERSION' INTEGER," + // 11: version
+                "'CONTENT' TEXT," + // 12: content
+                "'OWNER_ID' TEXT," + // 13: ownerID
+                "'_id' INTEGER PRIMARY KEY ," + // 14: id
+                "'DATE_CREATED' TEXT," + // 15: dateCreated
+                "'NOTES_STUDENT_ID' INTEGER NOT NULL ," + // 16: notesStudentId
+                "'USER_ID' TEXT);"); // 17: userID
     }
 
     /** Drops the underlying database table. */
@@ -112,53 +121,59 @@ public class NoteDao extends AbstractDao<Note, Long> {
         if (tagString != null) {
             stmt.bindString(4, tagString);
         }
+        stmt.bindLong(5, entity.getNotesGuardianId());
  
         Long tenantID = entity.getTenantID();
         if (tenantID != null) {
-            stmt.bindLong(5, tenantID);
+            stmt.bindLong(6, tenantID);
         }
-        stmt.bindLong(6, entity.getSaveResultSaveResultId());
+        stmt.bindLong(7, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(7, dateLastModified);
+            stmt.bindString(8, dateLastModified);
         }
-        stmt.bindLong(8, entity.getNotesPersonId());
+        stmt.bindLong(9, entity.getNotesPersonId());
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(10, syncBaseId);
+        }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(9, isDeleted ? 1l: 0l);
+            stmt.bindLong(11, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(10, version);
+            stmt.bindLong(12, version);
         }
  
         String content = entity.getContent();
         if (content != null) {
-            stmt.bindString(11, content);
+            stmt.bindString(13, content);
         }
  
         String ownerID = entity.getOwnerID();
         if (ownerID != null) {
-            stmt.bindString(12, ownerID);
+            stmt.bindString(14, ownerID);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(13, id);
+            stmt.bindLong(15, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(14, dateCreated);
+            stmt.bindString(16, dateCreated);
         }
-        stmt.bindLong(15, entity.getNotesStudentId());
+        stmt.bindLong(17, entity.getNotesStudentId());
  
         String userID = entity.getUserID();
         if (userID != null) {
-            stmt.bindString(16, userID);
+            stmt.bindString(18, userID);
         }
     }
 
@@ -171,7 +186,7 @@ public class NoteDao extends AbstractDao<Note, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12);
+        return cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14);
     }    
 
     /** @inheritdoc */
@@ -182,18 +197,20 @@ public class NoteDao extends AbstractDao<Note, Long> {
             cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // guid
             cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // tagString
-            cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4), // tenantID
-            cursor.getLong(offset + 5), // saveResultSaveResultId
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // dateLastModified
-            cursor.getLong(offset + 7), // notesPersonId
-            cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0, // isDeleted
-            cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9), // version
-            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // content
-            cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // ownerID
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // id
-            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // dateCreated
-            cursor.getLong(offset + 14), // notesStudentId
-            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15) // userID
+            cursor.getLong(offset + 4), // notesGuardianId
+            cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5), // tenantID
+            cursor.getLong(offset + 6), // saveResultSaveResultId
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // dateLastModified
+            cursor.getLong(offset + 8), // notesPersonId
+            cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // syncBaseId
+            cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0, // isDeleted
+            cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11), // version
+            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12), // content
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13), // ownerID
+            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14), // id
+            cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15), // dateCreated
+            cursor.getLong(offset + 16), // notesStudentId
+            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17) // userID
         );
         return entity;
     }
@@ -205,18 +222,20 @@ public class NoteDao extends AbstractDao<Note, Long> {
         entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setTagString(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setTenantID(cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4));
-        entity.setSaveResultSaveResultId(cursor.getLong(offset + 5));
-        entity.setDateLastModified(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setNotesPersonId(cursor.getLong(offset + 7));
-        entity.setIsDeleted(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
-        entity.setVersion(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
-        entity.setContent(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
-        entity.setOwnerID(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
-        entity.setId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
-        entity.setDateCreated(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
-        entity.setNotesStudentId(cursor.getLong(offset + 14));
-        entity.setUserID(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
+        entity.setNotesGuardianId(cursor.getLong(offset + 4));
+        entity.setTenantID(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
+        entity.setSaveResultSaveResultId(cursor.getLong(offset + 6));
+        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
+        entity.setNotesPersonId(cursor.getLong(offset + 8));
+        entity.setSyncBaseId(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
+        entity.setIsDeleted(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
+        entity.setVersion(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
+        entity.setContent(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
+        entity.setOwnerID(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
+        entity.setId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
+        entity.setDateCreated(cursor.isNull(offset + 15) ? null : cursor.getString(offset + 15));
+        entity.setNotesStudentId(cursor.getLong(offset + 16));
+        entity.setUserID(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
      }
     
     /** @inheritdoc */
@@ -242,6 +261,20 @@ public class NoteDao extends AbstractDao<Note, Long> {
         return true;
     }
     
+    /** Internal query to resolve the "notes" to-many relationship of Person. */
+    public List<Note> _queryPerson_Notes(long notesPersonId) {
+        synchronized (this) {
+            if (person_NotesQuery == null) {
+                QueryBuilder<Note> queryBuilder = queryBuilder();
+                queryBuilder.where(Properties.NotesPersonId.eq(null));
+                person_NotesQuery = queryBuilder.build();
+            }
+        }
+        Query<Note> query = person_NotesQuery.forCurrentThread();
+        query.setParameter(0, notesPersonId);
+        return query.list();
+    }
+
     /** Internal query to resolve the "notes" to-many relationship of Student. */
     public List<Note> _queryStudent_Notes(long notesStudentId) {
         synchronized (this) {
@@ -256,17 +289,17 @@ public class NoteDao extends AbstractDao<Note, Long> {
         return query.list();
     }
 
-    /** Internal query to resolve the "notes" to-many relationship of Person. */
-    public List<Note> _queryPerson_Notes(long notesPersonId) {
+    /** Internal query to resolve the "notes" to-many relationship of Guardian. */
+    public List<Note> _queryGuardian_Notes(long notesGuardianId) {
         synchronized (this) {
-            if (person_NotesQuery == null) {
+            if (guardian_NotesQuery == null) {
                 QueryBuilder<Note> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.NotesPersonId.eq(null));
-                person_NotesQuery = queryBuilder.build();
+                queryBuilder.where(Properties.NotesGuardianId.eq(null));
+                guardian_NotesQuery = queryBuilder.build();
             }
         }
-        Query<Note> query = person_NotesQuery.forCurrentThread();
-        query.setParameter(0, notesPersonId);
+        Query<Note> query = guardian_NotesQuery.forCurrentThread();
+        query.setParameter(0, notesGuardianId);
         return query.list();
     }
 
@@ -363,4 +396,35 @@ public class NoteDao extends AbstractDao<Note, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(Note entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(Note entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(Note entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(Note entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(Note entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("Note", new TypeToken<List<Note>>(){}.getType());
+        GreenSync.registerTypeToken("Note", Note.class);
+    }
+
 }

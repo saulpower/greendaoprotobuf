@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -39,19 +41,22 @@ public class ClassAssignmentDao extends AbstractDao<ClassAssignment, Long> {
         public final static Property TagString = new Property(8, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(9, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(10, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(11, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property DateLastModified = new Property(11, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
         public final static Property ClassAssignmentsStudentId = new Property(12, long.class, "classAssignmentsStudentId", false, "CLASS_ASSIGNMENTS_STUDENT_ID");
-        public final static Property IsDeleted = new Property(13, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(14, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(15, Long.class, "id", true, "_id");
-        public final static Property DateCreated = new Property(16, Long.class, "dateCreated", false, "DATE_CREATED");
-        public final static Property ClassAssignmentsClaszId = new Property(17, long.class, "classAssignmentsClaszId", false, "CLASS_ASSIGNMENTS_CLASZ_ID");
+        public final static Property SyncBaseId = new Property(13, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(14, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(15, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(16, Long.class, "id", true, "_id");
+        public final static Property DateCreated = new Property(17, String.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property ClassAssignmentsClaszId = new Property(18, long.class, "classAssignmentsClaszId", false, "CLASS_ASSIGNMENTS_CLASZ_ID");
     };
 
     private DaoSession daoSession;
 
     private Query<ClassAssignment> student_ClassAssignmentsQuery;
+
     private Query<ClassAssignment> clasz_ClassAssignmentsQuery;
+
     private Query<ClassAssignment> clasz_EmployeesQuery;
 
     public ClassAssignmentDao(DaoConfig config) {
@@ -78,13 +83,14 @@ public class ClassAssignmentDao extends AbstractDao<ClassAssignment, Long> {
                 "'TAG_STRING' TEXT," + // 8: tagString
                 "'TENANT_ID' INTEGER," + // 9: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 10: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 11: dateLastModified
+                "'DATE_LAST_MODIFIED' TEXT," + // 11: dateLastModified
                 "'CLASS_ASSIGNMENTS_STUDENT_ID' INTEGER NOT NULL ," + // 12: classAssignmentsStudentId
-                "'IS_DELETED' INTEGER," + // 13: isDeleted
-                "'VERSION' INTEGER," + // 14: version
-                "'_id' INTEGER PRIMARY KEY ," + // 15: id
-                "'DATE_CREATED' INTEGER," + // 16: dateCreated
-                "'CLASS_ASSIGNMENTS_CLASZ_ID' INTEGER NOT NULL );"); // 17: classAssignmentsClaszId
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 13: syncBaseId
+                "'IS_DELETED' INTEGER," + // 14: isDeleted
+                "'VERSION' INTEGER," + // 15: version
+                "'_id' INTEGER PRIMARY KEY ," + // 16: id
+                "'DATE_CREATED' TEXT," + // 17: dateCreated
+                "'CLASS_ASSIGNMENTS_CLASZ_ID' INTEGER NOT NULL );"); // 18: classAssignmentsClaszId
     }
 
     /** Drops the underlying database table. */
@@ -137,32 +143,37 @@ public class ClassAssignmentDao extends AbstractDao<ClassAssignment, Long> {
         }
         stmt.bindLong(11, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(12, dateLastModified);
+            stmt.bindString(12, dateLastModified);
         }
         stmt.bindLong(13, entity.getClassAssignmentsStudentId());
  
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(14, syncBaseId);
+        }
+ 
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(14, isDeleted ? 1l: 0l);
+            stmt.bindLong(15, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(15, version);
+            stmt.bindLong(16, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(16, id);
+            stmt.bindLong(17, id);
         }
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(17, dateCreated);
+            stmt.bindString(18, dateCreated);
         }
-        stmt.bindLong(18, entity.getClassAssignmentsClaszId());
+        stmt.bindLong(19, entity.getClassAssignmentsClaszId());
     }
 
     @Override
@@ -174,7 +185,7 @@ public class ClassAssignmentDao extends AbstractDao<ClassAssignment, Long> {
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15);
+        return cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16);
     }    
 
     /** @inheritdoc */
@@ -192,13 +203,14 @@ public class ClassAssignmentDao extends AbstractDao<ClassAssignment, Long> {
             cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8), // tagString
             cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // tenantID
             cursor.getLong(offset + 10), // saveResultSaveResultId
-            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // dateLastModified
+            cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // dateLastModified
             cursor.getLong(offset + 12), // classAssignmentsStudentId
-            cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0, // isDeleted
-            cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14), // version
-            cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15), // id
-            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // dateCreated
-            cursor.getLong(offset + 17) // classAssignmentsClaszId
+            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // syncBaseId
+            cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0, // isDeleted
+            cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15), // version
+            cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16), // id
+            cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17), // dateCreated
+            cursor.getLong(offset + 18) // classAssignmentsClaszId
         );
         return entity;
     }
@@ -217,13 +229,14 @@ public class ClassAssignmentDao extends AbstractDao<ClassAssignment, Long> {
         entity.setTagString(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
         entity.setTenantID(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 10));
-        entity.setDateLastModified(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setDateLastModified(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
         entity.setClassAssignmentsStudentId(cursor.getLong(offset + 12));
-        entity.setIsDeleted(cursor.isNull(offset + 13) ? null : cursor.getShort(offset + 13) != 0);
-        entity.setVersion(cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14));
-        entity.setId(cursor.isNull(offset + 15) ? null : cursor.getLong(offset + 15));
-        entity.setDateCreated(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
-        entity.setClassAssignmentsClaszId(cursor.getLong(offset + 17));
+        entity.setSyncBaseId(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
+        entity.setIsDeleted(cursor.isNull(offset + 14) ? null : cursor.getShort(offset + 14) != 0);
+        entity.setVersion(cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15));
+        entity.setId(cursor.isNull(offset + 16) ? null : cursor.getLong(offset + 16));
+        entity.setDateCreated(cursor.isNull(offset + 17) ? null : cursor.getString(offset + 17));
+        entity.setClassAssignmentsClaszId(cursor.getLong(offset + 18));
      }
     
     /** @inheritdoc */
@@ -402,4 +415,35 @@ public class ClassAssignmentDao extends AbstractDao<ClassAssignment, Long> {
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(ClassAssignment entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(ClassAssignment entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(ClassAssignment entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(ClassAssignment entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(ClassAssignment entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("ClassAssignment", new TypeToken<List<ClassAssignment>>(){}.getType());
+        GreenSync.registerTypeToken("ClassAssignment", ClassAssignment.class);
+    }
+
 }

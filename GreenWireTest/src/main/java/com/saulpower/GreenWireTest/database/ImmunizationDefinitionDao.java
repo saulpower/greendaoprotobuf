@@ -1,6 +1,8 @@
 package com.saulpower.GreenWireTest.database;
 
 import java.util.List;
+import de.greenrobot.dao.sync.GreenSync;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -33,16 +35,16 @@ public class ImmunizationDefinitionDao extends AbstractDao<ImmunizationDefinitio
         public final static Property TagString = new Property(4, String.class, "tagString", false, "TAG_STRING");
         public final static Property TenantID = new Property(5, Long.class, "tenantID", false, "TENANT_ID");
         public final static Property SaveResultSaveResultId = new Property(6, long.class, "saveResultSaveResultId", false, "SAVE_RESULT_SAVE_RESULT_ID");
-        public final static Property DateLastModified = new Property(7, Long.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
-        public final static Property IsDeleted = new Property(8, Boolean.class, "isDeleted", false, "IS_DELETED");
-        public final static Property Version = new Property(9, Integer.class, "version", false, "VERSION");
-        public final static Property Id = new Property(10, Long.class, "id", true, "_id");
-        public final static Property OUOUId = new Property(11, long.class, "oUOUId", false, "O_UOUID");
-        public final static Property DateCreated = new Property(12, Long.class, "dateCreated", false, "DATE_CREATED");
+        public final static Property DateLastModified = new Property(7, String.class, "dateLastModified", false, "DATE_LAST_MODIFIED");
+        public final static Property SyncBaseId = new Property(8, Long.class, "syncBaseId", false, "SYNC_BASE_ID");
+        public final static Property IsDeleted = new Property(9, Boolean.class, "isDeleted", false, "IS_DELETED");
+        public final static Property Version = new Property(10, Integer.class, "version", false, "VERSION");
+        public final static Property Id = new Property(11, Long.class, "id", true, "_id");
+        public final static Property OUOUId = new Property(12, long.class, "oUOUId", false, "O_UOUID");
+        public final static Property DateCreated = new Property(13, String.class, "dateCreated", false, "DATE_CREATED");
     };
 
     private DaoSession daoSession;
-
 
     public ImmunizationDefinitionDao(DaoConfig config) {
         super(config);
@@ -64,12 +66,13 @@ public class ImmunizationDefinitionDao extends AbstractDao<ImmunizationDefinitio
                 "'TAG_STRING' TEXT," + // 4: tagString
                 "'TENANT_ID' INTEGER," + // 5: tenantID
                 "'SAVE_RESULT_SAVE_RESULT_ID' INTEGER NOT NULL ," + // 6: saveResultSaveResultId
-                "'DATE_LAST_MODIFIED' INTEGER," + // 7: dateLastModified
-                "'IS_DELETED' INTEGER," + // 8: isDeleted
-                "'VERSION' INTEGER," + // 9: version
-                "'_id' INTEGER PRIMARY KEY ," + // 10: id
-                "'O_UOUID' INTEGER NOT NULL ," + // 11: oUOUId
-                "'DATE_CREATED' INTEGER);"); // 12: dateCreated
+                "'DATE_LAST_MODIFIED' TEXT," + // 7: dateLastModified
+                "'SYNC_BASE_ID' INTEGER REFERENCES 'SYNC_BASE'('SYNC_BASE_ID') ," + // 8: syncBaseId
+                "'IS_DELETED' INTEGER," + // 9: isDeleted
+                "'VERSION' INTEGER," + // 10: version
+                "'_id' INTEGER PRIMARY KEY ," + // 11: id
+                "'O_UOUID' INTEGER NOT NULL ," + // 12: oUOUId
+                "'DATE_CREATED' TEXT);"); // 13: dateCreated
     }
 
     /** Drops the underlying database table. */
@@ -114,30 +117,35 @@ public class ImmunizationDefinitionDao extends AbstractDao<ImmunizationDefinitio
         }
         stmt.bindLong(7, entity.getSaveResultSaveResultId());
  
-        Long dateLastModified = entity.getDateLastModified();
+        String dateLastModified = entity.getDateLastModified();
         if (dateLastModified != null) {
-            stmt.bindLong(8, dateLastModified);
+            stmt.bindString(8, dateLastModified);
+        }
+ 
+        Long syncBaseId = entity.getSyncBaseId();
+        if (syncBaseId != null) {
+            stmt.bindLong(9, syncBaseId);
         }
  
         Boolean isDeleted = entity.getIsDeleted();
         if (isDeleted != null) {
-            stmt.bindLong(9, isDeleted ? 1l: 0l);
+            stmt.bindLong(10, isDeleted ? 1l: 0l);
         }
  
         Integer version = entity.getVersion();
         if (version != null) {
-            stmt.bindLong(10, version);
+            stmt.bindLong(11, version);
         }
  
         Long id = entity.getId();
         if (id != null) {
-            stmt.bindLong(11, id);
+            stmt.bindLong(12, id);
         }
-        stmt.bindLong(12, entity.getOUOUId());
+        stmt.bindLong(13, entity.getOUOUId());
  
-        Long dateCreated = entity.getDateCreated();
+        String dateCreated = entity.getDateCreated();
         if (dateCreated != null) {
-            stmt.bindLong(13, dateCreated);
+            stmt.bindString(14, dateCreated);
         }
     }
 
@@ -150,7 +158,7 @@ public class ImmunizationDefinitionDao extends AbstractDao<ImmunizationDefinitio
     /** @inheritdoc */
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10);
+        return cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11);
     }    
 
     /** @inheritdoc */
@@ -164,12 +172,13 @@ public class ImmunizationDefinitionDao extends AbstractDao<ImmunizationDefinitio
             cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // tagString
             cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5), // tenantID
             cursor.getLong(offset + 6), // saveResultSaveResultId
-            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // dateLastModified
-            cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0, // isDeleted
-            cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9), // version
-            cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10), // id
-            cursor.getLong(offset + 11), // oUOUId
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12) // dateCreated
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // dateLastModified
+            cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8), // syncBaseId
+            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0, // isDeleted
+            cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // version
+            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // id
+            cursor.getLong(offset + 12), // oUOUId
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13) // dateCreated
         );
         return entity;
     }
@@ -184,12 +193,13 @@ public class ImmunizationDefinitionDao extends AbstractDao<ImmunizationDefinitio
         entity.setTagString(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
         entity.setTenantID(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
         entity.setSaveResultSaveResultId(cursor.getLong(offset + 6));
-        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
-        entity.setIsDeleted(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
-        entity.setVersion(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
-        entity.setId(cursor.isNull(offset + 10) ? null : cursor.getLong(offset + 10));
-        entity.setOUOUId(cursor.getLong(offset + 11));
-        entity.setDateCreated(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
+        entity.setDateLastModified(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
+        entity.setSyncBaseId(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
+        entity.setIsDeleted(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
+        entity.setVersion(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
+        entity.setId(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
+        entity.setOUOUId(cursor.getLong(offset + 12));
+        entity.setDateCreated(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
      }
     
     /** @inheritdoc */
@@ -317,4 +327,35 @@ public class ImmunizationDefinitionDao extends AbstractDao<ImmunizationDefinitio
         return loadDeepAllAndCloseCursor(cursor);
     }
  
+    @Override
+    protected void onPreInsertEntity(ImmunizationDefinition entity) {
+        entity.insertBase(daoSession.getSyncBaseDao());
+        entity.setSyncBaseId(entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreLoadEntity(ImmunizationDefinition entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreRefreshEntity(ImmunizationDefinition entity) {
+        entity.loadBase(daoSession.getSyncBaseDao(), entity.getSyncBaseId());
+    }
+
+    @Override
+    protected void onPreUpdateEntity(ImmunizationDefinition entity) {
+        entity.updateBase(daoSession.getSyncBaseDao());
+    }
+
+    @Override
+    protected void onPreDeleteEntity(ImmunizationDefinition entity) {
+        entity.deleteBase(daoSession.getSyncBaseDao());
+    }
+
+    static {
+        GreenSync.registerListTypeToken("ImmunizationDefinition", new TypeToken<List<ImmunizationDefinition>>(){}.getType());
+        GreenSync.registerTypeToken("ImmunizationDefinition", ImmunizationDefinition.class);
+    }
+
 }
