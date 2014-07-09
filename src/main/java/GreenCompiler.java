@@ -112,6 +112,11 @@ public class GreenCompiler {
     }
 
     private void initializeSchema(int version, String packageName) {
+
+        if (packageName == null) {
+            throw new IllegalArgumentException("No package name specified");
+        }
+
         schema = new Schema(version, packageName);
         schema.enableGreenSync();
     }
