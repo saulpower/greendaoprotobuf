@@ -1,4 +1,9 @@
-import com.squareup.protoparser.*;
+package com.saulpower.greenwire;
+
+import com.squareup.protoparser.EnumType;
+import com.squareup.protoparser.MessageType;
+import com.squareup.protoparser.ProtoFile;
+import com.squareup.protoparser.Type;
 import de.greenrobot.daogenerator.*;
 
 import java.io.File;
@@ -167,22 +172,28 @@ public class GreenCompiler {
 
         String scalarType = TypeInfo.scalarType(field.getType());
 
+        Property.PropertyBuilder builder;
+
         if (scalarType.equals(TypeInfo.INTEGER)) {
-            entity.addIntProperty(firstToLowercase(field.getName()));
+            builder = entity.addIntProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.LONG)) {
-            entity.addLongProperty(firstToLowercase(field.getName()));
+            builder = entity.addLongProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.BOOLEAN)) {
-            entity.addBooleanProperty(firstToLowercase(field.getName()));
+            builder = entity.addBooleanProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.DOUBLE)) {
-            entity.addDoubleProperty(firstToLowercase(field.getName()));
+            builder = entity.addDoubleProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.FLOAT)) {
-            entity.addFloatProperty(firstToLowercase(field.getName()));
+            builder = entity.addFloatProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.BYTE_STRING)) {
-            entity.addByteArrayProperty(firstToLowercase(field.getName()));
+            builder = entity.addByteArrayProperty(firstToLowercase(field.getName()));
         } else if (scalarType.equals(TypeInfo.STRING)) {
-            entity.addStringProperty(firstToLowercase(field.getName()));
+            builder = entity.addStringProperty(firstToLowercase(field.getName()));
         } else {
             throw new GreenCompilerException("No field type for " + scalarType);
+        }
+
+        if (field.getLabel() == MessageType.Label.REPEATED) {
+            builder.asList();
         }
     }
 
@@ -200,11 +211,17 @@ public class GreenCompiler {
 
     private void addRelationship(Entity entity, MessageType.Field field) {
 
+        if (entity == null) {
+            throw new NullPointerException("Cannot create a relationship with a null entity entity");
+        }
+
         String entityType = field.getType();
         Entity foreignEntity = entities.get(entityType);
 
-        if (foreignEntity == null || entity == null) {
-            throw new NullPointerException("Cannot create a relationship with a null entity/foreign entity");
+        if (foreignEntity == null) {
+            throw new NullPointerException("Cannot create a relationship with a null foreign " +
+                                           "entity for " + entity.getClassName() + " and " +
+                                           field.toString());
         }
 
         if (FieldInfo.isRepeated(field)) {

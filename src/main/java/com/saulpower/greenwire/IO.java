@@ -1,4 +1,4 @@
-// Copyright 2013 Square, Inc.
+package com.saulpower.greenwire;// Copyright 2013 Square, Inc.
 
 import com.squareup.javawriter.JavaWriter;
 import com.squareup.protoparser.ProtoFile;
